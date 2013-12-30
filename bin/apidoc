@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import logging
+import os
+from   pprint import pprint
+
+import apidoc.inspect
+
+if __name__ == "__main__":
+   logging.getLogger().setLevel(logging.DEBUG)
+
+   path = os.path.dirname(apidoc.__file__)
+   i = apidoc.inspect.Inspector(path)
+   pprint(i(apidoc.__name__, apidoc))
+
+
+
