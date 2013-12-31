@@ -4,14 +4,14 @@ import logging
 import os
 from   pprint import pprint
 
-import apidoc.inspect
+import apidoc.inspector
 
 if __name__ == "__main__":
    logging.getLogger().setLevel(logging.DEBUG)
 
    path = os.path.dirname(apidoc.__file__)
-   i = apidoc.inspect.Inspector(path)
-   pprint(i.inspect(apidoc.__name__, apidoc))
+   inspector = apidoc.inspector.Inspector(path)
+   pprint(inspector.inspect(apidoc.__name__, apidoc))
 
 
 
