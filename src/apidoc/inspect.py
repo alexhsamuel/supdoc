@@ -1,7 +1,10 @@
 import functools
+import importlib
 import inspect
 import logging
 import os
+import pathlib
+import sys
 
 from   .htmlgen import *
 
@@ -14,6 +17,22 @@ _FUNCTION_TYPE  = type(lambda: 0)
 
 def is_special_symbol(symbol):
     return symbol.startswith("__") and symbol.endswith("__")
+
+
+#-------------------------------------------------------------------------------
+
+class Path(pathlib.Path):
+
+    def __new__(self, *args, **kw_args):
+        if len(args) == 1 and len(kw_args) == 0 and isinstance(args[0], Path):
+            return args[0]
+        else:
+            return pathlib.Path.__new__(Path, *args, **kw_args).resolve()
+
+
+    def starts_with(self, prefix):
+        return any( p == prefix for p in self.parents )
+
 
 
 #-------------------------------------------------------------------------------
@@ -46,16 +65,90 @@ def _(function, name):
 
 #-------------------------------------------------------------------------------
 
+class Name:
+    """
+    The fully-qualified name of a Python object.
+    """
+
+    def __init__(self, parts):
+        if isinstance(name, str):
+            parts = parts.split(".")
+        else:
+            parts = tuple(parts)
+        assert len(parts) > 0
+        self.__parts = parts
+
+
+    def __str__(self):
+        return ".".join(self.__parts)
+
+
+    def __repr__(self):
+        return "{}({})".format(
+            self.__class__.__name__, 
+            ", ".join( repr(p) for p in self.__parts ))
+
+
+    def __len__(self):
+        return len(self.__parts)
+
+
+    def __iter__(self):
+        return iter(self.__parts)
+
+
+    def __getitem__(self, index):
+        return self.__parts[index]
+
+
+    @property
+    def parent(self):
+        if len(self.__parts) == 1:
+            raise AttributeError("name '{}' has no parent".format(self))
+        return self.__class__(self.__parts[: -1])
+
+
+
+    def __plus__(self, part):
+        return self.__class__(self.__parts + (parts, ))
+
+
+
+def import_module_from_filename(path):
+    path = Path(path)
+
+    for load_path in sys.path:
+        try:
+            relative = path.relative_to(load_path)
+        except ValueError:
+            pass
+        else:
+            name = Name(relative.parts)
+            module = importlib.import_module(str(name))
+            if Path(module.__file__) == path:
+                return name, module
+            else:
+                logging.warning(
+                    "module {} imports from {}, not expected {}".format(
+                        name, module.__file__, path))
+    raise RuntimeError("{} is not in the Python path".format(path))
+
+
 class Inspector:
     """
-    Inspects Python code and constructs a JSON representation of API info.
+    Inspects Python modules and constructs a JSON representation of API info.
     """
 
     def __init__(self, path):
         self.__path = os.path.realpath(path)
+        self.__packages = {}
 
 
-    def __call__(self, name, obj):
+    def inspect_package_dir(self, path):
+        pass
+
+
+    def inspect(self, name, obj):
         # FIXME: Can we use functools.singledispatch on a method?
         if inspect.isfunction(obj):
             return self.inspect_function(name, obj)
@@ -109,7 +202,7 @@ class Inspector:
 
         logging.debug("inspect module: {}".format(name))
         contents = [
-            self(n, o)
+            self.inspect(n, o)
             for n, o in inspect.getmembers(module)
             if not is_special_symbol(n)
             ]

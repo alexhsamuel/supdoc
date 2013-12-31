@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
    path = os.path.dirname(apidoc.__file__)
    i = apidoc.inspect.Inspector(path)
-   pprint(i(apidoc.__name__, apidoc))
+   pprint(i.inspect(apidoc.__name__, apidoc))
 
 
 
