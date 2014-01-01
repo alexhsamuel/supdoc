@@ -6,8 +6,6 @@ import os
 import pathlib
 import sys
 
-from   .htmlgen import *
-
 #-------------------------------------------------------------------------------
 
 # FIXME: Get these from a canonical location.
@@ -21,13 +19,13 @@ def is_special_symbol(symbol):
 
 #-------------------------------------------------------------------------------
 
-class Path(pathlib.Path):
+class Path(pathlib.PosixPath):
 
-    def __new__(self, *args, **kw_args):
+    def __new__(class_, *args, **kw_args):
         if len(args) == 1 and len(kw_args) == 0 and isinstance(args[0], Path):
             return args[0]
         else:
-            return pathlib.Path.__new__(Path, *args, **kw_args).resolve()
+            return pathlib.PosixPath.__new__(class_, *args, **kw_args).resolve()
 
 
     def starts_with(self, prefix):
@@ -71,7 +69,7 @@ class Name:
     """
 
     def __init__(self, parts):
-        if isinstance(name, str):
+        if isinstance(parts, str):
             parts = parts.split(".")
         else:
             parts = tuple(parts)
@@ -116,10 +114,13 @@ class Name:
 
 def import_module_from_filename(path):
     path = Path(path)
+    if path.is_dir():
+        # FIXME: Is this general?  Is this right?
+        path = path / "__init__.py"
 
     for load_path in sys.path:
         try:
-            relative = path.relative_to(load_path)
+            relative = path.with_suffix("").relative_to(load_path)
         except ValueError:
             pass
         else:
@@ -213,4 +214,15 @@ class Inspector:
             }
 
 
+
+#-------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    # Remove this module's directory from the load path.
+    sys.path.remove(os.path.dirname(os.path.realpath(sys.argv[0])))
+
+    for path in sys.argv[1 :]:
+        name, module = import_module_from_filename(path)
+        print("{} -> {}".format(name, module))
+    
 
