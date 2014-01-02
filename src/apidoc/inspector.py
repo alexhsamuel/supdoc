@@ -117,9 +117,15 @@ class Inspector:
 
     def _inspect_class(self, name, class_):
         logging.debug("inspecting class: {}".format(name))
+        contents = [ 
+            self._inspect(n, o)
+            for n, o in inspect.getmembers(class_)
+            if not is_special_symbol(n)
+            ]
         result = {
             "type": "class",
             "name": class_.__name__,
+            "contents": contents,
             }
         return result
 
