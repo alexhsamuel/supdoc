@@ -1,4 +1,5 @@
 import importlib
+from   importlib.machinery import SourceFileLoader
 import os
 import sys
 
@@ -124,7 +125,13 @@ if __name__ == "__main__":
     # Remove this module's directory from the load path.
     sys.path.remove(os.path.dirname(os.path.realpath(sys.argv[0])))
 
-    for name, path in enumerate_package(sys.argv[1]):
-        print("{!s:32} -> {}".format(name, path))
+    pkg = Path(sys.argv[1])
+    top = pkg.parent
+
+    for name, path in enumerate_package(pkg):
+        print("{!s:24} -> {}".format(name, path))
+
+        module = SourceFileLoader(str(name), str(path)).load_module()
+        print(module)
 
 
