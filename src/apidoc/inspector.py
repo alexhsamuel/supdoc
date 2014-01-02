@@ -1,10 +1,10 @@
 import functools
-import importlib
 import inspect
 import logging
 import os
-import pathlib
 import sys
+
+from   .path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -15,22 +15,6 @@ _FUNCTION_TYPE  = type(lambda: 0)
 
 def is_special_symbol(symbol):
     return symbol.startswith("__") and symbol.endswith("__")
-
-
-#-------------------------------------------------------------------------------
-
-class Path(pathlib.PosixPath):
-
-    def __new__(class_, *args, **kw_args):
-        if len(args) == 1 and len(kw_args) == 0 and isinstance(args[0], Path):
-            return args[0]
-        else:
-            return pathlib.PosixPath.__new__(class_, *args, **kw_args).resolve()
-
-
-    def starts_with(self, prefix):
-        return any( p == prefix for p in self.parents )
-
 
 
 #-------------------------------------------------------------------------------
@@ -62,78 +46,6 @@ def _(function, name):
 
 
 #-------------------------------------------------------------------------------
-
-class Name:
-    """
-    The fully-qualified name of a Python object.
-    """
-
-    def __init__(self, parts):
-        if isinstance(parts, str):
-            parts = parts.split(".")
-        else:
-            parts = tuple(parts)
-        assert len(parts) > 0
-        self.__parts = parts
-
-
-    def __str__(self):
-        return ".".join(self.__parts)
-
-
-    def __repr__(self):
-        return "{}({})".format(
-            self.__class__.__name__, 
-            ", ".join( repr(p) for p in self.__parts ))
-
-
-    def __len__(self):
-        return len(self.__parts)
-
-
-    def __iter__(self):
-        return iter(self.__parts)
-
-
-    def __getitem__(self, index):
-        return self.__parts[index]
-
-
-    @property
-    def parent(self):
-        if len(self.__parts) == 1:
-            raise AttributeError("name '{}' has no parent".format(self))
-        return self.__class__(self.__parts[: -1])
-
-
-
-    def __plus__(self, part):
-        return self.__class__(self.__parts + (parts, ))
-
-
-
-def import_module_from_filename(path):
-    path = Path(path)
-    if path.is_dir():
-        # FIXME: Is this general?  Is this right?
-        path = path / "__init__.py"
-
-    for load_path in sys.path:
-        try:
-            relative = path.with_suffix("").relative_to(load_path)
-        except ValueError:
-            pass
-        else:
-            name = Name(relative.parts)
-            module = importlib.import_module(str(name))
-            if Path(module.__file__) == path:
-                return name, module
-            else:
-                logging.warning(
-                    "module {} imports from {}, not expected {}".format(
-                        name, module.__file__, path))
-    raise RuntimeError("{} is not in the Python path".format(path))
-
 
 class Inspector:
     """
@@ -214,15 +126,4 @@ class Inspector:
             }
 
 
-
-#-------------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    # Remove this module's directory from the load path.
-    sys.path.remove(os.path.dirname(os.path.realpath(sys.argv[0])))
-
-    for path in sys.argv[1 :]:
-        name, module = import_module_from_filename(path)
-        print("{} -> {}".format(name, module))
-    
 
