@@ -1,10 +1,12 @@
 import functools
+from   importlib.machinery import SourceFileLoader
 import inspect
 import logging
 import os
 import sys
 
-from   .path import Path
+from   apidoc import modules
+from   apidoc.path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -52,29 +54,40 @@ class Inspector:
     Inspects Python modules and constructs a JSON representation of API info.
     """
 
-    def __init__(self, path):
-        self.__path = os.path.realpath(path)
-        self.__packages = {}
+    def __init__(self):
+        self.__modules = {}
 
 
-    def inspect_package_dir(self, path):
-        pass
+    def inspect(self, name, module):
+        result = self._inspect_module(name, module)
+        result["contents"] = [
+            self._inspect(n, o)
+            for n, o in inspect.getmembers(module)
+            if not is_special_symbol(n)
+            ]
+        
+        package = self.__modules
+        for part in name[: -1]:
+            package = package.setdefault(part)
+        package[name[-1]] = result
+
+        return result
 
 
-    def inspect(self, name, obj):
+    def _inspect(self, name, obj):
         # FIXME: Can we use functools.singledispatch on a method?
         if inspect.isfunction(obj):
-            return self.inspect_function(name, obj)
+            return self._inspect_function(name, obj)
         elif inspect.isclass(obj):
-            return self.inspect_class(name, obj)
+            return self._inspect_class(name, obj)
         elif inspect.ismodule(obj):
-            return self.inspect_module(name, obj)
+            return self._inspect_module(name, obj)
         else:
             logging.debug("can't handle {!r}".format(name))
             return None
 
 
-    def inspect_parameter(self, name, parameter):
+    def _inspect_parameter(self, name, parameter):
         result = { 
             "name": parameter.name,
             "kind": str(parameter.kind),
@@ -86,14 +99,14 @@ class Inspector:
         return result
 
 
-    def inspect_function(self, name, function):
+    def _inspect_function(self, name, function):
         logging.debug("inspecting function: {}".format(name))
         signature = inspect.signature(function)
         result = {
             "name": name, 
             "type": "function",
             "parameters": [ 
-                self.inspect_parameter(n, p)
+                self._inspect_parameter(n, p)
                 for n, p in signature.parameters.items() 
                 ],
             }
@@ -102,28 +115,40 @@ class Inspector:
         return result            
 
 
-    def inspect_class(self, name, class_):
+    def _inspect_class(self, name, class_):
         logging.debug("inspecting class: {}".format(name))
-        return "CLASS!!"
+        result = {
+            "type": "class",
+            "name": class_.__name__,
+            }
+        return result
 
         
-    def inspect_module(self, name, module):
-        if not os.path.realpath(module.__file__).startswith(self.__path):
-            logging.debug("skipping module: {}".format(name))
-            # FIXME
-            return None
-
+    def _inspect_module(self, name, module):
         logging.debug("inspect module: {}".format(name))
-        contents = [
-            self.inspect(n, o)
-            for n, o in inspect.getmembers(module)
-            if not is_special_symbol(n)
-            ]
-        return {
+        result = {
             "name": name,
             "type": "module",
-            "contents": contents,
             }
+        try:
+            result["path"] = module.__file__
+        except AttributeError:
+            pass
+        return result
 
+
+
+#-------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    inspector = Inspector()
+
+    for name, path in modules.enumerate_package(sys.argv[1]):
+        module = SourceFileLoader(str(name), str(path)).load_module()
+        docs = inspector.inspect(name, module)
+        print(docs)
+        print()
 
 
