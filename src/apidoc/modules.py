@@ -1,5 +1,6 @@
 import importlib
 from   importlib.machinery import SourceFileLoader
+import logging
 import os
 import sys
 
@@ -117,6 +118,16 @@ def enumerate_package(path):
                 yield from enumerate(sub_path)
     
     yield from enumerate(path)
+
+
+def load_module(name, path):
+    logging.info("loading {} from {}".format(name, path))
+    module = SourceFileLoader(str(name), str(path)).load_module()
+    if len(name) > 1:
+        parent_name = Name(name[: -1])
+        parent = sys.modules[str(parent_name)]
+        setattr(parent, name[-1], module)
+    return module
 
 
 #-------------------------------------------------------------------------------
