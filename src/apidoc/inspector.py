@@ -1,5 +1,4 @@
 import functools
-from   importlib.machinery import SourceFileLoader
 import inspect
 import logging
 import os
@@ -17,34 +16,6 @@ _FUNCTION_TYPE  = type(lambda: 0)
 
 def is_special_symbol(symbol):
     return symbol.startswith("__") and symbol.endswith("__")
-
-
-#-------------------------------------------------------------------------------
-
-@functools.singledispatch
-def do(obj, name):
-    if False:
-        yield
-
-
-@do.register(_MODULE_TYPE)
-def _(module, name):
-    logging.debug("module '{}' in {}".format(name, module.__file__))
-    contents = [ do(o, n) for n, o in inspect.getmembers(module) ]
-    return DIV(
-        SPAN(name, class_="module-name"),
-        DIV(*contents, class_="module-contents"),
-        class_="module")
-
-
-@do.register(_FUNCTION_TYPE)
-def _(function, name):
-    logging.debug("function '{}'".format(name))
-    signature = inspect.signature(function)
-    return DIV(
-        SPAN(name, class_="function-name"),
-        SPAN(signature, class_="function-signature"),
-        class_="function")
 
 
 #-------------------------------------------------------------------------------
@@ -83,7 +54,7 @@ class Inspector:
         elif inspect.ismodule(obj):
             return self._inspect_module(name, obj)
         else:
-            logging.debug("can't handle {!r}".format(name))
+            logging.debug("can't handle {} {!r}".format(type(name).__name__, name))
             return None
 
 
@@ -125,6 +96,8 @@ class Inspector:
         result = {
             "type": "class",
             "name": class_.__name__,
+            "bases": class_.__bases__,
+            "mro": inspect.getmro(class_),
             "contents": contents,
             }
         return result
@@ -142,19 +115,5 @@ class Inspector:
             pass
         return result
 
-
-
-#-------------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    inspector = Inspector()
-
-    for name, path in modules.enumerate_package(sys.argv[1]):
-        module = SourceFileLoader(str(name), str(path)).load_module()
-        docs = inspector.inspect(name, module)
-        print(docs)
-        print()
 
 

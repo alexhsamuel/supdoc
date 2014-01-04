@@ -1,17 +1,35 @@
 #!/usr/bin/env python3
 
+from   importlib.machinery import SourceFileLoader
 import logging
 import os
 from   pprint import pprint
+import sys
 
 import apidoc.inspector
+import apidoc.modules
+
+#-------------------------------------------------------------------------------
+
+def load_module(name, path):
+   module = SourceFileLoader(str(name), str(path)).load_module()
+   if len(name) > 1:
+      parent_name = apidoc.modules.Name(name[: -1])
+      parent = sys.modules[str(parent_name)]
+      setattr(parent, name[-1], module)
+   return module
+
 
 if __name__ == "__main__":
-   logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.DEBUG)
 
-   path = os.path.dirname(apidoc.__file__)
-   inspector = apidoc.inspector.Inspector(path)
-   pprint(inspector.inspect(apidoc.__name__, apidoc))
+    inspector = apidoc.inspector.Inspector()
+    for name, path in apidoc.modules.enumerate_package(sys.argv[1]):
+        logging.info("loading {} from {}".format(name, path))
+        module = load_module(name, path)
 
+        docs = inspector.inspect(name, module)
+        pprint(docs)
+        print()
 
 
