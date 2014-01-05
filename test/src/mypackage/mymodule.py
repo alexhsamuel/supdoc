@@ -10,12 +10,7 @@ import collections
 import logging
 import sys
 
-# FIXME: This doesn't work.
-# print(sys.path)
-# print(__file__)
-# print(__loader__)
-# from   . import support
-from  mypackage import support
+from   . import support
 
 #-------------------------------------------------------------------------------
 
