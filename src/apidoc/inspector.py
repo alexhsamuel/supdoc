@@ -57,20 +57,27 @@ def _inspect_module(module, context):
         path = inspect.getsourcefile(module)
     except TypeError:
         # Built-in module.
-        path = "(built-in)"
+        path = None
     else:
         if path is None:
             path = inspect.getfile(module)
+    path = None if path is None else Path(path)
 
     result = dict(
         type        ="module",
-        path        =path,
+        path        =str(path),
         )
     if context.include(module):
-        logging.debug("inspecting module {}".format(module.__name__))
+        # FIXME: Work around a bug in Python 3.4 that occurs whe importing
+        # an empty module file.
+        # source = inspect.getsourcelines(module)
+        import tokenize
+        with path.open() as file:
+            source = file.readlines()
+
         result.update(
             # FIXME
-            #source  =inspect.getsourcelines(module),
+            source  =source,
             dict    =dict( 
                 (n, _inspect(o, context)) 
                 for n, o in inspect.getmembers(module)
