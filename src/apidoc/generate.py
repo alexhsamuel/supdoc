@@ -32,11 +32,11 @@ def get_relative_path(name0, name1):
 
 #-------------------------------------------------------------------------------
 
-class Context(base.Context):
+class Context(base.Struct("modules", "name")):
 
-    def __init__(self, modules, name=None):
+    def __init__(self, modules, **kw_args):
         modules = { Name(n): m for n, m in modules.items() }
-        super(Context, self).__init__(modules=modules, name=name)
+        super(Context, self).__init__(modules=modules, **kw_args)
         
 
 
@@ -90,7 +90,7 @@ def generate_module(ctx):
 
 
 def write_module_file(ctx, name, path):
-    ctx = ctx(name=Name(name))
+    ctx = ctx.copy(name=Name(name))
     path = Path(path)
 
     logging.debug("generating HTML for {}".format(ctx.name))
