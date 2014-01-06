@@ -1,7 +1,7 @@
-from   collections import ChainMap
 import logging
 import pathlib
 
+from   . import base
 from   .htmlgen import *
 from   .modules import Name
 from   .path import Path
@@ -32,19 +32,12 @@ def get_relative_path(name0, name1):
 
 #-------------------------------------------------------------------------------
 
-class Context:
+class Context(base.Context):
 
-    def __init__(self, **kw_args):
-        self.__dict__.update(kw_args)
-
-
-    def __call__(self, **kw_args):
-        unknown = [ n for n in kw_args if n not in self.__dict__ ]
-        if len(unknown) > 0:
-            raise AttributeError(
-                "unknown attributes: {}".format(", ".join(unknown)))
-        return self.__class__(**ChainMap(kw_args, self.__dict__))
-
+    def __init__(self, modules, name=None):
+        modules = { Name(n): m for n, m in modules.items() }
+        super(Context, self).__init__(modules=modules, name=name)
+        
 
 
 def gen(ctx, name, info):
@@ -57,7 +50,7 @@ def gen_module(ctx, name, module):
     assert module["type"] == "module"
 
     module_name = Name(module["name"])
-    if str(module_name) in ctx.modules:
+    if module_name in ctx.modules:
         link = get_relative_path(ctx.name.parent, module_name)
         module_name = A(module_name, href=link.with_suffix(".html"))
     return DIV(
@@ -76,7 +69,7 @@ def gen_class(ctx, name, class_):
 
 
 def generate_module(ctx):
-    module = ctx.modules[str(ctx.name)]
+    module = ctx.modules[ctx.name]
     assert module["type"] == "module"
 
     parts = [DIV(ctx.name, class_="module-name")]
@@ -112,7 +105,7 @@ def write_module_file(ctx, name, path):
 
 
 def write_module_files(modules, dir):
-    ctx = Context(modules=modules, name=None)
+    ctx = Context(modules=modules)
     dir = Path(dir)
 
     index = []
