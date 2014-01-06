@@ -1,3 +1,4 @@
+import functools
 import importlib
 from   importlib.machinery import SourceFileLoader
 import logging
@@ -8,6 +9,7 @@ from   apidoc.path import Path
 
 #-------------------------------------------------------------------------------
 
+@functools.total_ordering
 class Name:
     """
     The fully-qualified name of a Python object.
@@ -30,6 +32,18 @@ class Name:
         return "{}({})".format(
             self.__class__.__name__, 
             ", ".join( repr(p) for p in self.__parts ))
+
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+
+    def __le__(self, other):
+        return str(self) < str(other)
+
+
+    def __hash__(self):
+        return hash(self.__parts)
 
 
     def __len__(self):

@@ -5,20 +5,14 @@ import logging
 import sys
 
 import apidoc.generate
-from   apidoc.htmlgen import *
 import apidoc.inspector
-import apidoc.modules
 
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
 
-    infos = apidoc.inspector.inspect_package(sys.argv[1])
-    name = apidoc.modules.Name("mypackage.mymodule")
-
-    html = apidoc.generate.gen_module(name, infos[str(name)])
-    html = HTML(BODY(html))
-    print(html.format("\n", " "))
+    modules = apidoc.inspector.inspect_package(sys.argv[1])
+    apidoc.generate.write_module_files(modules, sys.argv[2])
 
 

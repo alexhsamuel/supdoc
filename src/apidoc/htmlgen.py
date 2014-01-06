@@ -29,6 +29,10 @@ class Element:
         except KeyError:
             pass
 
+        children = tuple( 
+            c if isinstance(c, Element) else str(c) for c in children )
+        attrs = { str(n): str(v) for n, v in attrs.items() }
+
         self.__tag = tag
         self.__attrs = attrs
         self.__children = children
@@ -40,7 +44,7 @@ class Element:
 
 
     def __str__(self):
-        return self.format()
+        return self.format("", "")
 
 
     @property
@@ -65,7 +69,7 @@ class Element:
         yield prefix + format_tag(self.__tag, close=True) + terminator
 
 
-    def format(self, terminator="", indent="", depth=0):
+    def format(self, terminator="\n", indent=" ", depth=0):
         return "".join(self.generate(terminator, indent, depth))
 
 
