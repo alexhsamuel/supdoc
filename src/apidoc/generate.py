@@ -1,3 +1,4 @@
+from   collections import ChainMap
 import logging
 import pathlib
 
@@ -31,85 +32,77 @@ def get_relative_path(name0, name1):
 
 #-------------------------------------------------------------------------------
 
-class Generator:
-    """
-    Implementation detail.
-    """
+class Context:
 
-    def __init__(self, modules):
-        self.__modules = { Name(n): m for n, m in modules.items() }
-        self.__name = None
+    def __init__(self, **kw_args):
+        self.__dict__.update(kw_args)
 
 
-    @property
-    def names(self):
-        return sorted( Name(n) for n in self.__modules )
-
-
-    def generate_module(self, name):
-        name = Name(name)
-        self.__name = name  # FIXME: Shame.
-
-        info = self.__modules[name]
-        assert info["type"] == "module"
-
-        parts = [DIV(name, class_="module-name")]
-
-        doc = info.get("doc", None)
-        if doc is not None:
-            parts.append(gen_doc(doc))
-
-        contents = info.get("dict", {})
-        contents = [ 
-            self._gen(n, v) 
-            for n, v in sorted(contents.items()) 
-            ]
-        contents = DIV(*contents, class_="module-contents")
-        parts.append(contents)
-
-        module = DIV(*parts, class_="module")
-        self.__name = None  # FIXME: Shame.
-        return module
-
-
-    def _gen(self, name, info):
-        fn_name = "_gen_" + info["type"]
-        fn = getattr(self, fn_name)
-        return fn(name, info)
-
-
-    def _gen_module(self, name, info):
-        assert info["type"] == "module"
-        
-        module_name = Name(info["name"])
-        if module_name in self.__modules:
-            link = get_relative_path(self.__name.parent, module_name).with_suffix(".html")
-            module_name = A(module_name, href=link)
-        return DIV(
-            "{} = {} ".format(name, module_name), 
-            class_="module-reference")
-
-
-    def _gen_function(self, name, info):
-        assert info["type"] == "function"
-        return DIV("function " + name, class_="function")
-
-
-    def _gen_class(self, name, info):
-        assert info["type"] == "class"
-        return DIV("class " + name, class_="class")
+    def __call__(self, **kw_args):
+        unknown = [ n for n in kw_args if n not in self.__dict__ ]
+        if len(unknown) > 0:
+            raise AttributeError(
+                "unknown attributes: {}".format(", ".join(unknown)))
+        return self.__class__(**ChainMap(kw_args, self.__dict__))
 
 
 
-#-------------------------------------------------------------------------------
+def gen(ctx, name, info):
+    fn_name = "gen_" + info["type"]
+    fn = globals()[fn_name]
+    return fn(ctx, name, info)
 
-def write_module_file(generator, name, path):
-    name = Name(name)
+
+def gen_module(ctx, name, module):
+    assert module["type"] == "module"
+
+    module_name = Name(module["name"])
+    if str(module_name) in ctx.modules:
+        link = get_relative_path(ctx.name.parent, module_name)
+        module_name = A(module_name, href=link.with_suffix(".html"))
+    return DIV(
+        "{} = {} ".format(name, module_name), 
+        class_="module-reference")
+
+
+def gen_function(ctx, name, function):
+    assert function["type"] == "function"
+    return DIV("function " + name, class_="function")
+
+
+def gen_class(ctx, name, class_):
+    assert class_["type"] == "class"
+    return DIV("class " + name, class_="class")
+
+
+def generate_module(ctx):
+    module = ctx.modules[str(ctx.name)]
+    assert module["type"] == "module"
+
+    parts = [DIV(ctx.name, class_="module-name")]
+
+    doc = module.get("doc", None)
+    if doc is not None:
+        parts.append(gen_doc(doc))
+
+    contents = module.get("dict", {})
+    contents = [ 
+        gen(ctx, n, v) 
+        for n, v in sorted(contents.items()) 
+        ]
+    contents = DIV(*contents, class_="module-contents")
+    parts.append(contents)
+
+    return DIV(*parts, class_="module")
+
+
+def write_module_file(ctx, name, path):
+    ctx = ctx(name=Name(name))
     path = Path(path)
 
-    logging.debug("generating HTML for {}".format(name))
-    html = generator.generate_module(name)
-    html = wrap_document(html, title="module {}".format(name))
+    logging.debug("generating HTML for {}".format(ctx.name))
+    html = generate_module(ctx)
+    html = wrap_document(html, title="module {}".format(ctx.name))
 
     logging.debug("writing HTML to {}".format(path))
     if not path.parent.is_dir():
@@ -118,14 +111,16 @@ def write_module_file(generator, name, path):
         file.write(html.format())
 
 
-def write_module_files(generator, dir):
+def write_module_files(modules, dir):
+    ctx = Context(modules=modules, name=None)
     dir = Path(dir)
 
     index = []
 
-    for name in generator.names:
+    for name in sorted(modules):
+        name = Name(name)
         path = get_relative_path(None, name).with_suffix(".html")
-        write_module_file(generator, name, dir / path)
+        write_module_file(ctx, name, dir / path)
 
         link = A(name, href=path, class_="module-link")
         index.append(DIV(link, class_="index-entry"))
@@ -139,8 +134,6 @@ def write_module_files(generator, dir):
 #-------------------------------------------------------------------------------
 
 __all__ = (
-    "Generator",
-    "write_module_file",
     "write_module_files",
     )
 
