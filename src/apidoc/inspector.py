@@ -65,6 +65,7 @@ def _inspect_module(module, context):
 
     result = dict(
         type        ="module",
+        name        =module.__name__,
         path        =str(path),
         )
     if context.include(module):

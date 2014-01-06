@@ -13,6 +13,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
 
     modules = apidoc.inspector.inspect_package(sys.argv[1])
-    apidoc.generate.write_module_files(modules, sys.argv[2])
+    generator = apidoc.generate.Generator(modules)
+    apidoc.generate.write_module_files(generator, sys.argv[2])
 
 
