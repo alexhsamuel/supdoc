@@ -93,6 +93,7 @@ _elements = tuple(
         "LI",
         "OL",
         "P",
+        "PRE",
         "SCRIPT",
         "SPAN",
         "STYLE",

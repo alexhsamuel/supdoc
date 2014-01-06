@@ -15,7 +15,7 @@ class Name:
 
     def __init__(self, parts):
         if isinstance(parts, str):
-            parts = parts.split(".")
+            parts = tuple(parts.split("."))
         else:
             parts = tuple(parts)
         assert len(parts) > 0
@@ -45,14 +45,19 @@ class Name:
 
 
     @property
+    def base(self):
+        return self.__parts[-1]
+
+
+    @property
     def parent(self):
         if len(self.__parts) == 1:
             raise AttributeError("name '{}' has no parent".format(self))
         return self.__class__(self.__parts[: -1])
 
 
-    def __plus__(self, part):
-        return self.__class__(self.__parts + (parts, ))
+    def __add__(self, part):
+        return self.__class__(self.__parts + (part, ))
 
 
 

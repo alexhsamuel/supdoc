@@ -76,8 +76,8 @@ def _inspect_module(module, context):
             source = file.readlines()
 
         result.update(
-            # FIXME
             source  =source,
+            doc     =inspect.getdoc(module),
             dict    =dict( 
                 (n, _inspect(o, context)) 
                 for n, o in inspect.getmembers(module)
@@ -94,6 +94,7 @@ def _inspect_class(class_, context):
     if context.include(class_):
         result.update(
             lines   =_get_lines(class_),
+            doc     =inspect.getdoc(class_),
             bases   =[ c.__name__ for c in class_.__bases__ ],
             mro     =[ c.__name__ for c in inspect.getmro(class_) ],
             dict    =dict(
@@ -123,6 +124,7 @@ def _inspect_function(function, context):
         signature = inspect.signature(function)
         result.update(
             lines       =_get_lines(function),
+            doc         =inspect.getdoc(function),
             parameters  =[
                 _inspect_parameter(p)
                 for n, p in signature.parameters.items()
@@ -156,5 +158,15 @@ def inspect_package(path):
         infos[str(name)] = info
 
     return infos
+
+
+#-------------------------------------------------------------------------------
+
+import json
+
+if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
+    infos = inspect_package(sys.argv[1])
+    json.dump(infos, sys.stdout, indent=1)
 
 
