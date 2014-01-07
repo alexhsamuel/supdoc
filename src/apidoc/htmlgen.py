@@ -95,6 +95,7 @@ _elements = tuple(
         "HTML",
         "IMG",
         "LI",
+        "LINK",
         "OL",
         "P",
         "PRE",

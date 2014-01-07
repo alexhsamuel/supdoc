@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import shutil
 
 from   . import base
 from   .htmlgen import *
@@ -8,8 +9,10 @@ from   .path import Path
 
 #-------------------------------------------------------------------------------
 
-def wrap_document(*body, title=None):
-    head = []
+def wrap_document(ctx, *body, title=None):
+    stylesheet = get_relative_path(ctx.name, None) / "apidoc.css"
+    head = [LINK(rel="stylesheet", type="text/css", href=stylesheet)]
+
     if title is not None:
         head.append(TITLE(title))
 
@@ -21,13 +24,18 @@ def gen_doc(doc):
 
 
 def get_relative_path(name0, name1):
-    parts0 = [] if name0 is None else list(name0)
+    parts0 = [] if name0 is None else list(name0)[: -1]
     parts1 = [] if name1 is None else list(name1)
     # Remove common prefixes.
     while len(parts0) > 0 and len(parts1) > 0 and parts0[0] == parts1[0]:
         _ = parts0.pop(0)
         _ = parts1.pop(0)
     return pathlib.PurePosixPath._from_parts([".."] * len(parts0) + parts1)
+
+
+def make_module_link(name, from_name=None):
+    path = get_relative_path(from_name, name).with_suffix(".html")
+    return A(name, href=path, class_="module-link")
 
 
 #-------------------------------------------------------------------------------
@@ -51,8 +59,7 @@ def gen_module(ctx, name, module):
 
     module_name = Name(module["name"])
     if module_name in ctx.modules:
-        link = get_relative_path(ctx.name.parent, module_name)
-        module_name = A(module_name, href=link.with_suffix(".html"))
+        module_name = make_module_link(module_name, ctx.name)
     return DIV(
         "{} = {} ".format(name, module_name), 
         class_="module-reference")
@@ -85,10 +92,11 @@ def generate_module(ctx):
         contents.setdefault(v["type"], {})[n] = v
 
     def section(name, contents):
-        contents = ( gen(ctx, n, i) for n, i in contents.items() )
+        contents = ( gen(ctx, n, i) for n, i in sorted(contents.items()) )
         return DIV(
-            SPAN(name, class_="module-section"),
-            *contents)
+            SPAN(name, class_="module-section-name"),
+            *contents,
+            class_="module-section")
 
     parts.extend((
         section("Modules",   contents.pop("module", {})),
@@ -105,7 +113,7 @@ def write_module_file(ctx, name, path):
 
     logging.debug("generating HTML for {}".format(ctx.name))
     html = generate_module(ctx)
-    html = wrap_document(html, title="module {}".format(ctx.name))
+    html = wrap_document(ctx, html, title="module {}".format(ctx.name))
 
     logging.debug("writing HTML to {}".format(path))
     if not path.parent.is_dir():
@@ -122,16 +130,21 @@ def write_module_files(modules, dir):
 
     for name in sorted(modules):
         name = Name(name)
+        # FIXME: Duplicated with make_module_link().
         path = get_relative_path(None, name).with_suffix(".html")
         write_module_file(ctx, name, dir / path)
 
-        link = A(name, href=path, class_="module-link")
-        index.append(DIV(link, class_="index-entry"))
+        index.append(DIV(make_module_link(name), class_="index-entry"))
 
-    index = wrap_document(DIV(*index, class_="module-index"))
+    index = wrap_document(ctx, DIV(*index, class_="module-index"))
     index_path = dir / "index.html"
     with index_path.open("w") as file:
         file.write(index.format())
+
+    # Install the stylesheet.
+    shutil.copy(
+        str(Path(__file__).parent / "apidoc.css"),
+        str(dir / "apidoc.css"))
 
 
 #-------------------------------------------------------------------------------

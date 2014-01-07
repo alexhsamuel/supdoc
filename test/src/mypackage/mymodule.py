@@ -10,6 +10,8 @@ import collections
 import logging
 import sys
 
+# FIXME
+# import mypackage.support
 from   . import support
 
 #-------------------------------------------------------------------------------
