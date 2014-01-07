@@ -68,6 +68,8 @@ def gen_class(ctx, name, class_):
     return DIV("class " + name, class_="class")
 
 
+#-------------------------------------------------------------------------------
+
 def generate_module(ctx):
     module = ctx.modules[ctx.name]
     assert module["type"] == "module"
@@ -78,14 +80,22 @@ def generate_module(ctx):
     if doc is not None:
         parts.append(gen_doc(doc))
 
-    contents = module.get("dict", {})
-    contents = [ 
-        gen(ctx, n, v) 
-        for n, v in sorted(contents.items()) 
-        ]
-    contents = DIV(*contents, class_="module-contents")
-    parts.append(contents)
+    contents = {}
+    for n, v in module.get("dict", {}).items():
+        contents.setdefault(v["type"], {})[n] = v
 
+    def section(name, contents):
+        contents = ( gen(ctx, n, i) for n, i in contents.items() )
+        return DIV(
+            SPAN(name, class_="module-section"),
+            *contents)
+
+    parts.extend((
+        section("Modules",   contents.pop("module", {})),
+        section("Classes",   contents.pop("class", {})),
+        section("Functions", contents.pop("function", {})),
+        ))
+    assert len(contents) == 0
     return DIV(*parts, class_="module")
 
 
