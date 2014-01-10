@@ -1,6 +1,62 @@
 from   collections import ChainMap
+import inspect
+import logging
 
 #-------------------------------------------------------------------------------
+
+class Token:
+
+    def __init__(self, name):
+        self.__name = name
+
+
+    def __str__(self):
+        return self.__name
+
+
+    def __repr__(self):
+        return "{}({!r})".format(self.__class__.__name__, self.__name)
+
+
+    def __hash__(self):
+        return hash(self.__name)
+
+
+    def __eq__(self, other):
+        return other is self
+
+
+    def __ne__(self, other):
+        return other is not self
+
+
+    def __lt__(self, other):
+        return NotImplemented
+
+
+    __gt__ = __le__ = __ge__ = __lt__
+
+
+        
+UNDEFINED = Token("UNDEFINED")
+
+def log_call(log=logging.debug):
+    frame = inspect.stack()[1][0]
+    try:
+        arg_info = inspect.getargvalues(frame)
+        args = [ 
+            "{}={!r}".format(n, arg_info.locals.get(n, UNDEFINED)) 
+            for n in arg_info.args 
+            ]
+        if arg_info.varargs is not None:
+            args.append("*{!r}".format(arg_info.varargs))
+        if arg_info.keywords is not None:
+            args.append("**{!r}".format(arg_info.keywords))
+        fn_name = inspect.getframeinfo(frame).function
+        log("{}({})".format(fn_name, ", ".join(args)))
+    finally:
+        del frame
+
 
 def format_ctor(obj, *args, **kw_args):
     name = obj.__class__.__name__

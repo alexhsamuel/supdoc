@@ -27,7 +27,7 @@ def get_relative_path(name0, name1):
     parts0 = [] if name0 is None else list(name0)[: -1]
     parts1 = [] if name1 is None else list(name1)
     # Remove common prefixes.
-    while len(parts0) > 0 and len(parts1) > 0 and parts0[0] == parts1[0]:
+    while len(parts0) > 0 and len(parts1) > 1 and parts0[0] == parts1[0]:
         _ = parts0.pop(0)
         _ = parts1.pop(0)
     return pathlib.PurePosixPath._from_parts([".."] * len(parts0) + parts1)
