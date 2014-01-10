@@ -1,0 +1,29 @@
+<!doctype html>
+<html ng-app="moduleListApp">
+  <head>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.min.js"></script>
+    <script src="controller.js"></script>
+  </head>
+  <body ng-controller="ModuleListCtrl">
+    <div>
+      <div ng-repeat="(name, module) in modules">
+        <span ng-click="$parent.module = name; console.log('foo');">{{name}}</span>
+      </div>
+    </div>
+    
+    <hr>
+    <div>
+      <h2>
+        module {{module}}
+      </h2>
+      <div>
+        from: {{modules[module].path}}
+      </div>
+      <h3>Contents:</h3>
+      <div ng-repeat="(name, obj) in modules[module].dict">
+        <span>{{name}}</span>
+      </div>
+    </div>
+  </body>
+</html>
