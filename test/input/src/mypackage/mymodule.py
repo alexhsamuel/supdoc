@@ -11,7 +11,7 @@ import logging
 import sys
 
 # FIXME
-# import mypackage.support
+import mypackage.support
 from   . import support
 
 #-------------------------------------------------------------------------------
