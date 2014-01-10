@@ -1,0 +1,20 @@
+.module {
+    color: #307060;
+    font-family: Consolas, "Lucida Console", monospace;
+    font-size: 90%;
+    letter-spacing: -0.5px;
+}
+
+.filename {
+    color: #505060;
+    font-family: Consolas, "Lucida Console", monospace;
+    font-size: 90%;
+    letter-spacing: -1px;
+}
+
+.identifier {
+    color: #603070;
+    font-family: Consolas, "Lucida Console", monospace;
+    font-size: 90%;
+    letter-spacing: -0.5px;
+}
