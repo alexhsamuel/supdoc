@@ -1,36 +1,57 @@
-'use strict';
+'use strict'
 
-var moduleListApp = angular.module('moduleListApp', []);
-
-var types = ["module", "class", "function"];
-
-moduleListApp.controller(
+angular.module('moduleListApp', ['docService']).controller(
   'ModuleListCtrl',
-  function ($scope, $http) {
-    $http.get('apidoc.json').success(function (data) {
-      $scope.modules = data;
-      $scope.module = "";
-
-      var mod = $scope.modules[$scope.mod];
-      $scope.typeModule     = filterObj(mod, function (n, o) { return m.type == "module"; }); 
-      $scope.typeFunction   = filterObj(mod, function (n, o) { return m.type == "function"; }); 
-      $scope.typeValue      = filterObj(mod, function (n, o) { return m.type == "value"; }); 
-
-    //   $scope.sortDict = function (obj) {
-    //     var result = [];
-    //     for (name in obj) 
-    //       result.push([name, obj[name]]);
-    //     result.sort(function (item0, item1) { 
-    //       var t0 = types.indexOf(item0[1].type);
-    //       var t1 = types.indexOf(item1[1].type);
-    //       var n0 = item0[1].name;
-    //       var n1 = item1[1].name;
-    //       return t0 < t1 ? -1 : t0 > t1 ?  1 : n0 < n1 ? -1 : n0 > n1 ?  1 : 0;
-    //     });
-    //     return result;
-    //   };
-    });
-});
+  ['apidocs', function(apidocs) {
+    this.module = "foo"
+    
+    this.moduleNames = ["foo", "bar"]
+    var _this = this
+    apidocs.load().success(function() { 
+      _this.moduleNames = apidocs.getModuleNames() 
+    })
+    this.dictModules   = function(module) { return apidocs.getItems(module, "module") }
+    this.dictFunctions = function(module) { return apidocs.getItems(module, "function") }
+    this.dictValues    = function(module) { return apidocs.getItems(module, "values") }
+  }])
 
 //------------------------------------------------------------------------------
 
+angular.module('docService', [])
+  .factory('apidocs', ['$http', function($http) {
+    var modules = {}
+    function load() {
+      return $http.get('apidoc.json').success(function(data) {
+        modules = data
+      })
+    }
+                                      
+    function getModuleNames() {
+      console.log("getModuleNames")
+      return Object.keys(modules)
+    }
+
+    function getItems(moduleName, type) {
+      console.log("getItems(" + moduleName + ", " + type + ")")
+      var module = modules[moduleName]
+      if (typeof module === 'undefined')
+        return []
+
+      // return (typeof module === 'undefined') ? [] : items(
+      //   filterObj(module.dict, function (k, v) { return v.type == type }))
+
+      var result = []
+      for (var key in module.dict) {
+        var value = module.dict[key]
+        if (value.type == type) 
+          result.push([key, value])
+      }
+      return result
+    }
+
+    return {
+      load              : load,
+      getModuleNames    : getModuleNames,
+      getItems          : getItems
+    }
+  }])
