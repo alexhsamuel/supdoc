@@ -15,13 +15,11 @@ function ApiDocController($scope, $http) {
     }
 
     $scope.getByType = function (type) {
-        var module = $scope.module()
-        if (typeof module === 'undefined')
-            return {}
-
+        var mod = $scope.module()
+        var dict = mod ? mod.dict : {}
         var result = {}
-        for (var name in module.dict) {
-            var obj = module.dict[name]
+        for (var name in dict) {
+            var obj = dict[name]
             if (obj.type == type)
                 result[name] = obj
         }
@@ -55,7 +53,6 @@ function formatParameters(parameters) {
         result += param.name
     }
     result += ")"
-    console.log("formatParameters")
     return result
 }
 
