@@ -1,6 +1,8 @@
 'use strict'
 
-angular.module('moduleListApp', ['docService']).controller(
+var app = angular.module('moduleListApp', ['docService'])
+
+app.controller(
   'ModuleListCtrl',
   ['apidocs', function(apidocs) {
     this.module = "foo"

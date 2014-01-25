@@ -14,10 +14,10 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.js"></script>
 
     <script src="util.js"></script>
-    <script src="controller.js"></script>
+    <script src="controller2.js"></script>
 
   </head>
-  <body ng-controller="ModuleListCtrl as moduleList">
+  <body ng-controller="ApiDocController">
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="contianer">
         <div class="navbar-head">
@@ -28,23 +28,64 @@
 
     <div class="container">
       <h3>Module List:</h3>
-      <div ng-repeat="name in moduleList.moduleNames">
-        <span ng-click="$parent.module = name" class="module">{{name}}</span>
+      <div ng-repeat="name in moduleNames">
+        <span ng-click="$parent.moduleName = name" class="module">{{name}}</span>
       </div>
     </div>
     
     <div class="container">
       <h2>
-        module <span class="module">{{module}}</span>
+        module <span class="module">{{moduleName}}</span>
       </h2>
       <div>
-        from: <span class="filename">{{modules[module].path}}</span>
+        from: <span class="filename">{{module().path}}</span>
       </div>
 
-      <h3>Modules:</h3>
-      <div ng-repeat="entry in moduleList.dictModules(module)">
-        <span class="identifier">{{entry[0]}}</span>
-        <span>[<span class="filename">{{entry[1].path}}</span>]</span>
+      <div class="row">
+        <div class="col-xs-8">
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Imports</h3>
+            </div>
+            <div class="panel-body">
+              <div ng-repeat="(name, obj) in getByType('module')">
+                <span class="identifier">{{name}}</span>
+                = <span class="module">{{obj.name}}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Classes</h3>
+            </div>
+            <div class="panel-body">
+              <div ng-repeat="(name, obj) in getByType('class')">
+                <span class="identifier">{{name}}</span>
+                <span>[<span class="filename">{{obj.doc}}</span>]</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Functions</h3>
+            </div>
+            <div class="panel-body">
+              <div ng-repeat="(name, obj) in getByType('function')">
+                <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+                <span>[<span class="doc">{{obj.doc}}</span>]</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="col-xs-4">
+          <h3>Source:</h3>
+          <pre><small>{{getSource()}}</small></pre>
+        </div>
       </div>
 
       <hr>
