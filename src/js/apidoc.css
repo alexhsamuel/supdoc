@@ -1,19 +1,19 @@
 .module {
-    color: #307060;
+    color: #305070;
     font-family: "Liberation Mono", Consolas, monospace;
     font-size: 90%;
     letter-spacing: -0.5px;
 }
 
 .filename {
-    color: #505060;
+    color: #405070;
     font-family: "Liberation Mono", Consolas, monospace;
     font-size: 90%;
     letter-spacing: -1px;
 }
 
 .identifier {
-    color: #603070;
+    color: #1060e0;
     font-family: "Liberation Mono", Consolas, monospace;
     font-size: 90%;
     letter-spacing: -0.5px;
