@@ -1,0 +1,11 @@
+- Remove package list from top.
+- Create a package index page.
+- Create a class page.
+- Create a function page.
+- Add values / other accordion section.
+- Create a (push, slide) side menu for packages ("off-canvas sidebar").
+- Select the Content tab correctly.
+- Use Ace for code.
+- Write markup formatters.
+- Package breadcrumbs.
+- Create a larger test corpus.
