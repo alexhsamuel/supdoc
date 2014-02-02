@@ -7,7 +7,7 @@ function ApiDocController($scope, $http) {
     $http.get('apidoc.json').success(function (result) {
         $scope.modules = result
         $scope.moduleNames = Object.keys($scope.modules)
-        $scope.moduleName = $scope.moduleNames[0]
+        $scope.moduleName = ''
     })
 
     $scope.module = function () { 

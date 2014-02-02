@@ -26,6 +26,9 @@
     letter-spacing: -0.5px;
 }
 
+/* Padding for fixed navbar. */
+body { padding-top: 50px; }
+
 /*----------------------------------------------------------------------------*/
 /* http://stackoverflow.com/questions/18325779/bootstrap-3-collapse-show-state-with-chevron-icon */
 
@@ -39,5 +42,23 @@
 .panel-heading .accordion-toggle.collapsed:after {
     /* symbol for "collapsed" panels */
     content: "\e080\00a0";    /* adjust as needed, taken from bootstrap.css */
+}
+
+/*----------------------------------------------------------------------------*/
+
+.animate-show {
+  -webkit-transition:all linear 0.5s;
+  transition:all linear 0.5s;
+}
+ 
+.animate-show.ng-hide-add,
+.animate-show.ng-hide-remove {
+  display:block!important;
+}
+ 
+.animate-show.ng-hide {
+  line-height:0;
+  opacity:0;
+  padding:0 10px;
 }
 

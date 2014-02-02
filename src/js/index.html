@@ -12,28 +12,29 @@
     <script src="https://code.jquery.com/jquery.js"></script>
     <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-animate.js"></script>
 
     <script src="util.js"></script>
     <script src="controller2.js"></script>
 
   </head>
   <body ng-controller="ApiDocController">
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="contianer">
         <div class="navbar-head">
-          <a class="navbar-brand" href="#">Python APIs</a>
+          <a class="navbar-brand" href="#" ng-click="moduleName = ''">APIDoc</a>
         </div>
       </div>
-    </div>
+    </nav>
 
-    <div class="container">
+    <div class="container" class="animate-show"  ng-show="moduleName == ''">
       <h3>Module List:</h3>
       <div ng-repeat="name in moduleNames">
         <span ng-click="$parent.moduleName = name" class="module">{{name}}</span>
       </div>
     </div>
     
-    <div class="container">
+    <div class="container" ng-show="moduleName != ''">
       <h2>
         <span class="module">{{moduleName}}</span>
       </h2>

@@ -1,14 +1,14 @@
+- Make module list hierarchical.
+- Package breadcrumbs.
+- Make module list collapsible.
+- Create a (push, slide) side menu for modules ("off-canvas sidebar").
 - Use Angular directives to set up Bootstrap stuff.
-- Remove package list from top.
-- Create a package index page.
 - Create a class page.
 - Create a function page.
 - Add values / other accordion section.
-- Create a (push, slide) side menu for packages ("off-canvas sidebar").
 - Select the Content tab correctly.
 - Use Ace for code.
 - Write markup formatters.
-- Package breadcrumbs.
 - Create a larger test corpus.
 
 --------------------------------------------------------------------------------
@@ -17,3 +17,8 @@ Before upload to github:
 - Copyright banner on page.
 - Name.
 - Logo.
+
+================================================================================
+Done
+- Remove module list from top.
+- Create a module index page.
