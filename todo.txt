@@ -10,3 +10,10 @@
 - Write markup formatters.
 - Package breadcrumbs.
 - Create a larger test corpus.
+
+--------------------------------------------------------------------------------
+Before upload to github:
+- Copyright banners in source.
+- Copyright banner on page.
+- Name.
+- Logo.
