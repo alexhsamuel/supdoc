@@ -1,3 +1,4 @@
+- Use Angular directives to set up Bootstrap stuff.
 - Remove package list from top.
 - Create a package index page.
 - Create a class page.
