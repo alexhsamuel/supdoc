@@ -20,10 +20,15 @@
   </head>
   <body ng-controller="ApiDocController">
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="contianer">
-        <div class="navbar-head">
-          <a class="navbar-brand" href="#" ng-click="moduleName = ''">APIDoc</a>
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#" ng-click="moduleName = ''">
+            {{projectName || "APIDoc"}}
+          </a>
         </div>
+        <ul class="nav navbar-nav nav-fqname" ng-repeat="name in moduleParts()">
+          <li><a href="#">{{name}}</a></li>
+        </ul>
       </div>
     </nav>
 

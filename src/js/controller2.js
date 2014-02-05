@@ -10,6 +10,13 @@ function ApiDocController($scope, $http) {
         $scope.moduleName = ''
     })
 
+    $scope.moduleParts = function () {
+        if ($scope.moduleName == "")
+            return []
+        else
+            return $scope.moduleName.split(".")
+    }
+
     $scope.module = function () { 
         return $scope.modules[$scope.moduleName] 
     }

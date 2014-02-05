@@ -1,27 +1,27 @@
 .module {
     color: #305070;
-    font-family: "Liberation Mono", Consolas, monospace;
+    font-family: Consolas, "Liberation Mono", monospace;
     font-size: 90%;
     letter-spacing: -0.5px;
 }
 
 .filename {
     color: #405070;
-    font-family: "Liberation Mono", Consolas, monospace;
+    font-family: Consolas, "Liberation Mono", monospace;
     font-size: 90%;
     letter-spacing: -1px;
 }
 
 .identifier {
     color: #1060e0;
-    font-family: "Liberation Mono", Consolas, monospace;
+    font-family: Consolas, "Liberation Mono", monospace;
     font-size: 90%;
     letter-spacing: -0.5px;
 }
 
 .parameters {
     color: black;
-    font-family: "Liberation Mono", Consolas, monospace;
+    font-family: Consolas, "Liberation Mono", monospace;
     font-size: 90%;
     letter-spacing: -0.5px;
 }
@@ -60,5 +60,21 @@ body { padding-top: 50px; }
   line-height:0;
   opacity:0;
   padding:0 10px;
+}
+
+/* These are to format the FQ name in the navbar.  */
+
+.navbar-brand {
+  padding-right: 0px;
+}
+
+.nav-fqname>li>a {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.nav-fqname>li>a:before {
+  content: "\2022";
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
