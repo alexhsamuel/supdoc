@@ -1,3 +1,4 @@
+- Rename moduleName -> fqName et seq.
 - Make module list hierarchical.
 - Package breadcrumbs.
 - Make module list collapsible.
