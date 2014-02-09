@@ -81,7 +81,7 @@ def get_module_name_from_path(path, base_path):
     """
     path = Path(path)
     base_path = Path(base_path)
-    parts = path.with_suffix("").relative_to(base_path).parts
+    parts = path.with_suffix(None).relative_to(base_path).parts
     return Name(parts)
     
 
@@ -136,7 +136,7 @@ def enumerate_package(path):
             elif is_package_dir(sub_path):
                 yield from enumerate(sub_path)
     
-    yield from enumerate(path)
+    return enumerate(path)
 
 
 def load_module(name, path):

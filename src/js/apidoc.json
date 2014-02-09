@@ -1,377 +1,2596 @@
 {
- "mypackage": {
+ "apidoc": {
+  "path": "/Users/samuel/dev/apidoc/src/python/apidoc/__init__.py",
+  "name": "apidoc",
+  "type": "module",
   "doc": null,
   "source": [],
-  "path": "/home/samuel/dev/apidoc/test/input/src/mypackage/__init__.py",
-  "dict": {},
-  "name": "mypackage",
-  "type": "module"
+  "dict": {
+   "path": {
+    "path": "/Users/samuel/dev/apidoc/src/python/apidoc/path.py",
+    "name": "apidoc.path",
+    "type": "module"
+   },
+   "modules": {
+    "path": "/Users/samuel/dev/apidoc/src/python/apidoc/modules.py",
+    "name": "apidoc.modules",
+    "type": "module"
+   }
+  }
  },
- "mypackage.mymodule": {
-  "doc": "The main module.\n\nThis is where all the fun happens.",
+ "apidoc.inspector": {
+  "path": "/Users/samuel/dev/apidoc/src/python/apidoc/inspector.py",
+  "name": "apidoc.inspector",
+  "type": "module",
+  "doc": null,
   "source": [
-   "\"\"\"\n",
-   "The main module.\n",
-   "\n",
-   "This is where all the fun happens.\n",
-   "\"\"\"\n",
-   "\n",
-   "#-------------------------------------------------------------------------------\n",
-   "\n",
-   "import collections\n",
+   "import functools\n",
+   "import inspect\n",
    "import logging\n",
+   "import os\n",
    "import sys\n",
    "\n",
-   "# FIXME\n",
-   "import mypackage.support\n",
-   "from   . import support\n",
+   "from   apidoc import modules\n",
+   "from   apidoc.path import Path\n",
    "\n",
    "#-------------------------------------------------------------------------------\n",
    "\n",
-   "def foo(x, y=\"0\"):\n",
-   "    x = int(x)\n",
-   "    y = int(y)\n",
-   "    logging.debug(\"invoking foo({}, {})\".format(x, y))\n",
-   "    return support.foo(x, y)\n",
+   "# FIXME: Get these from a canonical location.\n",
+   "_MODULE_TYPE    = type(inspect)\n",
+   "_FUNCTION_TYPE  = type(lambda: 0)\n",
+   "\n",
+   "\n",
+   "def is_special_symbol(symbol):\n",
+   "    return symbol.startswith(\"__\") and symbol.endswith(\"__\")\n",
    "\n",
    "\n",
    "#-------------------------------------------------------------------------------\n",
    "\n",
-   "class Master:\n",
-   "    \"\"\"\n",
-   "    The master class.\n",
-   "    \"\"\"\n",
-   "    \n",
-   "    __total_value = 0\n",
+   "class Context:\n",
    "\n",
-   "    def __init__(self, value):\n",
-   "        self.__value = value\n",
-   "        Master.__total_value += value\n",
+   "    def __init__(self, path):\n",
+   "        self.__path = Path(path)\n",
    "\n",
    "\n",
-   "    @property\n",
-   "    def value(self):\n",
-   "        \"\"\"\n",
-   "        The value.\n",
-   "        \"\"\"\n",
-   "        return self.__value\n",
-   "\n",
-   "\n",
-   "    @staticmethod\n",
-   "    def get_total_value():\n",
-   "        return Master.__total_value\n",
-   "\n",
-   "\n",
-   "    @classmethod\n",
-   "    def build(class_, x, y):\n",
-   "        return class_(foo(x, y))\n",
+   "    def include(self, obj):\n",
+   "        try:\n",
+   "            path = inspect.getsourcefile(obj)\n",
+   "        except TypeError:\n",
+   "            # Build-in module.\n",
+   "            return False\n",
+   "        else:\n",
+   "            if path is None:\n",
+   "                # FIXME\n",
+   "                # It's a built-in module.\n",
+   "                return False\n",
+   "            else:\n",
+   "                path = Path(path)\n",
+   "                return path == self.__path\n",
    "\n",
    "\n",
    "\n",
-   "class Child(Master):\n",
-   "\n",
-   "    class Inner(collections.namedtuple(\"Inner\", (\"foo\", \"bar\", \"baz\"))):\n",
-   "\n",
-   "        pass\n",
-   "\n",
-   "\n",
-   "\n",
-   "    def __init__(self):\n",
-   "        super(Child, self).__init__(42)\n",
-   "        self.__tally = self.get_total_value()\n",
-   "        self.__stuff = Child(10, 20, 30)\n",
+   "def _get_lines(obj):\n",
+   "    try:\n",
+   "        lines, start_num = inspect.getsourcelines(obj)\n",
+   "    except (OSError, ValueError):\n",
+   "        return None\n",
+   "    else:\n",
+   "        return [start_num, start_num + len(lines)]\n",
    "\n",
    "\n",
-   "    def __get_tally(self):\n",
-   "        \"\"\"\n",
-   "        Tally-Ho!\n",
-   "        \"\"\"\n",
-   "        return self.__tally\n",
+   "def _inspect_module(module, context):\n",
+   "    try:\n",
+   "        path = inspect.getsourcefile(module)\n",
+   "    except TypeError:\n",
+   "        # Built-in module.\n",
+   "        path = None\n",
+   "    else:\n",
+   "        if path is None:\n",
+   "            path = inspect.getfile(module)\n",
+   "    path = None if path is None else Path(path)\n",
+   "\n",
+   "    result = dict(\n",
+   "        type        =\"module\",\n",
+   "        name        =module.__name__,\n",
+   "        path        =str(path),\n",
+   "        )\n",
+   "    if context.include(module):\n",
+   "        # FIXME: Work around a bug in Python 3.4 that occurs whe importing\n",
+   "        # an empty module file.\n",
+   "        # source = inspect.getsourcelines(module)\n",
+   "        import tokenize\n",
+   "        with path.open() as file:\n",
+   "            source = file.readlines()\n",
+   "\n",
+   "        result.update(\n",
+   "            source  =source,\n",
+   "            doc     =inspect.getdoc(module),\n",
+   "            dict    =dict( \n",
+   "                (n, _inspect(o, context)) \n",
+   "                for n, o in inspect.getmembers(module)\n",
+   "                if not is_special_symbol(n)\n",
+   "                ),\n",
+   "            )\n",
+   "    return result\n",
    "\n",
    "\n",
-   "    def __set_tally(self, tally):\n",
-   "        self.__tally = tally\n",
+   "def _inspect_class(class_, context):\n",
+   "    result = dict(\n",
+   "        type        =\"class\",\n",
+   "        )\n",
+   "    if context.include(class_):\n",
+   "        result.update(\n",
+   "            lines   =_get_lines(class_),\n",
+   "            doc     =inspect.getdoc(class_),\n",
+   "            bases   =[ c.__name__ for c in class_.__bases__ ],\n",
+   "            mro     =[ c.__name__ for c in inspect.getmro(class_) ],\n",
+   "            dict    =dict(\n",
+   "                (n, _inspect(o, context))\n",
+   "                for n, o in inspect.getmembers(class_)\n",
+   "                if not is_special_symbol(n)\n",
+   "                ),\n",
+   "            )\n",
+   "    return result\n",
    "\n",
    "\n",
-   "    tally = property(__get_tally, __set_tally)\n",
+   "def _inspect_parameter(parameter):\n",
+   "    get = lambda x: None if x is parameter.empty else repr(x)\n",
+   "    return dict(\n",
+   "        name        =parameter.name,\n",
+   "        kind        =str(parameter.kind),\n",
+   "        annotation  =get(parameter.annotation),\n",
+   "        default     =get(parameter.default),\n",
+   "        )\n",
    "\n",
    "\n",
-   "    \n"
+   "def _inspect_function(function, context):\n",
+   "    result = dict(\n",
+   "        type            =\"function\",\n",
+   "        )\n",
+   "    if context.include(function):\n",
+   "        signature = inspect.signature(function)\n",
+   "        result.update(\n",
+   "            lines       =_get_lines(function),\n",
+   "            doc         =inspect.getdoc(function),\n",
+   "            parameters  =[\n",
+   "                _inspect_parameter(p)\n",
+   "                for n, p in signature.parameters.items()\n",
+   "                ],\n",
+   "            )\n",
+   "    return result\n",
+   "\n",
+   "\n",
+   "def _inspect(obj, context):\n",
+   "    if inspect.isfunction(obj):\n",
+   "        return _inspect_function(obj, context)\n",
+   "    elif inspect.isclass(obj):\n",
+   "        return _inspect_class(obj, context)\n",
+   "    elif inspect.ismodule(obj):\n",
+   "        return _inspect_module(obj, context)\n",
+   "    else:\n",
+   "        return {\n",
+   "            \"type\"  : \"value\",\n",
+   "            \"value\" : repr(obj),\n",
+   "            }\n",
+   "\n",
+   "\n",
+   "\n",
+   "def inspect_package(path):\n",
+   "    path = Path(path)\n",
+   "\n",
+   "    infos = {}\n",
+   "    for name, module_path in modules.enumerate_package(path):\n",
+   "        module = modules.load_module(name, module_path)\n",
+   "        info = _inspect_module(module, Context(module_path))\n",
+   "        infos[str(name)] = info\n",
+   "\n",
+   "    return infos\n",
+   "\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "import json\n",
+   "\n",
+   "if __name__ == \"__main__\":\n",
+   "    logging.getLogger().setLevel(logging.DEBUG)\n",
+   "    infos = inspect_package(sys.argv[1])\n",
+   "    json.dump(infos, sys.stdout, indent=1)\n",
+   "\n",
+   "\n"
   ],
-  "path": "/home/samuel/dev/apidoc/test/input/src/mypackage/mymodule.py",
   "dict": {
-   "Master": {
-    "doc": "The master class.",
-    "bases": [
-     "object"
-    ],
-    "mro": [
-     "Master",
-     "object"
-    ],
-    "dict": {
-     "value": {
-      "value": "<property object at 0x7fb08990b6d8>",
-      "type": "value"
-     },
-     "build": {
-      "value": "<bound method type.build of <class 'mypackage.mymodule.Master'>>",
-      "type": "value"
-     },
-     "_Master__total_value": {
-      "value": "0",
-      "type": "value"
-     },
-     "get_total_value": {
-      "parameters": [],
-      "type": "function",
-      "lines": [
-       48,
-       51
-      ],
-      "doc": null
-     }
-    },
-    "type": "class",
+   "_inspect_parameter": {
     "lines": [
-     28,
-     56
-    ]
-   },
-   "collections": {
-    "path": "/home/samuel/sw/Python-3.4.0b1/lib/python3.4/collections/__init__.py",
-    "name": "collections",
-    "type": "module"
-   },
-   "support": {
-    "path": "/home/samuel/dev/apidoc/test/input/src/mypackage/support.py",
-    "name": "mypackage.support",
-    "type": "module"
-   },
-   "Child": {
+     110,
+     118
+    ],
+    "type": "function",
     "doc": null,
-    "bases": [
-     "Master"
-    ],
-    "mro": [
-     "Child",
-     "Master",
-     "object"
-    ],
-    "dict": {
-     "build": {
-      "value": "<bound method type.build of <class 'mypackage.mymodule.Child'>>",
-      "type": "value"
-     },
-     "Inner": {
-      "doc": null,
-      "bases": [
-       "Inner"
-      ],
-      "mro": [
-       "Inner",
-       "Inner",
-       "tuple",
-       "object"
-      ],
-      "dict": {
-       "_fields": {
-        "value": "('foo', 'bar', 'baz')",
-        "type": "value"
-       },
-       "baz": {
-        "value": "<property object at 0x7fb08990bae8>",
-        "type": "value"
-       },
-       "foo": {
-        "value": "<property object at 0x7fb08990ba48>",
-        "type": "value"
-       },
-       "_asdict": {
-        "type": "function"
-       },
-       "_replace": {
-        "type": "function"
-       },
-       "index": {
-        "value": "<method 'index' of 'tuple' objects>",
-        "type": "value"
-       },
-       "bar": {
-        "value": "<property object at 0x7fb08990ba98>",
-        "type": "value"
-       },
-       "_make": {
-        "value": "<bound method type._make of <class 'mypackage.mymodule.Child.Inner'>>",
-        "type": "value"
-       },
-       "_source": {
-        "value": "\"from builtins import property as _property, tuple as _tuple\\nfrom operator import itemgetter as _itemgetter\\nfrom collections import OrderedDict\\n\\nclass Inner(tuple):\\n    'Inner(foo, bar, baz)'\\n\\n    __slots__ = ()\\n\\n    _fields = ('foo', 'bar', 'baz')\\n\\n    def __new__(_cls, foo, bar, baz):\\n        'Create new instance of Inner(foo, bar, baz)'\\n        return _tuple.__new__(_cls, (foo, bar, baz))\\n\\n    @classmethod\\n    def _make(cls, iterable, new=tuple.__new__, len=len):\\n        'Make a new Inner object from a sequence or iterable'\\n        result = new(cls, iterable)\\n        if len(result) != 3:\\n            raise TypeError('Expected 3 arguments, got %d' % len(result))\\n        return result\\n\\n    def _replace(_self, **kwds):\\n        'Return a new Inner object replacing specified fields with new values'\\n        result = _self._make(map(kwds.pop, ('foo', 'bar', 'baz'), _self))\\n        if kwds:\\n            raise ValueError('Got unexpected field names: %r' % list(kwds))\\n        return result\\n\\n    def __repr__(self):\\n        'Return a nicely formatted representation string'\\n        return self.__class__.__name__ + '(foo=%r, bar=%r, baz=%r)' % self\\n\\n    @property\\n    def __dict__(self):\\n        'A new OrderedDict mapping field names to their values'\\n        return OrderedDict(zip(self._fields, self))\\n\\n    def _asdict(self):\\n        '''Return a new OrderedDict which maps field names to their values.\\n           This method is obsolete.  Use vars(nt) or nt.__dict__ instead.\\n        '''\\n        return self.__dict__\\n\\n    def __getnewargs__(self):\\n        'Return self as a plain tuple.  Used by copy and pickle.'\\n        return tuple(self)\\n\\n    def __getstate__(self):\\n        'Exclude the OrderedDict from pickling'\\n        return None\\n\\n    foo = _property(_itemgetter(0), doc='Alias for field number 0')\\n\\n    bar = _property(_itemgetter(1), doc='Alias for field number 1')\\n\\n    baz = _property(_itemgetter(2), doc='Alias for field number 2')\\n\\n\"",
-        "type": "value"
-       },
-       "count": {
-        "value": "<method 'count' of 'tuple' objects>",
-        "type": "value"
-       }
-      },
-      "type": "class",
-      "lines": [
-       61,
-       64
-      ]
-     },
-     "_Master__total_value": {
-      "value": "0",
-      "type": "value"
-     },
-     "get_total_value": {
-      "parameters": [],
-      "type": "function",
-      "lines": [
-       48,
-       51
-      ],
-      "doc": null
-     },
-     "_Child__get_tally": {
-      "parameters": [
-       {
-        "kind": "POSITIONAL_OR_KEYWORD",
-        "name": "self",
-        "default": null,
-        "annotation": null
-       }
-      ],
-      "type": "function",
-      "lines": [
-       73,
-       78
-      ],
-      "doc": "Tally-Ho!"
-     },
-     "value": {
-      "value": "<property object at 0x7fb08990b6d8>",
-      "type": "value"
-     },
-     "_Child__set_tally": {
-      "parameters": [
-       {
-        "kind": "POSITIONAL_OR_KEYWORD",
-        "name": "self",
-        "default": null,
-        "annotation": null
-       },
-       {
-        "kind": "POSITIONAL_OR_KEYWORD",
-        "name": "tally",
-        "default": null,
-        "annotation": null
-       }
-      ],
-      "type": "function",
-      "lines": [
-       80,
-       82
-      ],
-      "doc": null
-     },
-     "tally": {
-      "value": "<property object at 0x7fb08990bbd8>",
-      "type": "value"
+    "parameters": [
+     {
+      "name": "parameter",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
      }
-    },
-    "type": "class",
-    "lines": [
-     59,
-     85
     ]
    },
-   "mypackage": {
-    "path": "/home/samuel/dev/apidoc/test/input/src/mypackage/__init__.py",
-    "name": "mypackage",
-    "type": "module"
+   "is_special_symbol": {
+    "lines": [
+     17,
+     19
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "symbol",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "_inspect_module": {
+    "lines": [
+     55,
+     89
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "module",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "context",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
    },
    "sys": {
     "path": "None",
     "name": "sys",
     "type": "module"
    },
+   "os": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/os.py",
+    "name": "os",
+    "type": "module"
+   },
+   "_MODULE_TYPE": {
+    "type": "class"
+   },
+   "_get_lines": {
+    "lines": [
+     46,
+     53
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "obj",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
    "logging": {
-    "path": "/home/samuel/sw/Python-3.4.0b1/lib/python3.4/logging/__init__.py",
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/logging/__init__.py",
     "name": "logging",
     "type": "module"
    },
-   "foo": {
-    "parameters": [
-     {
-      "kind": "POSITIONAL_OR_KEYWORD",
-      "name": "x",
-      "default": null,
-      "annotation": null
-     },
-     {
-      "kind": "POSITIONAL_OR_KEYWORD",
-      "name": "y",
-      "default": "'0'",
-      "annotation": null
-     }
+   "modules": {
+    "path": "/Users/samuel/dev/apidoc/src/python/apidoc/modules.py",
+    "name": "apidoc.modules",
+    "type": "module"
+   },
+   "_FUNCTION_TYPE": {
+    "type": "class"
+   },
+   "_inspect_function": {
+    "lines": [
+     120,
+     135
     ],
     "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "function",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "context",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "json": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/json/__init__.py",
+    "name": "json",
+    "type": "module"
+   },
+   "Context": {
+    "type": "class",
+    "mro": [
+     "Context",
+     "object"
+    ],
+    "doc": null,
     "lines": [
-     19,
+     23,
+     43
+    ],
+    "bases": [
+     "object"
+    ],
+    "dict": {
+     "include": {
+      "lines": [
+       29,
+       43
+      ],
+      "type": "function",
+      "doc": null,
+      "parameters": [
+       {
+        "name": "self",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "obj",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       }
+      ]
+     }
+    }
+   },
+   "functools": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/functools.py",
+    "name": "functools",
+    "type": "module"
+   },
+   "_inspect": {
+    "lines": [
+     137,
+     149
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "obj",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "context",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "inspect": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/inspect.py",
+    "name": "inspect",
+    "type": "module"
+   },
+   "Path": {
+    "type": "class"
+   },
+   "inspect_package": {
+    "lines": [
+     152,
+     162
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "_inspect_class": {
+    "lines": [
+     91,
+     108
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "class_",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "context",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   }
+  }
+ },
+ "apidoc.generate": {
+  "path": "/Users/samuel/dev/apidoc/src/python/apidoc/generate.py",
+  "name": "apidoc.generate",
+  "type": "module",
+  "doc": null,
+  "source": [
+   "import logging\n",
+   "import pathlib\n",
+   "import shutil\n",
+   "\n",
+   "from   . import base\n",
+   "from   .htmlgen import *\n",
+   "from   .modules import Name\n",
+   "from   .path import Path\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "def wrap_document(ctx, *body, title=None):\n",
+   "    stylesheet = get_relative_path(ctx.name, None) / \"apidoc.css\"\n",
+   "    head = [LINK(rel=\"stylesheet\", type=\"text/css\", href=stylesheet)]\n",
+   "\n",
+   "    if title is not None:\n",
+   "        head.append(TITLE(title))\n",
+   "\n",
+   "    return HTML(HEAD(*head), BODY(*body))\n",
+   "\n",
+   "\n",
+   "def gen_doc(doc):\n",
+   "    return PRE(doc, class_=\"doc\")\n",
+   "\n",
+   "\n",
+   "def get_relative_path(name0, name1):\n",
+   "    parts0 = [] if name0 is None else list(name0)[: -1]\n",
+   "    parts1 = [] if name1 is None else list(name1)\n",
+   "    # Remove common prefixes.\n",
+   "    while len(parts0) > 0 and len(parts1) > 1 and parts0[0] == parts1[0]:\n",
+   "        _ = parts0.pop(0)\n",
+   "        _ = parts1.pop(0)\n",
+   "    return pathlib.PurePosixPath._from_parts([\"..\"] * len(parts0) + parts1)\n",
+   "\n",
+   "\n",
+   "def make_module_link(name, from_name=None):\n",
+   "    path = get_relative_path(from_name, name).with_suffix(\".html\")\n",
+   "    return A(name, href=path, class_=\"module-link\")\n",
+   "\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "class Context(base.Struct(\"modules\", \"name\")):\n",
+   "\n",
+   "    def __init__(self, modules, **kw_args):\n",
+   "        modules = { Name(n): m for n, m in modules.items() }\n",
+   "        super(Context, self).__init__(modules=modules, **kw_args)\n",
+   "        \n",
+   "\n",
+   "\n",
+   "def gen(ctx, name, info):\n",
+   "    fn_name = \"gen_\" + info[\"type\"]\n",
+   "    fn = globals()[fn_name]\n",
+   "    return fn(ctx, name, info)\n",
+   "\n",
+   "\n",
+   "def gen_module(ctx, name, module):\n",
+   "    assert module[\"type\"] == \"module\"\n",
+   "\n",
+   "    module_name = Name(module[\"name\"])\n",
+   "    if module_name in ctx.modules:\n",
+   "        module_name = make_module_link(module_name, ctx.name)\n",
+   "    return DIV(\n",
+   "        \"{} = {} \".format(name, module_name), \n",
+   "        class_=\"module-reference\")\n",
+   "\n",
+   "\n",
+   "def gen_function(ctx, name, function):\n",
+   "    assert function[\"type\"] == \"function\"\n",
+   "    return DIV(\"function \" + name, class_=\"function\")\n",
+   "\n",
+   "\n",
+   "def gen_class(ctx, name, class_):\n",
+   "    assert class_[\"type\"] == \"class\"\n",
+   "    return DIV(\"class \" + name, class_=\"class\")\n",
+   "\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "def generate_module(ctx):\n",
+   "    module = ctx.modules[ctx.name]\n",
+   "    assert module[\"type\"] == \"module\"\n",
+   "\n",
+   "    parts = [DIV(ctx.name, class_=\"module-name\")]\n",
+   "\n",
+   "    doc = module.get(\"doc\", None)\n",
+   "    if doc is not None:\n",
+   "        parts.append(gen_doc(doc))\n",
+   "\n",
+   "    contents = {}\n",
+   "    for n, v in module.get(\"dict\", {}).items():\n",
+   "        contents.setdefault(v[\"type\"], {})[n] = v\n",
+   "\n",
+   "    def section(name, contents):\n",
+   "        contents = ( gen(ctx, n, i) for n, i in sorted(contents.items()) )\n",
+   "        return DIV(\n",
+   "            SPAN(name, class_=\"module-section-name\"),\n",
+   "            *contents,\n",
+   "            class_=\"module-section\")\n",
+   "\n",
+   "    parts.extend((\n",
+   "        section(\"Modules\",   contents.pop(\"module\", {})),\n",
+   "        section(\"Classes\",   contents.pop(\"class\", {})),\n",
+   "        section(\"Functions\", contents.pop(\"function\", {})),\n",
+   "        ))\n",
+   "    assert len(contents) == 0\n",
+   "    return DIV(*parts, class_=\"module\")\n",
+   "\n",
+   "\n",
+   "def write_module_file(ctx, name, path):\n",
+   "    ctx = ctx.copy(name=Name(name))\n",
+   "    path = Path(path)\n",
+   "\n",
+   "    logging.debug(\"generating HTML for {}\".format(ctx.name))\n",
+   "    html = generate_module(ctx)\n",
+   "    html = wrap_document(ctx, html, title=\"module {}\".format(ctx.name))\n",
+   "\n",
+   "    logging.debug(\"writing HTML to {}\".format(path))\n",
+   "    if not path.parent.is_dir():\n",
+   "        path.parent.mkdir(parents=True)\n",
+   "    with path.open(\"w\") as file:\n",
+   "        file.write(html.format())\n",
+   "\n",
+   "\n",
+   "def write_module_files(modules, dir):\n",
+   "    ctx = Context(modules=modules)\n",
+   "    dir = Path(dir)\n",
+   "\n",
+   "    index = []\n",
+   "\n",
+   "    for name in sorted(modules):\n",
+   "        name = Name(name)\n",
+   "        # FIXME: Duplicated with make_module_link().\n",
+   "        path = get_relative_path(None, name).with_suffix(\".html\")\n",
+   "        write_module_file(ctx, name, dir / path)\n",
+   "\n",
+   "        index.append(DIV(make_module_link(name), class_=\"index-entry\"))\n",
+   "\n",
+   "    index = wrap_document(ctx, DIV(*index, class_=\"module-index\"))\n",
+   "    index_path = dir / \"index.html\"\n",
+   "    with index_path.open(\"w\") as file:\n",
+   "        file.write(index.format())\n",
+   "\n",
+   "    # Install the stylesheet.\n",
+   "    shutil.copy(\n",
+   "        str(Path(__file__).parent / \"apidoc.css\"),\n",
+   "        str(dir / \"apidoc.css\"))\n",
+   "\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "__all__ = (\n",
+   "    \"write_module_files\",\n",
+   "    )\n",
+   "\n"
+  ],
+  "dict": {
+   "HTML": {
+    "type": "function"
+   },
+   "TITLE": {
+    "type": "function"
+   },
+   "BODY": {
+    "type": "function"
+   },
+   "STYLE": {
+    "type": "function"
+   },
+   "LI": {
+    "type": "function"
+   },
+   "PRE": {
+    "type": "function"
+   },
+   "pathlib": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/pathlib.py",
+    "name": "pathlib",
+    "type": "module"
+   },
+   "gen_module": {
+    "lines": [
+     57,
+     66
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "ctx",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "module",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "IMG": {
+    "type": "function"
+   },
+   "A": {
+    "type": "function"
+   },
+   "Name": {
+    "type": "class"
+   },
+   "EM": {
+    "type": "function"
+   },
+   "SCRIPT": {
+    "type": "function"
+   },
+   "Element": {
+    "type": "class"
+   },
+   "Path": {
+    "type": "class"
+   },
+   "write_module_file": {
+    "lines": [
+     110,
+     123
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "ctx",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "base": {
+    "path": "/Users/samuel/dev/apidoc/src/python/apidoc/base.py",
+    "name": "apidoc.base",
+    "type": "module"
+   },
+   "P": {
+    "type": "function"
+   },
+   "LINK": {
+    "type": "function"
+   },
+   "gen_function": {
+    "lines": [
+     68,
+     71
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "ctx",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "function",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "write_module_files": {
+    "lines": [
+     125,
+     148
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "modules",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "dir",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "make_module_link": {
+    "lines": [
+     36,
+     39
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "from_name",
+      "default": "None",
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "gen_doc": {
+    "lines": [
+     22,
      24
     ],
-    "doc": null
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "doc",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "HEAD": {
+    "type": "function"
+   },
+   "SPAN": {
+    "type": "function"
+   },
+   "get_relative_path": {
+    "lines": [
+     26,
+     34
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "name0",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "name1",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "logging": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/logging/__init__.py",
+    "name": "logging",
+    "type": "module"
+   },
+   "gen_class": {
+    "lines": [
+     73,
+     76
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "ctx",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "class_",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "wrap_document": {
+    "lines": [
+     12,
+     20
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "ctx",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "body",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "title",
+      "default": "None",
+      "annotation": null,
+      "kind": "KEYWORD_ONLY"
+     }
+    ]
+   },
+   "UL": {
+    "type": "function"
+   },
+   "shutil": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/shutil.py",
+    "name": "shutil",
+    "type": "module"
+   },
+   "generate_module": {
+    "lines": [
+     80,
+     108
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "ctx",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "Context": {
+    "type": "class",
+    "mro": [
+     "Context",
+     "Struct",
+     "BaseStruct",
+     "object"
+    ],
+    "doc": null,
+    "lines": [
+     43,
+     48
+    ],
+    "bases": [
+     "Struct"
+    ],
+    "dict": {
+     "name": {
+      "value": "<member 'name' of 'Struct' objects>",
+      "type": "value"
+     },
+     "modules": {
+      "value": "<member 'modules' of 'Struct' objects>",
+      "type": "value"
+     },
+     "copy": {
+      "type": "function"
+     }
+    }
+   },
+   "gen": {
+    "lines": [
+     51,
+     55
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "ctx",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "info",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "DIV": {
+    "type": "function"
+   },
+   "OL": {
+    "type": "function"
    }
-  },
-  "name": "mypackage.mymodule",
-  "type": "module"
+  }
  },
- "mypackage.support": {
-  "doc": "Support tools for the main module.",
+ "apidoc.path": {
+  "path": "/Users/samuel/dev/apidoc/src/python/apidoc/path.py",
+  "name": "apidoc.path",
+  "type": "module",
+  "doc": null,
   "source": [
-   "\"\"\"\n",
-   "Support tools for the main module.\n",
-   "\"\"\"\n",
+   "import logging\n",
+   "import pathlib\n",
    "\n",
-   "import math\n",
+   "#-------------------------------------------------------------------------------\n",
    "\n",
-   "def foo(x:int, y:int=0):\n",
-   "    return x ** 2 * math.exp(y)\n",
+   "def resolve(path):\n",
+   "    \"\"\"\n",
+   "    Resolves the existing part of a path.\n",
+   "    \"\"\"\n",
+   "    if path.exists():\n",
+   "        return path.resolve()\n",
+   "    else:\n",
+   "        return resolve(path.parent) / path.name\n",
+   "\n",
+   "\n",
+   "class Path(pathlib.PosixPath):\n",
+   "\n",
+   "    def __new__(class_, *args, **kw_args):\n",
+   "        if len(args) == 1 and len(kw_args) == 0 and isinstance(args[0], Path):\n",
+   "            return args[0]\n",
+   "        else:\n",
+   "            return resolve(pathlib.PosixPath.__new__(class_, *args, **kw_args))\n",
+   "\n",
+   "\n",
+   "    def with_suffix(self, suffix):\n",
+   "        \"\"\"\n",
+   "        @todo\n",
+   "          This hopefully will not be needed when the base method is fixed.\n",
+   "        \"\"\"\n",
+   "        if suffix is None:\n",
+   "            if self.suffix == \"\":\n",
+   "                return self\n",
+   "            else:\n",
+   "                return self.parent / self.name[: -len(self.suffix)]\n",
+   "        else:\n",
+   "            return super().with_suffix(suffix)\n",
+   "\n",
+   "\n",
+   "    def starts_with(self, prefix):\n",
+   "        return any( p == prefix for p in self.parents )\n",
+   "\n",
    "\n",
    "\n"
   ],
-  "path": "/home/samuel/dev/apidoc/test/input/src/mypackage/support.py",
   "dict": {
-   "foo": {
-    "parameters": [
-     {
-      "kind": "POSITIONAL_OR_KEYWORD",
-      "name": "x",
-      "default": null,
-      "annotation": "<class 'int'>"
-     },
-     {
-      "kind": "POSITIONAL_OR_KEYWORD",
-      "name": "y",
-      "default": "0",
-      "annotation": "<class 'int'>"
-     }
+   "pathlib": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/pathlib.py",
+    "name": "pathlib",
+    "type": "module"
+   },
+   "resolve": {
+    "lines": [
+     6,
+     14
     ],
     "type": "function",
-    "lines": [
-     7,
-     9
-    ],
-    "doc": "Computes the foo function."
+    "doc": "Resolves the existing part of a path.",
+    "parameters": [
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
    },
-   "math": {
-    "path": "/home/samuel/sw/Python-3.4.0b1/lib/python3.4/lib-dynload/math.cpython-34m.so",
-    "name": "math",
+   "Path": {
+    "type": "class",
+    "mro": [
+     "Path",
+     "PosixPath",
+     "Path",
+     "PurePosixPath",
+     "PurePath",
+     "object"
+    ],
+    "doc": null,
+    "lines": [
+     16,
+     41
+    ],
+    "bases": [
+     "PosixPath"
+    ],
+    "dict": {
+     "_opener": {
+      "type": "function"
+     },
+     "is_file": {
+      "type": "function"
+     },
+     "name": {
+      "value": "<property object at 0x101966278>",
+      "type": "value"
+     },
+     "absolute": {
+      "type": "function"
+     },
+     "match": {
+      "type": "function"
+     },
+     "drive": {
+      "value": "<property object at 0x101966188>",
+      "type": "value"
+     },
+     "exists": {
+      "type": "function"
+     },
+     "_parse_args": {
+      "value": "<bound method type._parse_args of <class 'apidoc.path.Path'>>",
+      "type": "value"
+     },
+     "rglob": {
+      "type": "function"
+     },
+     "_init": {
+      "type": "function"
+     },
+     "_format_parsed_parts": {
+      "value": "<bound method type._format_parsed_parts of <class 'apidoc.path.Path'>>",
+      "type": "value"
+     },
+     "_drv": {
+      "value": "<member '_drv' of 'PurePath' objects>",
+      "type": "value"
+     },
+     "open": {
+      "type": "function"
+     },
+     "_pparts": {
+      "value": "<member '_pparts' of 'PurePath' objects>",
+      "type": "value"
+     },
+     "_raw_open": {
+      "type": "function"
+     },
+     "is_symlink": {
+      "type": "function"
+     },
+     "_cached_cparts": {
+      "value": "<member '_cached_cparts' of 'PurePath' objects>",
+      "type": "value"
+     },
+     "_make_child_relpath": {
+      "type": "function"
+     },
+     "_parts": {
+      "value": "<member '_parts' of 'PurePath' objects>",
+      "type": "value"
+     },
+     "_make_child": {
+      "type": "function"
+     },
+     "touch": {
+      "type": "function"
+     },
+     "is_block_device": {
+      "type": "function"
+     },
+     "parents": {
+      "value": "<property object at 0x101966458>",
+      "type": "value"
+     },
+     "glob": {
+      "type": "function"
+     },
+     "as_posix": {
+      "type": "function"
+     },
+     "_accessor": {
+      "value": "<member '_accessor' of 'Path' objects>",
+      "type": "value"
+     },
+     "is_reserved": {
+      "type": "function"
+     },
+     "starts_with": {
+      "lines": [
+       39,
+       41
+      ],
+      "type": "function",
+      "doc": null,
+      "parameters": [
+       {
+        "name": "self",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "prefix",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       }
+      ]
+     },
+     "unlink": {
+      "type": "function"
+     },
+     "lstat": {
+      "type": "function"
+     },
+     "is_fifo": {
+      "type": "function"
+     },
+     "joinpath": {
+      "type": "function"
+     },
+     "is_dir": {
+      "type": "function"
+     },
+     "owner": {
+      "type": "function"
+     },
+     "_root": {
+      "value": "<member '_root' of 'PurePath' objects>",
+      "type": "value"
+     },
+     "parent": {
+      "value": "<property object at 0x101966408>",
+      "type": "value"
+     },
+     "_raise_closed": {
+      "type": "function"
+     },
+     "anchor": {
+      "value": "<property object at 0x101966228>",
+      "type": "value"
+     },
+     "is_socket": {
+      "type": "function"
+     },
+     "iterdir": {
+      "type": "function"
+     },
+     "_from_parts": {
+      "value": "<bound method type._from_parts of <class 'apidoc.path.Path'>>",
+      "type": "value"
+     },
+     "with_suffix": {
+      "lines": [
+       25,
+       37
+      ],
+      "type": "function",
+      "doc": "@todo\n  This hopefully will not be needed when the base method is fixed.",
+      "parameters": [
+       {
+        "name": "self",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "suffix",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       }
+      ]
+     },
+     "cwd": {
+      "value": "<bound method type.cwd of <class 'apidoc.path.Path'>>",
+      "type": "value"
+     },
+     "rmdir": {
+      "type": "function"
+     },
+     "chmod": {
+      "type": "function"
+     },
+     "suffix": {
+      "value": "<property object at 0x1019662c8>",
+      "type": "value"
+     },
+     "mkdir": {
+      "type": "function"
+     },
+     "stem": {
+      "value": "<property object at 0x101966368>",
+      "type": "value"
+     },
+     "as_uri": {
+      "type": "function"
+     },
+     "suffixes": {
+      "value": "<property object at 0x101966318>",
+      "type": "value"
+     },
+     "_str": {
+      "value": "<member '_str' of 'PurePath' objects>",
+      "type": "value"
+     },
+     "lchmod": {
+      "type": "function"
+     },
+     "_flavour": {
+      "value": "<pathlib._PosixFlavour object at 0x101954780>",
+      "type": "value"
+     },
+     "_closed": {
+      "value": "<member '_closed' of 'Path' objects>",
+      "type": "value"
+     },
+     "resolve": {
+      "type": "function"
+     },
+     "_cparts": {
+      "value": "<property object at 0x101966138>",
+      "type": "value"
+     },
+     "parts": {
+      "value": "<property object at 0x1019663b8>",
+      "type": "value"
+     },
+     "stat": {
+      "type": "function"
+     },
+     "_hash": {
+      "value": "<member '_hash' of 'PurePath' objects>",
+      "type": "value"
+     },
+     "relative_to": {
+      "type": "function"
+     },
+     "symlink_to": {
+      "type": "function"
+     },
+     "is_absolute": {
+      "type": "function"
+     },
+     "is_char_device": {
+      "type": "function"
+     },
+     "rename": {
+      "type": "function"
+     },
+     "group": {
+      "type": "function"
+     },
+     "replace": {
+      "type": "function"
+     },
+     "root": {
+      "value": "<property object at 0x1019661d8>",
+      "type": "value"
+     },
+     "with_name": {
+      "type": "function"
+     },
+     "_from_parsed_parts": {
+      "value": "<bound method type._from_parsed_parts of <class 'apidoc.path.Path'>>",
+      "type": "value"
+     }
+    }
+   },
+   "logging": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/logging/__init__.py",
+    "name": "logging",
     "type": "module"
    }
-  },
-  "name": "mypackage.support",
-  "type": "module"
+  }
+ },
+ "apidoc.modules": {
+  "path": "/Users/samuel/dev/apidoc/src/python/apidoc/modules.py",
+  "name": "apidoc.modules",
+  "type": "module",
+  "doc": null,
+  "source": [
+   "import functools\n",
+   "import importlib\n",
+   "from   importlib.machinery import SourceFileLoader\n",
+   "import logging\n",
+   "import os\n",
+   "import sys\n",
+   "\n",
+   "from   apidoc.path import Path\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "@functools.total_ordering\n",
+   "class Name:\n",
+   "    \"\"\"\n",
+   "    The fully-qualified name of a Python object.\n",
+   "    \"\"\"\n",
+   "\n",
+   "    def __init__(self, parts):\n",
+   "        if isinstance(parts, str):\n",
+   "            parts = tuple(parts.split(\".\"))\n",
+   "        else:\n",
+   "            parts = tuple(parts)\n",
+   "        assert len(parts) > 0\n",
+   "        self.__parts = parts\n",
+   "\n",
+   "\n",
+   "    def __str__(self):\n",
+   "        return \".\".join(self.__parts)\n",
+   "\n",
+   "\n",
+   "    def __repr__(self):\n",
+   "        return \"{}({})\".format(\n",
+   "            self.__class__.__name__, \n",
+   "            \", \".join( repr(p) for p in self.__parts ))\n",
+   "\n",
+   "\n",
+   "    def __eq__(self, other):\n",
+   "        return str(self) == str(other)\n",
+   "\n",
+   "\n",
+   "    def __le__(self, other):\n",
+   "        return str(self) < str(other)\n",
+   "\n",
+   "\n",
+   "    def __hash__(self):\n",
+   "        return hash(self.__parts)\n",
+   "\n",
+   "\n",
+   "    def __len__(self):\n",
+   "        return len(self.__parts)\n",
+   "\n",
+   "\n",
+   "    def __iter__(self):\n",
+   "        return iter(self.__parts)\n",
+   "\n",
+   "\n",
+   "    def __getitem__(self, index):\n",
+   "        return self.__parts[index]\n",
+   "\n",
+   "\n",
+   "    @property\n",
+   "    def base(self):\n",
+   "        return self.__parts[-1]\n",
+   "\n",
+   "\n",
+   "    @property\n",
+   "    def parent(self):\n",
+   "        if len(self.__parts) == 1:\n",
+   "            raise AttributeError(\"name '{}' has no parent\".format(self))\n",
+   "        return self.__class__(self.__parts[: -1])\n",
+   "\n",
+   "\n",
+   "    def __add__(self, part):\n",
+   "        return self.__class__(self.__parts + (part, ))\n",
+   "\n",
+   "\n",
+   "\n",
+   "def get_module_name_from_path(path, base_path):\n",
+   "    \"\"\"\n",
+   "    Constructs the name of a module from its path relative to the import path.\n",
+   "    \"\"\"\n",
+   "    path = Path(path)\n",
+   "    base_path = Path(base_path)\n",
+   "    parts = path.with_suffix(None).relative_to(base_path).parts\n",
+   "    return Name(parts)\n",
+   "    \n",
+   "\n",
+   "# FIXME: Don't rely on the module in the path.\n",
+   "def import_module_from_filename(path):\n",
+   "    path = Path(path)\n",
+   "    if path.is_dir():\n",
+   "        # FIXME: Is this general?  Is this right?\n",
+   "        path = path / \"__init__.py\"\n",
+   "\n",
+   "    for load_path in sys.path:\n",
+   "        try:\n",
+   "            relative = path.with_suffix(\"\").relative_to(load_path)\n",
+   "        except ValueError:\n",
+   "            pass\n",
+   "        else:\n",
+   "            name = Name(relative.parts)\n",
+   "            module = importlib.import_module(str(name))\n",
+   "            if Path(module.__file__) == path:\n",
+   "                return name, module\n",
+   "            else:\n",
+   "                logging.warning(\n",
+   "                    \"module {} imports from {}, not expected {}\".format(\n",
+   "                        name, module.__file__, path))\n",
+   "    raise RuntimeError(\"{} is not in the Python path\".format(path))\n",
+   "\n",
+   "\n",
+   "def is_package_dir(path):\n",
+   "    \"\"\"\n",
+   "    Returns true if 'path' is a package directory.\n",
+   "    \"\"\"\n",
+   "    path = Path(path)\n",
+   "    return path.is_dir() and (path / \"__init__.py\").exists()\n",
+   "\n",
+   "\n",
+   "def enumerate_package(path):\n",
+   "    \"\"\"\n",
+   "    Generates subpackages and modules under a top-level package.\n",
+   "    \"\"\"\n",
+   "    path = Path(path)\n",
+   "    if not is_package_dir(path):\n",
+   "        raise ValueError(\"{} is not a package dir\".format(path))\n",
+   "\n",
+   "    # The import base is the parent of the top-level package.\n",
+   "    base_path = path.parent\n",
+   "\n",
+   "    def enumerate(path):\n",
+   "        yield get_module_name_from_path(path, base_path), path / \"__init__.py\"\n",
+   "        for sub_path in path.iterdir():\n",
+   "            if sub_path.suffix == \".py\" and sub_path.stem != \"__init__\":\n",
+   "                yield get_module_name_from_path(sub_path, base_path), sub_path\n",
+   "            elif is_package_dir(sub_path):\n",
+   "                yield from enumerate(sub_path)\n",
+   "    \n",
+   "    return enumerate(path)\n",
+   "\n",
+   "\n",
+   "def load_module(name, path):\n",
+   "    logging.info(\"loading {} from {}\".format(name, path))\n",
+   "    module = SourceFileLoader(str(name), str(path)).load_module()\n",
+   "    if len(name) > 1:\n",
+   "        parent_name = Name(name[: -1])\n",
+   "        parent = sys.modules[str(parent_name)]\n",
+   "        setattr(parent, name[-1], module)\n",
+   "    return module\n",
+   "\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "if __name__ == \"__main__\":\n",
+   "    # Remove this module's directory from the load path.\n",
+   "    sys.path.remove(os.path.dirname(os.path.realpath(sys.argv[0])))\n",
+   "\n",
+   "    pkg = Path(sys.argv[1])\n",
+   "    top = pkg.parent\n",
+   "\n",
+   "    for name, path in enumerate_package(pkg):\n",
+   "        print(\"{!s:24} -> {}\".format(name, path))\n",
+   "\n",
+   "        module = SourceFileLoader(str(name), str(path)).load_module()\n",
+   "        print(module)\n",
+   "\n",
+   "\n"
+  ],
+  "dict": {
+   "os": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/os.py",
+    "name": "os",
+    "type": "module"
+   },
+   "get_module_name_from_path": {
+    "lines": [
+     78,
+     86
+    ],
+    "type": "function",
+    "doc": "Constructs the name of a module from its path relative to the import path.",
+    "parameters": [
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "base_path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "sys": {
+    "path": "None",
+    "name": "sys",
+    "type": "module"
+   },
+   "importlib": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/importlib/__init__.py",
+    "name": "importlib",
+    "type": "module"
+   },
+   "is_package_dir": {
+    "lines": [
+     112,
+     118
+    ],
+    "type": "function",
+    "doc": "Returns true if 'path' is a package directory.",
+    "parameters": [
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "Name": {
+    "type": "class",
+    "mro": [
+     "Name",
+     "object"
+    ],
+    "doc": "The fully-qualified name of a Python object.",
+    "lines": [
+     13,
+     75
+    ],
+    "bases": [
+     "object"
+    ],
+    "dict": {
+     "parent": {
+      "value": "<property object at 0x101a492c8>",
+      "type": "value"
+     },
+     "base": {
+      "value": "<property object at 0x101a49278>",
+      "type": "value"
+     }
+    }
+   },
+   "load_module": {
+    "lines": [
+     142,
+     150
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "enumerate_package": {
+    "lines": [
+     120,
+     140
+    ],
+    "type": "function",
+    "doc": "Generates subpackages and modules under a top-level package.",
+    "parameters": [
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "import_module_from_filename": {
+    "lines": [
+     89,
+     110
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "path",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "SourceFileLoader": {
+    "type": "class"
+   },
+   "functools": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/functools.py",
+    "name": "functools",
+    "type": "module"
+   },
+   "Path": {
+    "type": "class"
+   },
+   "logging": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/logging/__init__.py",
+    "name": "logging",
+    "type": "module"
+   }
+  }
+ },
+ "apidoc.base": {
+  "path": "/Users/samuel/dev/apidoc/src/python/apidoc/base.py",
+  "name": "apidoc.base",
+  "type": "module",
+  "doc": null,
+  "source": [
+   "from   collections import ChainMap\n",
+   "import inspect\n",
+   "import logging\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "class Token:\n",
+   "\n",
+   "    def __init__(self, name):\n",
+   "        self.__name = name\n",
+   "\n",
+   "\n",
+   "    def __str__(self):\n",
+   "        return self.__name\n",
+   "\n",
+   "\n",
+   "    def __repr__(self):\n",
+   "        return \"{}({!r})\".format(self.__class__.__name__, self.__name)\n",
+   "\n",
+   "\n",
+   "    def __hash__(self):\n",
+   "        return hash(self.__name)\n",
+   "\n",
+   "\n",
+   "    def __eq__(self, other):\n",
+   "        return other is self\n",
+   "\n",
+   "\n",
+   "    def __ne__(self, other):\n",
+   "        return other is not self\n",
+   "\n",
+   "\n",
+   "    def __lt__(self, other):\n",
+   "        return NotImplemented\n",
+   "\n",
+   "\n",
+   "    __gt__ = __le__ = __ge__ = __lt__\n",
+   "\n",
+   "\n",
+   "        \n",
+   "UNDEFINED = Token(\"UNDEFINED\")\n",
+   "\n",
+   "def log_call(log=logging.debug):\n",
+   "    frame = inspect.stack()[1][0]\n",
+   "    try:\n",
+   "        arg_info = inspect.getargvalues(frame)\n",
+   "        args = [ \n",
+   "            \"{}={!r}\".format(n, arg_info.locals.get(n, UNDEFINED)) \n",
+   "            for n in arg_info.args \n",
+   "            ]\n",
+   "        if arg_info.varargs is not None:\n",
+   "            args.append(\"*{!r}\".format(arg_info.varargs))\n",
+   "        if arg_info.keywords is not None:\n",
+   "            args.append(\"**{!r}\".format(arg_info.keywords))\n",
+   "        fn_name = inspect.getframeinfo(frame).function\n",
+   "        log(\"{}({})\".format(fn_name, \", \".join(args)))\n",
+   "    finally:\n",
+   "        del frame\n",
+   "\n",
+   "\n",
+   "def format_ctor(obj, *args, **kw_args):\n",
+   "    name = obj.__class__.__name__\n",
+   "    args = [ repr(a) for a in args ]\n",
+   "    args.extend( n + \"=\" + repr(v) for n, v in kw_args.items() )\n",
+   "    return \"{}({})\".format(name, \", \".join(args))\n",
+   "\n",
+   "\n",
+   "class BaseStruct:\n",
+   "\n",
+   "    def __init__(self, **kw_args):\n",
+   "        for name in self.__slots__:\n",
+   "            super(BaseStruct, self).__setattr__(name, kw_args.pop(name, None))\n",
+   "        if len(kw_args) > 0:\n",
+   "            raise AttributeError(\"no attributes {}\".format(\", \".join(kw_args)))\n",
+   "        \n",
+   "\n",
+   "    def __repr__(self):\n",
+   "        return format_ctor(\n",
+   "            self, **{ n: getattr(self, n) for n in self.__slots__ })\n",
+   "\n",
+   "\n",
+   "    def __setattr__(self, name, value):\n",
+   "        raise RuntimeError(\"read-only struct\")\n",
+   "\n",
+   "\n",
+   "    def copy(self, **kw_args):\n",
+   "        for name in self.__slots__:\n",
+   "            kw_args.setdefault(name, getattr(self, name))\n",
+   "        return self.__class__(**kw_args)\n",
+   "\n",
+   "\n",
+   "\n",
+   "def Struct(*names, name=\"Struct\"):\n",
+   "    names = tuple( str(n) for n in names )\n",
+   "    return type(name, (BaseStruct, ), {\"__slots__\": names})\n",
+   "\n",
+   "\n"
+  ],
+  "dict": {
+   "format_ctor": {
+    "lines": [
+     61,
+     66
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "obj",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "args",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "kw_args",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "log_call": {
+    "lines": [
+     43,
+     59
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "log",
+      "default": "<function debug at 0x1018b66a8>",
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "Token": {
+    "type": "class",
+    "mro": [
+     "Token",
+     "object"
+    ],
+    "doc": null,
+    "lines": [
+     7,
+     38
+    ],
+    "bases": [
+     "object"
+    ],
+    "dict": {}
+   },
+   "BaseStruct": {
+    "type": "class",
+    "mro": [
+     "BaseStruct",
+     "object"
+    ],
+    "doc": null,
+    "lines": [
+     68,
+     90
+    ],
+    "bases": [
+     "object"
+    ],
+    "dict": {
+     "copy": {
+      "lines": [
+       86,
+       90
+      ],
+      "type": "function",
+      "doc": null,
+      "parameters": [
+       {
+        "name": "self",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "kw_args",
+        "default": null,
+        "annotation": null,
+        "kind": "VAR_KEYWORD"
+       }
+      ]
+     }
+    }
+   },
+   "UNDEFINED": {
+    "value": "Token('UNDEFINED')",
+    "type": "value"
+   },
+   "logging": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/logging/__init__.py",
+    "name": "logging",
+    "type": "module"
+   },
+   "Struct": {
+    "lines": [
+     93,
+     96
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "names",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "name",
+      "default": "'Struct'",
+      "annotation": null,
+      "kind": "KEYWORD_ONLY"
+     }
+    ]
+   },
+   "ChainMap": {
+    "type": "class"
+   },
+   "inspect": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/inspect.py",
+    "name": "inspect",
+    "type": "module"
+   }
+  }
+ },
+ "apidoc.htmlgen": {
+  "path": "/Users/samuel/dev/apidoc/src/python/apidoc/htmlgen.py",
+  "name": "apidoc.htmlgen",
+  "type": "module",
+  "doc": null,
+  "source": [
+   "import html\n",
+   "import functools\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "def terminate(terminator, strings):\n",
+   "    result = terminator.join(strings)\n",
+   "    if len(result) > 0:\n",
+   "        result += terminator\n",
+   "    return result\n",
+   "\n",
+   "\n",
+   "def format_tag(name, attrs={}, close=False):\n",
+   "    if len(attrs) == 0:\n",
+   "        attr_str = \"\"\n",
+   "    else:\n",
+   "        assert not close\n",
+   "        attr_str = \" \" + \" \".join( \n",
+   "            '{}=\"{}\"'.format(n, html.escape(v, quote=True)) \n",
+   "            for n, v in attrs.items() )\n",
+   "    return \"<\" + (\"/\" if close else \"\") + name + attr_str + \">\"\n",
+   "\n",
+   "\n",
+   "class Element:\n",
+   "\n",
+   "    def __init__(self, tag, *children, **attrs):\n",
+   "        try:\n",
+   "            attrs[\"class\"] = attrs.pop(\"class_\")\n",
+   "        except KeyError:\n",
+   "            pass\n",
+   "\n",
+   "        children = tuple( \n",
+   "            c if isinstance(c, Element) else str(c) for c in children )\n",
+   "        attrs = { str(n): str(v) for n, v in attrs.items() }\n",
+   "\n",
+   "        self.__tag = tag\n",
+   "        self.__attrs = attrs\n",
+   "        self.__children = children\n",
+   "\n",
+   "\n",
+   "    def __repr__(self):\n",
+   "        return \"{}({!r}, *{!r}, **{!r})\".format(\n",
+   "            self.__class__.__name__, self.__tag, self.__children, self.__attrs)\n",
+   "\n",
+   "\n",
+   "    def __str__(self):\n",
+   "        return self.format(\"\", \"\")\n",
+   "\n",
+   "\n",
+   "    @property\n",
+   "    def children(self):\n",
+   "        return self.__children\n",
+   "\n",
+   "\n",
+   "    @property\n",
+   "    def attrs(self):\n",
+   "        # FIXME: Return a read-only view.\n",
+   "        return self.__attrs\n",
+   "\n",
+   "\n",
+   "    def generate(self, terminator=\"\", indent=\"\", depth=0):\n",
+   "        prefix = indent * depth\n",
+   "        yield prefix + format_tag(self.__tag, self.__attrs) + terminator\n",
+   "        for child in self.__children:\n",
+   "            try:\n",
+   "                yield from child.generate(terminator, indent, depth + 1)\n",
+   "            except AttributeError:\n",
+   "                yield prefix + indent + str(child) + terminator\n",
+   "        yield prefix + format_tag(self.__tag, close=True) + terminator\n",
+   "\n",
+   "\n",
+   "    def format(self, terminator=\"\\n\", indent=\" \", depth=0):\n",
+   "        return \"\".join(self.generate(terminator, indent, depth))\n",
+   "\n",
+   "\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "def _make_element(tag):\n",
+   "    def El(*children, **attrs):\n",
+   "        return Element(tag, *children, **attrs)\n",
+   "\n",
+   "    El.__name__ = tag\n",
+   "    return El\n",
+   "\n",
+   "\n",
+   "_elements = tuple(\n",
+   "    _make_element(n)\n",
+   "    for n in (\n",
+   "        \"A\",\n",
+   "        \"BODY\",\n",
+   "        \"DIV\",\n",
+   "        \"EM\",\n",
+   "        \"HEAD\",\n",
+   "        \"HTML\",\n",
+   "        \"IMG\",\n",
+   "        \"LI\",\n",
+   "        \"LINK\",\n",
+   "        \"OL\",\n",
+   "        \"P\",\n",
+   "        \"PRE\",\n",
+   "        \"SCRIPT\",\n",
+   "        \"SPAN\",\n",
+   "        \"STYLE\",\n",
+   "        \"TITLE\",\n",
+   "        \"UL\",\n",
+   "        )\n",
+   "    )\n",
+   "\n",
+   "globals().update( (e.__name__, e) for e in _elements )\n",
+   "\n",
+   "#-------------------------------------------------------------------------------\n",
+   "\n",
+   "__all__ = (\n",
+   "    \"Element\",\n",
+   "    ) + tuple( e.__name__ for e in _elements )\n",
+   "\n",
+   "\n"
+  ],
+  "dict": {
+   "HTML": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "TITLE": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "BODY": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "DIV": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "STYLE": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "LI": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "PRE": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "html": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/html/__init__.py",
+    "name": "html",
+    "type": "module"
+   },
+   "IMG": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "A": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "terminate": {
+    "lines": [
+     6,
+     11
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "terminator",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "strings",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "LINK": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "SCRIPT": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "Element": {
+    "type": "class",
+    "mro": [
+     "Element",
+     "object"
+    ],
+    "doc": null,
+    "lines": [
+     24,
+     74
+    ],
+    "bases": [
+     "object"
+    ],
+    "dict": {
+     "attrs": {
+      "value": "<property object at 0x101a38228>",
+      "type": "value"
+     },
+     "format": {
+      "lines": [
+       72,
+       74
+      ],
+      "type": "function",
+      "doc": null,
+      "parameters": [
+       {
+        "name": "self",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "terminator",
+        "default": "'\\n'",
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "indent",
+        "default": "' '",
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "depth",
+        "default": "0",
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       }
+      ]
+     },
+     "generate": {
+      "lines": [
+       61,
+       70
+      ],
+      "type": "function",
+      "doc": null,
+      "parameters": [
+       {
+        "name": "self",
+        "default": null,
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "terminator",
+        "default": "''",
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "indent",
+        "default": "''",
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       },
+       {
+        "name": "depth",
+        "default": "0",
+        "annotation": null,
+        "kind": "POSITIONAL_OR_KEYWORD"
+       }
+      ]
+     },
+     "children": {
+      "value": "<property object at 0x1019cee58>",
+      "type": "value"
+     }
+    }
+   },
+   "format_tag": {
+    "lines": [
+     13,
+     22
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "name",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "attrs",
+      "default": "{}",
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     },
+     {
+      "name": "close",
+      "default": "False",
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "P": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "EM": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "HEAD": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "SPAN": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "_elements": {
+    "value": "(<function _make_element.<locals>.El at 0x1019e12f0>, <function _make_element.<locals>.El at 0x101a367b8>, <function _make_element.<locals>.El at 0x101a36840>, <function _make_element.<locals>.El at 0x101a368c8>, <function _make_element.<locals>.El at 0x101a36950>, <function _make_element.<locals>.El at 0x101a369d8>, <function _make_element.<locals>.El at 0x101a36a60>, <function _make_element.<locals>.El at 0x101a36ae8>, <function _make_element.<locals>.El at 0x101a36b70>, <function _make_element.<locals>.El at 0x101a36bf8>, <function _make_element.<locals>.El at 0x101a36c80>, <function _make_element.<locals>.El at 0x101a36d08>, <function _make_element.<locals>.El at 0x101a36d90>, <function _make_element.<locals>.El at 0x101a36e18>, <function _make_element.<locals>.El at 0x101a36ea0>, <function _make_element.<locals>.El at 0x101a36f28>, <function _make_element.<locals>.El at 0x101a3c048>)",
+    "type": "value"
+   },
+   "UL": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   },
+   "functools": {
+    "path": "/Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/functools.py",
+    "name": "functools",
+    "type": "module"
+   },
+   "_make_element": {
+    "lines": [
+     79,
+     85
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "tag",
+      "default": null,
+      "annotation": null,
+      "kind": "POSITIONAL_OR_KEYWORD"
+     }
+    ]
+   },
+   "OL": {
+    "lines": [
+     80,
+     82
+    ],
+    "type": "function",
+    "doc": null,
+    "parameters": [
+     {
+      "name": "children",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_POSITIONAL"
+     },
+     {
+      "name": "attrs",
+      "default": null,
+      "annotation": null,
+      "kind": "VAR_KEYWORD"
+     }
+    ]
+   }
+  }
  }
 }
