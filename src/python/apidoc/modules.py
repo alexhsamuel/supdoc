@@ -4,6 +4,7 @@ from   importlib.machinery import SourceFileLoader
 import logging
 import os
 import sys
+import types
 
 from   apidoc.path import Path
 
@@ -109,6 +110,10 @@ def import_module_from_filename(path):
     raise RuntimeError("{} is not in the Python path".format(path))
 
 
+def is_package(obj):
+    return isinstance(obj, types.ModuleType) and obj.__name__ == obj.__package__
+
+
 def is_package_dir(path):
     """
     Returns true if 'path' is a package directory.
@@ -137,6 +142,19 @@ def enumerate_package(path):
                 yield from enumerate(sub_path)
     
     return enumerate(path)
+
+
+def get_submodules(package):
+    if not is_package(package):
+        raise TypeError("not a package")
+
+    fqname = Name(package.__name__)
+    package_dir = Path(package.__file__).parent
+
+    for sub_path in package_dir.iterdir():
+        name = sub_path.stem
+        if sub_path.suffix == ".py" and name != "__init__":
+            yield name, load_module(fqname + name, sub_path)
 
 
 def load_module(name, path):

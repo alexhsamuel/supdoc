@@ -22,24 +22,18 @@ def is_special_symbol(symbol):
 
 class Context:
 
-    def __init__(self, path):
-        self.__path = Path(path)
+    def __init__(self):
+        pass
 
 
     def include(self, obj):
         try:
             path = inspect.getsourcefile(obj)
         except TypeError:
-            # Build-in module.
+            # Built-in module.
             return False
         else:
-            if path is None:
-                # FIXME
-                # It's a built-in module.
-                return False
-            else:
-                path = Path(path)
-                return path == self.__path
+            return path is not None
 
 
 
@@ -52,7 +46,7 @@ def _get_lines(obj):
         return [start_num, start_num + len(lines)]
 
 
-def _inspect_module(module, context):
+def _get_module_path(module):
     try:
         path = inspect.getsourcefile(module)
     except TypeError:
@@ -61,48 +55,76 @@ def _inspect_module(module, context):
     else:
         if path is None:
             path = inspect.getfile(module)
-    path = None if path is None else Path(path)
+    return None if path is None else Path(path)
 
-    result = dict(
-        type        ="module",
-        name        =module.__name__,
-        path        =str(path),
+
+def _inspect_module(context, fqname, module):
+    return dict(
+        type    ="module",
+        fqname  =str(fqname), 
+        name    =module.__name__,
+        path    =str(_get_module_path(module)),
         )
-    if context.include(module):
-        # FIXME: Work around a bug in Python 3.4 that occurs whe importing
-        # an empty module file.
-        # source = inspect.getsourcelines(module)
-        import tokenize
-        with path.open() as file:
-            source = file.readlines()
 
+
+def _inspect_package_or_module(context, fqname, module):
+    result = _inspect_module(context, fqname, module)
+
+    # FIXME: Work around a bug in Python 3.4 that occurs whe importing
+    # an empty module file.
+    # source = inspect.getsourcelines(module)
+    import tokenize
+    path = _get_module_path(module)
+    with path.open() as file:
+        source = file.readlines()
+
+    result.update(
+      # source      =source,
+        doc         =inspect.getdoc(module),
+        dict        =dict( 
+            (n, _inspect(context, fqname + n, o)) 
+            for n, o in inspect.getmembers(module)
+            if not is_special_symbol(n)
+            ),
+        )
+
+    if modules.is_package(module):
+        # Include modules and packages that are direct children.
         result.update(
-            source  =source,
-            doc     =inspect.getdoc(module),
-            dict    =dict( 
-                (n, _inspect(o, context)) 
-                for n, o in inspect.getmembers(module)
-                if not is_special_symbol(n)
-                ),
-            )
+            type    ="package",
+            modules = {
+                n: _inspect_package_or_module(context, fqname + n, m)
+                for n, m in modules.get_submodules(module)
+            })
     return result
 
 
-def _inspect_class(class_, context):
+def inspect_package(context, path):
+    path = Path(path)
+    if not modules.is_package_dir(path):
+        raise ValueError("not a package directory: {}".format(path))
+
+    fqname = modules.Name(path.stem)
+    package = modules.load_module(fqname, path / "__init__.py")
+    return _inspect_package_or_module(context, fqname, package)
+
+
+def _inspect_class(context, fqname, class_):
     result = dict(
         type        ="class",
         )
     if context.include(class_):
         result.update(
+            fqname  =str(fqname),
             lines   =_get_lines(class_),
             doc     =inspect.getdoc(class_),
             bases   =[ c.__name__ for c in class_.__bases__ ],
             mro     =[ c.__name__ for c in inspect.getmro(class_) ],
-            dict    =dict(
-                (n, _inspect(o, context))
+            dict    ={
+                n: _inspect(context, fqname + n, o)
                 for n, o in inspect.getmembers(class_)
                 if not is_special_symbol(n)
-                ),
+                },
             )
     return result
 
@@ -117,9 +139,10 @@ def _inspect_parameter(parameter):
         )
 
 
-def _inspect_function(function, context):
+def _inspect_function(context, fqname, function):
     result = dict(
-        type            ="function",
+        fqname  =str(fqname),
+        type    ="function",
         )
     if context.include(function):
         signature = inspect.signature(function)
@@ -134,31 +157,18 @@ def _inspect_function(function, context):
     return result
 
 
-def _inspect(obj, context):
+def _inspect(context, fqname, obj):
     if inspect.isfunction(obj):
-        return _inspect_function(obj, context)
+        return _inspect_function(context, fqname, obj)
     elif inspect.isclass(obj):
-        return _inspect_class(obj, context)
+        return _inspect_class(context, fqname, obj)
     elif inspect.ismodule(obj):
-        return _inspect_module(obj, context)
+        return _inspect_module(context, fqname, obj)
     else:
         return {
             "type"  : "value",
             "value" : repr(obj),
             }
-
-
-
-def inspect_package(path):
-    path = Path(path)
-
-    infos = {}
-    for name, module_path in modules.enumerate_package(path):
-        module = modules.load_module(name, module_path)
-        info = _inspect_module(module, Context(module_path))
-        infos[str(name)] = info
-
-    return infos
 
 
 #-------------------------------------------------------------------------------
@@ -167,7 +177,7 @@ import json
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    infos = inspect_package(sys.argv[1])
+    infos = inspect_package(Context(), sys.argv[1])
     json.dump(infos, sys.stdout, indent=1)
 
 
