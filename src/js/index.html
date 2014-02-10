@@ -48,6 +48,13 @@
         {{obj().doc}}
       </p>
 
+      <div ng-show="submoduleNames().length > 0">
+        <h3>Submodules:</h3>
+        <div ng-repeat="name in submoduleNames()">
+          <span class="module">{{name}}</span>
+        </div>
+      </div>
+
       <ul class="nav nav-tabs">
         <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
         <li><a class="" href="#details" data-toggle="tab">Details</a></li>

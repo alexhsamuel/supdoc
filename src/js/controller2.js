@@ -1,8 +1,12 @@
 "use strict"
 
-var moduleListApp = angular.module('moduleListApp', [])
+var moduleListApp = angular
+    .module('moduleListApp', [])
+    .config(function ($locationProvider) {
+        $locationProvider.html5Mode(true)
+    })
 
-function ApiDocController($scope, $http) {
+function ApiDocController($scope, $http, $location) {
     function getModuleFqnames(apidoc) {
         var result = []
         for (var name in apidoc.modules) {
@@ -14,13 +18,24 @@ function ApiDocController($scope, $http) {
     }
 
     $scope.apidoc = {}
-    $scope.fqname = ""
 
     $http.get('apidoc.json').success(function (result) {
         $scope.apidoc = result
         $scope.moduleNames = getModuleFqnames($scope.apidoc)
         $scope.fqname = ''
     })
+
+    // FIXME: This is the beginning of getting URL rewriting to work, 
+    // but history and stuff are broken.
+    //
+    // $scope.fqname = $location.hash() || ""
+    // $scope.$watch("fqname", function(newValue, oldValue) {
+    //     $location.hash(newValue == "" ? undefined : newValue)
+    // })
+    // $scope.$on("$routeUpdate", function () {
+    //     console.log("routeUpdate")
+    //     $scope.fqname = $location.hash() || ""
+    // })
 
     // Returns parts of the fqname of the displayed object.
     $scope.fqnameParts = function () {
@@ -49,6 +64,12 @@ function ApiDocController($scope, $http) {
         for (var i = 0; i < sourceLines.length; ++i) 
             source = source + sourceLines[i]
         return source
+    }
+
+    // Returns an array of names of submodules, if this is a package.
+    $scope.submoduleNames = function () {
+        var obj = $scope.obj()
+        return obj.type == "package" ?  Object.keys(obj.modules) : []
     }
 
     $scope.getByType = function (type) {
