@@ -106,7 +106,13 @@ def inspect_package(context, path):
 
     fqname = modules.Name(path.stem)
     package = modules.load_module(fqname, path / "__init__.py")
-    return _inspect_package_or_module(context, fqname, package)
+    return dict(
+        fqname  =None,
+        type    ="toplevel",
+        modules ={
+            str(fqname): _inspect_package_or_module(context, fqname, package)
+            },
+        )
 
 
 def _inspect_class(context, fqname, class_):
