@@ -1,3 +1,13 @@
+"""
+Infrastructure code.
+
+This module contains infrastructure and utility code not directly related to
+the application.  The contents should be considered candidates for contribution
+to more general packages or libraries.
+"""
+
+#-------------------------------------------------------------------------------
+
 from   collections import ChainMap
 import inspect
 import logging
