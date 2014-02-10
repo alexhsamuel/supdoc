@@ -9,11 +9,6 @@ from   apidoc.path import Path
 
 #-------------------------------------------------------------------------------
 
-# FIXME: Get these from a canonical location.
-_MODULE_TYPE    = type(inspect)
-_FUNCTION_TYPE  = type(lambda: 0)
-
-
 def is_special_symbol(symbol):
     return symbol.startswith("__") and symbol.endswith("__")
 
