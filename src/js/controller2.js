@@ -14,31 +14,45 @@ function ApiDocController($scope, $http) {
     }
 
     $scope.apidoc = {}
-    $scope.moduleName = ""
+    $scope.fqname = ""
 
     $http.get('apidoc.json').success(function (result) {
         $scope.apidoc = result
         $scope.moduleNames = getModuleFqnames($scope.apidoc)
-        $scope.moduleName = ''
+        $scope.fqname = ''
     })
 
-    $scope.moduleParts = function () {
-        if ($scope.moduleName == "")
+    // Returns parts of the fqname of the displayed object.
+    $scope.fqnameParts = function () {
+        if ($scope.fqname == "")
             return []
         else
-            return $scope.moduleName.split(".")
+            return $scope.fqname.split(".")
     }
 
-    $scope.module = function () { 
-        var parts = $scope.moduleParts()
-        var module = $scope.apidoc
+    // Returns the displayed object.
+    $scope.obj = function () { 
+        var parts = $scope.fqnameParts()
+        var obj = $scope.apidoc
         for (var i = 0; i < parts.length; ++i) 
-            module = module.modules[parts[i]]
-        return module
+            obj = obj.modules[parts[i]]
+        return obj
+    }
+
+    // Returns source lines of the displayed object.
+    $scope.getSource = function () {
+        var obj = $scope.obj()
+        var sourceLines = obj.source
+        if (typeof sourceLines === 'undefined')
+            return ''
+        var source = ""
+        for (var i = 0; i < sourceLines.length; ++i) 
+            source = source + sourceLines[i]
+        return source
     }
 
     $scope.getByType = function (type) {
-        var mod = $scope.module()
+        var mod = $scope.obj()
         var dict = mod ? mod.dict : {}
         var result = {}
         for (var name in dict) {
@@ -47,17 +61,6 @@ function ApiDocController($scope, $http) {
                 result[name] = obj
         }
         return result
-    }
-
-    $scope.getSource = function () {
-        var module = $scope.module()
-        var sourceLines = module.source
-        if (typeof sourceLines === 'undefined')
-            return ''
-        var source = ""
-        for (var i = 0; i < sourceLines.length; ++i) 
-            source = source + sourceLines[i]
-        return source
     }
 
     $scope.formatParameters = formatParameters
