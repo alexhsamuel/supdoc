@@ -3,10 +3,22 @@
 var moduleListApp = angular.module('moduleListApp', [])
 
 function ApiDocController($scope, $http) {
-    $scope.modules = {}
+    function getModuleFqnames(apidoc) {
+        var result = []
+        for (var name in apidoc.modules) {
+            var submodule = apidoc.modules[name]
+            result.push(submodule.fqname)
+            result = result.concat(getModuleFqnames(submodule))
+        }
+        return result
+    }
+
+    $scope.apidoc = {}
+    $scope.moduleName = ""
+
     $http.get('apidoc.json').success(function (result) {
-        $scope.modules = result
-        $scope.moduleNames = Object.keys($scope.modules)
+        $scope.apidoc = result
+        $scope.moduleNames = getModuleFqnames($scope.apidoc)
         $scope.moduleName = ''
     })
 
@@ -18,7 +30,7 @@ function ApiDocController($scope, $http) {
     }
 
     $scope.module = function () { 
-        return $scope.modules[$scope.moduleName] 
+        return $scope.apidoc[$scope.moduleName] 
     }
 
     $scope.getByType = function (type) {
