@@ -30,7 +30,11 @@ function ApiDocController($scope, $http) {
     }
 
     $scope.module = function () { 
-        return $scope.apidoc[$scope.moduleName] 
+        var parts = $scope.moduleParts()
+        var module = $scope.apidoc
+        for (var i = 0; i < parts.length; ++i) 
+            module = module.modules[parts[i]]
+        return module
     }
 
     $scope.getByType = function (type) {
@@ -47,9 +51,9 @@ function ApiDocController($scope, $http) {
 
     $scope.getSource = function () {
         var module = $scope.module()
-        if (typeof module === 'undefined')
-            return ''
         var sourceLines = module.source
+        if (typeof sourceLines === 'undefined')
+            return ''
         var source = ""
         for (var i = 0; i < sourceLines.length; ++i) 
             source = source + sourceLines[i]
