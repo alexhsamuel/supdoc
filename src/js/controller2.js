@@ -6,6 +6,26 @@ var moduleListApp = angular
         $locationProvider.html5Mode(true)
     })
 
+moduleListApp.controller(
+    'NavigationController',
+    function ($scope, $location) {
+        // Set 'fqname' from the location path, replacing slash with dot.
+        $scope.$watch(
+            function () {
+                return $location.path()
+            },
+            function (path) {
+                $scope.fqname = path.split("/").join(".")
+            })
+
+        $scope.template() = function () {
+            if ($scope.fqname == '')
+                return 'title.html'
+            else
+                return 'object.html'
+        }
+    })
+
 function ApiDocController($scope, $http, $location) {
     function getModuleFqnames(apidoc) {
         var result = []

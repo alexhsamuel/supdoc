@@ -1,0 +1,31 @@
+<!doctype html>
+<html ng-app="App" style="overflow-y: scroll">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+
+    <link rel="stylesheet" href="/apidoc.css">
+
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-route.js"></script>
+
+    <script src="/app.js"></script>
+    <script src="/routing.js"></script>
+    <script src="/object.js"></script>
+  </head>
+  <body ng-controller="NavigationController">
+    <ng-include src="'/navbar.html'"></ng-include>
+    <input ng-model="fqname"></text>
+    <div class="container-fluid" ng-view>
+      <!-- Route-dependent content goes here -->
+    </div>
+  </body>
+</html>
+
+

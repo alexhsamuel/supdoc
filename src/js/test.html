@@ -1,0 +1,33 @@
+<!doctype html>
+<html ng-app="testApp" style="overflow-y: scroll">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+
+    <link rel="stylesheet" href="apidoc.css">
+
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-animate.js"></script>
+
+    <script src="test.js"></script>
+
+  </head>
+  <body ng-controller="NavigationCtrl">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <ul class="nav">
+          <li><a href="test.html">List users</a></li>
+          <li><a href="new.html">New user</a></li> </ul>
+          <li><a href="edit.html">Edit user</a></li> </ul>
+      </div>
+    </div>
+    <div class="container-fluid" ng-include="selectedRoute.templateUrl">
+      <!-- Route-dependent content goes here -->
+    </div>
+  </body>
+</html>
