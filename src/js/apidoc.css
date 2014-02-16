@@ -19,6 +19,14 @@
     letter-spacing: -0.02em;
 }
 
+h1.identifier {
+  font-size: 2.6em;
+}
+
+h1.module {
+  font-size: 2.6em;
+}
+
 .parameters {
     color: black;
     font-family: Consolas, "Liberation Mono", monospace;
@@ -27,7 +35,9 @@
 }
 
 /* Padding for fixed navbar. */
-body { padding-top: 50px; }
+body { 
+  padding-top: 50px; 
+}
 
 /*----------------------------------------------------------------------------*/
 /* http://stackoverflow.com/questions/18325779/bootstrap-3-collapse-show-state-with-chevron-icon */
