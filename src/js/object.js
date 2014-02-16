@@ -33,19 +33,8 @@ ObjectModule.controller(
     }
 
     $scope.formatParameters = function (parameters) {
-      var result = "("
-        var first = true
-        for (var i = 0; i < parameters.length; ++i) {
-          var param = parameters[i]
-          if (first) 
-            first = false
-          else
-            result += ", "
-          result += param.name
-        }
-        result += ")"
-        return result
-      }
+      return '(' + parameters.map(function (p) { return p.name }).join(', ') + ')'
+    }
 
   })
 
