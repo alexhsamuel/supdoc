@@ -5,8 +5,8 @@
         {{projectName || "APIDoc"}}
       </a>
     </div>
-    <ul class="nav navbar-nav nav-fqname" ng-repeat="name in fqname.split('.')">
-      <li><a href="#">{{name}}</a></li>
+    <ul ng-repeat="parent in parents" class="nav navbar-nav nav-fqname" ng-class="{first: $index == 0}">
+      <li><a href="#" ng-click="navigateTo(parent)">{{getLastPart(parent)}}</a></li>
     </ul>
     <ul class="nav navbar-nav">
       {{nav.fqname}}

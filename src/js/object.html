@@ -4,13 +4,6 @@
     {{api.doc}}
   </p>
 
-  <div ng-show="submoduleNames.length > 0">
-    <h3>Submodules:</h3>
-    <div ng-repeat="name in submoduleNames">
-      <span class="module">{{name}}</span>
-    </div>
-  </div>
-
   <ul class="nav nav-tabs">
     <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
     <li><a class="" href="#details" data-toggle="tab">Details</a></li>
@@ -22,6 +15,25 @@
     <div class="tab-pane fade in active" id="contents">
 
       <div class="panel-group" id="contents-group">
+
+        <div class="panel panel-default" ng-show="submoduleNames.length > 0">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <a class="accordion-toggle collapsed" data-toggle="collapse" href="#collapseSubmodules">
+                Submodules
+              </a>
+            </h3>
+          </div>
+          <div id="collapseSubmodules" class="panel-collapse collapse">
+            <div class="panel-body">
+              <div ng-repeat="fqname in submoduleNames">
+                <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
+                <span>{{getApi(fqname).doc}}</span>
+              </div>
+            </div>
+          </div>                
+        </div>
+
         <div class="panel panel-default">
           <div class="panel-heading">
             <h3 class="panel-title">
@@ -33,7 +45,7 @@
           <div id="collapseImports" class="panel-collapse collapse">
             <div class="panel-body">
               <div ng-repeat="(name, obj) in getByType('module')">
-                <span class="identifier">{{name}}</span>
+                <span class="module">{{name}}</span>
                 = <span class="module">{{obj.name}}</span>
               </div>
             </div>

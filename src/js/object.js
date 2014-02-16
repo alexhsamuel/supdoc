@@ -15,7 +15,10 @@ ObjectModule.controller(
     $scope.$watch(
       'api',
       function (api) {
-        $scope.submoduleNames = api && api.modules ? Object.keys(api.modules) : []
+        $scope.submoduleNames = 
+          api && api.modules 
+          ? mapObjToArr(api.modules, function (_, m) { return m.fqname })
+          : []
       })
 
     $scope.getByType = function (type) {

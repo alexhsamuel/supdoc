@@ -53,6 +53,17 @@ App.controller(
       function (fqname) {
         // Fish out the API for the new object.
         $scope.api = $scope.getApi(fqname)
+
+        // Construct parents.
+        $scope.parents = []
+        if (fqname)
+          fqname.split('.').reduce(
+            function (p, n) {
+              p.push(p.length > 0 ? p[p.length - 1] + '.' + n : n)
+              return p
+            },
+            $scope.parents)
+
         // Update the location.
         if (isDefined(fqname))
           $location.path('/apyi/' + fqname)
@@ -60,6 +71,11 @@ App.controller(
 
     $scope.navigateTo = function (fqname) {
       $scope.fqname = fqname
+    }
+
+    $scope.getLastPart = function (fqname) {
+      var parts = fqname.split('.')
+      return parts[parts.length - 1]
     }
 
     // Watch for location changes.  This also initializes fqname.
@@ -101,3 +117,8 @@ function lookUp(api, fqname) {
   }
   return api
 }
+
+function mapObjToArr(obj, fn) {
+  return Object.keys(obj).map(function (k) { return fn(k, obj[k]) })
+}
+
