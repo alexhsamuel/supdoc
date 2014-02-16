@@ -1,3 +1,14 @@
+"""
+API extraction by importing and inspecting modules.
+
+Invoke like this:
+
+  python3 -m apidoc.inspector /path/to/package > apidoc.json
+
+"""
+
+#-------------------------------------------------------------------------------
+
 import functools
 import inspect
 import logging
@@ -56,8 +67,8 @@ def _get_module_path(module):
 def _inspect_module(context, fqname, module):
     return dict(
         type    ="module",
-        fqname  =str(fqname), 
-        name    =module.__name__,
+        fqname  =module.__name__, 
+        name    =modules.Name(module.__name__)[-1],
         path    =str(_get_module_path(module)),
         )
 

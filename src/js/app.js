@@ -16,8 +16,8 @@ App.controller(
   function ($scope, $http) {
     $scope.id = 'ApiController'
 
+    // Load up all the API data.
     $scope.top = null
-
     $http.get('/apidoc.json').success(
       function (result) {
         $scope.top = result
@@ -38,7 +38,6 @@ App.controller(
     }
 
     $scope.getApi = function (fqname) { 
-      console.log('getApi(' + fqname + ')')
       return lookUp($scope.top, fqname) 
     }
 
