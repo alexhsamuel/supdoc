@@ -1,15 +1,21 @@
 "use strict"
 
-angular.module('Object', ['ngRoute'])
+angular.module('ObjectModule', [])
 
 .config(
   function () {
-    console.log("Object.config")
   })
 
 .controller(
   'ObjectController', 
-  function ($scope, $routeParams) {
-    $scope.fqname = $routeParams.fqname
-  })
+  function ($scope) {
+  	console.log('ObjectController creation')
+  	$scope.api = $scope.getApi($scope.fqname)
 
+  	$scope.submoduleNames = function () {
+		console.log('submoduleNames')
+		var modules = $scope.api.modules
+		console.log(modules)
+		return modules ? Object.keys(modules) : []
+  	}
+  })

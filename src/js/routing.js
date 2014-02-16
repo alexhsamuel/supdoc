@@ -15,7 +15,7 @@ angular.module('Routing', ['ngRoute'])
   'NavigationController', 
   function ($scope, $location, $routeParams) {
     $scope.nav = {
-      fqname: $routeParams.fqname ? $routeParams.fqname.split('/').join('.') : '',
+      fqname: $routeParams.fqname || '',
       templateUrl: $routeParams.templateUrl
     }
 

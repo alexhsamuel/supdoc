@@ -1,4 +1,103 @@
-<div ng-controller="ObjectController">
-  <h1>Object</h1>
-  <div>fqname = {{fqname}}</div>
+<div class="container" ng-controller="ObjectController">
+  <h1>name: {{doc.name}}</h1>
+  <p class="lead">
+    doc:
+    {{doc.doc}}
+  </p>
+
+  <!--div ng-show="submoduleNames().length > 0"-->
+    <h3>Submodules:</h3>
+    <div ng-repeat="name in submoduleNames()">
+      <span class="module">{{name}}</span>
+    </div>
+  <!--/div-->
+
+  <ul class="nav nav-tabs">
+    <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
+    <li><a class="" href="#details" data-toggle="tab">Details</a></li>
+    <li><a class="" href="#source" data-toggle="tab">Source</a></li>
+  </ul>
+  <br>
+
+  <div class="tab-content">
+    <div class="tab-pane fade in active" id="contents">
+
+      <div class="panel-group" id="contents-group">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <a class="accordion-toggle collapsed" data-toggle="collapse" href="#collapseImports">
+                Imports
+              </a>
+            </h3>
+          </div>
+          <div id="collapseImports" class="panel-collapse collapse">
+            <div class="panel-body">
+              <div ng-repeat="(name, obj) in getByType('module')">
+                <span class="identifier">{{name}}</span>
+                = <span class="module">{{obj.name}}</span>
+              </div>
+            </div>
+          </div>                
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <a class="accordion-toggle" data-toggle="collapse" href="#collapseClasses">
+                Classes
+              </a>
+            </h3>
+          </div>
+          <div id="collapseClasses" class="panel-collapse collapse in">
+            <div class="panel-body">
+              <div ng-repeat="(name, obj) in getByType('class')">
+                <span class="identifier">{{name}}</span>
+                <span>[<span class="filename">{{obj.doc}}</span>]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <a class="accordion-toggle" data-toggle="collapse" href="#collapseFunctions">
+                Functions
+              </a>
+            </h3>
+          </div>
+          <div id="collapseFunctions" class="panel-collapse collapse in">
+            <div class="panel-body">
+              <div ng-repeat="(name, obj) in getByType('function')">
+                <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+                <span>[<span class="doc">{{obj.doc}}</span>]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tab-pane fade" id="details">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Details</h3>
+        </div>
+        <div class="panel-body">
+          <dl class="dl-horizontal">
+            <dt>from</dt>
+            <dd><span class="filename">{{obj().path}}</span></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="source">
+      <pre><small>{{getSource()}}</small></pre>
+    </div>
+
+  </div>
+
 </div>
