@@ -1,16 +1,16 @@
 <div class="container" ng-controller="ObjectController">
-  <h1>name: {{doc.name}}</h1>
+  <h1>name: {{api.name}}</h1>
   <p class="lead">
     doc:
     {{doc.doc}}
   </p>
 
-  <!--div ng-show="submoduleNames().length > 0"-->
+  <div ng-show="submoduleNames.length > 0">
     <h3>Submodules:</h3>
-    <div ng-repeat="name in submoduleNames()">
+    <div ng-repeat="name in submoduleNames">
       <span class="module">{{name}}</span>
     </div>
-  <!--/div-->
+  </div>
 
   <ul class="nav nav-tabs">
     <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
@@ -88,7 +88,7 @@
         <div class="panel-body">
           <dl class="dl-horizontal">
             <dt>from</dt>
-            <dd><span class="filename">{{obj().path}}</span></dd>
+            <dd><span class="filename">{{obj.path}}</span></dd>
           </dl>
         </div>
       </div>

@@ -1,21 +1,22 @@
 "use strict"
 
-angular.module('ObjectModule', [])
+var ObjectModule = angular.module('ObjectModule', [])
 
-.config(
+ObjectModule.config(
   function () {
   })
 
-.controller(
+ObjectModule.controller(
   'ObjectController', 
   function ($scope) {
-  	console.log('ObjectController creation')
-  	$scope.api = $scope.getApi($scope.fqname)
+  	$scope.id = 'ObjectController'
 
-  	$scope.submoduleNames = function () {
-		console.log('submoduleNames')
-		var modules = $scope.api.modules
-		console.log(modules)
-		return modules ? Object.keys(modules) : []
-  	}
+    /* Names of direct submodules.  */
+    $scope.$watch(
+      'api',
+      function (api) {
+        $scope.submoduleNames = api && api.modules ? Object.keys(api.modules) : []
+      })
+
   })
+
