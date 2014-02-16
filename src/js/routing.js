@@ -14,11 +14,26 @@ angular.module('Routing', ['ngRoute'])
 .controller(
   'NavigationController', 
   function ($scope, $location, $routeParams) {
+    $scope.nav = {
+      fqname: $routeParams.fqname ? $routeParams.fqname.split('/').join('.') : '',
+      templateUrl: $routeParams.templateUrl
+    }
+
     $scope.$watch(
-      function () { return $routeParams.fqname },
-      function (fqname) { $scope.fqname = fqname })
+      function () { 
+        return $routeParams.fqname 
+      },
+      function (fqname) { 
+        console.log(fqname)
+        $scope.nav.fqname = fqname 
+      })
     $scope.$watch(
-      function () { return $scope.fqname },
-      function (fqname) { if (typeof fqname !== 'undefined') $location.path('/apyi/' + fqname) })
+      function () { 
+        return $scope.nav.fqname 
+      },
+      function (fqname) { 
+        if (typeof fqname !== 'undefined') 
+          $location.path('/apyi/' + fqname) 
+      })
   })
 
