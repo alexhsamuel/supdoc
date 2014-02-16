@@ -1,1 +1,4 @@
-<h1>Title</h1>
+<h3>Modules</h3>
+<div ng-repeat="name in getModuleFqnames()">
+  <span ng-click="$parent.$parent.fqname = name" class="module">{{name}}</span>
+</div>

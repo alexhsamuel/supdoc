@@ -13,7 +13,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if path.startswith("/apyi"):
             path = "/apyi.html"
         new_path = super().translate_path(path)
-        print("{} -> {}".format(path, new_path))
         return new_path
 
 

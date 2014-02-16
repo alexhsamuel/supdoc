@@ -19,13 +19,15 @@
     <script src="/routing.js"></script>
     <script src="/object.js"></script>
   </head>
-  <body ng-controller="NavigationController">
-    <ng-include src="'/navbar.html'"></ng-include>
-    <input ng-model="fqname"></text>
-    <div class="container-fluid" ng-view>
-      <!-- Route-dependent content goes here -->
+  <body ng-controller="DocController">
+    <div ng-controller="NavigationController">
+      <ng-include src="'/navbar.html'"></ng-include>
+      <div class="container">
+        fqname: <input ng-model="fqname"></input>
+      </div>
+      <div class="container" ng-view>
+        <!-- Route-dependent content goes here -->
+      </div>
     </div>
   </body>
 </html>
-
-

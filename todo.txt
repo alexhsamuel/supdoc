@@ -1,4 +1,5 @@
 - Rename moduleName -> fqName et seq.
+- Make json fully hierarchical.  List submodules in packages.
 - Make module list hierarchical.
 - Package breadcrumbs.
 - Make module list collapsible.
