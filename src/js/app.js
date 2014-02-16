@@ -99,6 +99,12 @@ function isDefined(obj) {
   return typeof obj !== 'undefined'
 }
 
+function mapObjToArr(obj, fn) {
+  return Object.keys(obj).map(function (k) { return fn(k, obj[k]) })
+}
+
+//-----------------------------------------------------------------------------
+
 function lookUp(api, fqname) {
   if (api == null)
     return null
@@ -116,9 +122,5 @@ function lookUp(api, fqname) {
       return null
   }
   return api
-}
-
-function mapObjToArr(obj, fn) {
-  return Object.keys(obj).map(function (k) { return fn(k, obj[k]) })
 }
 

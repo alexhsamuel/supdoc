@@ -46,7 +46,7 @@
             <div class="panel-body">
               <div ng-repeat="(name, obj) in getByType('module')">
                 <span class="module">{{name}}</span>
-                = <span class="module">{{obj.name}}</span>
+                = <span class="module" ng-click="getApi(obj.fqname) ? navigateTo(obj.fqname) : null">{{obj.fqname}}</span>
               </div>
             </div>
           </div>                
