@@ -1,11 +1,11 @@
 <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" ng-controller="NavigationController">
   <div class="container">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#" ng-click="fqname = ''">
+      <a class="navbar-brand" href="#" ng-click="nav.fqname = ''">
         {{projectName || "APIDoc"}}
       </a>
     </div>
-    <ul class="nav navbar-nav nav-fqname" ng-repeat="name in fqname.split('.')">
+    <ul class="nav navbar-nav nav-fqname" ng-repeat="name in nav.fqname.split('.')">
       <li><a href="#">{{name}}</a></li>
     </ul>
     <ul class="nav navbar-nav">
