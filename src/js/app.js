@@ -90,6 +90,39 @@ App.controller(
   })
 
 //-----------------------------------------------------------------------------
+// Directives
+
+App.directive(
+  'bsPanel',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      scope: {
+        title: '@title',
+        collapsed: '=collapsed'
+      },
+      link: function (scope) {
+        scope.collapseId = ('collapse' + scope.title).replace(/[^\w]/g, '')
+      },
+      template: 
+       '<div class="panel panel-default">\
+          <div class="panel-heading">\
+            <h3 class="panel-title">\
+              <a class="accordion-toggle" ng-class="{collapsed: collapsed}" data-toggle="collapse" href="#{{collapseId}}">\
+                {{title}}\
+              </a>\
+            </h3>\
+          </div>\
+          <div id="{{collapseId}}" class="panel-collapse collapse" ng-class="{in: ! collapsed}">\
+            <div class="panel-body" ng-transclude></div>\
+          </div>\
+        </div>'
+    }
+  })
+
+//-----------------------------------------------------------------------------
 
 function isUndefined(obj) {
   return typeof obj === 'undefined'

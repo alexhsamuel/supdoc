@@ -1,17 +1,15 @@
-- Rename moduleName -> fqName et seq.
-- Make json fully hierarchical.  List submodules in packages.
 - Make module list hierarchical.
-- Package breadcrumbs.
 - Make module list collapsible.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
 - Use Angular directives to set up Bootstrap stuff.
 - Create a class page.
 - Create a function page.
 - Add values / other accordion section.
-- Select the Content tab correctly.
 - Use Ace for code.
 - Write markup formatters.
 - Create a larger test corpus.
+- Fix tabs.
+- Make accordian state persistent across navigation.
 
 --------------------------------------------------------------------------------
 Before upload to github:
@@ -24,3 +22,6 @@ Before upload to github:
 Done
 - Remove module list from top.
 - Create a module index page.
+- Rename moduleName -> fqName et seq.
+- Make json fully hierarchical.  List submodules in packages.
+- Package breadcrumbs.

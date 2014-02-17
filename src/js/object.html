@@ -25,77 +25,34 @@
 
       <div class="panel-group" id="contents-group">
 
-        <div class="panel panel-default" ng-show="submoduleNames.length > 0">
-          <div class="panel-heading">
-            <h3 class="panel-title">
-              <a class="accordion-toggle collapsed" data-toggle="collapse" href="#collapseSubmodules">
-                Submodules
-              </a>
-            </h3>
+        <bs-panel title="Submodules" collapsed="true" ng-show="submoduleNames.length > 0">
+          <div ng-repeat="fqname in submoduleNames">
+            <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
+            <span>{{getApi(fqname).summary}}</span>
           </div>
-          <div id="collapseSubmodules" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div ng-repeat="fqname in submoduleNames">
-                <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
-                <span>{{getApi(fqname).summary}}</span>
-              </div>
-            </div>
-          </div>                
-        </div>
+        </bs-panel>
 
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">
-              <a class="accordion-toggle collapsed" data-toggle="collapse" href="#collapseImports">
-                Imports
-              </a>
-            </h3>
+        <bs-panel title="Imports" collapsed="true">
+          <div ng-repeat="(name, obj) in getByType('module')">
+            <span class="module">{{name}}</span>
+            = <span class="module" ng-click="getApi(obj.fqname) ? navigateTo(obj.fqname) : null">{{obj.fqname}}</span>
           </div>
-          <div id="collapseImports" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div ng-repeat="(name, obj) in getByType('module')">
-                <span class="module">{{name}}</span>
-                = <span class="module" ng-click="getApi(obj.fqname) ? navigateTo(obj.fqname) : null">{{obj.fqname}}</span>
-              </div>
-            </div>
-          </div>                
-        </div>
+        </bs-panel>
 
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">
-              <a class="accordion-toggle" data-toggle="collapse" href="#collapseClasses">
-                Classes
-              </a>
-            </h3>
+        <bs-panel title="Classes">
+          <div ng-repeat="(name, obj) in getByType('class')">
+            <span class="identifier">{{name}}</span>
+            <span>{{obj.summary}}</span>
           </div>
-          <div id="collapseClasses" class="panel-collapse collapse in">
-            <div class="panel-body">
-              <div ng-repeat="(name, obj) in getByType('class')">
-                <span class="identifier">{{name}}</span>
-                <span>{{obj.summary}}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </bs-panel>
 
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">
-              <a class="accordion-toggle" data-toggle="collapse" href="#collapseFunctions">
-                Functions
-              </a>
-            </h3>
+        <bs-panel title="Functions">
+          <div ng-repeat="(name, obj) in getByType('function')">
+            <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+            <span>[<span class="doc">{{obj.summary}}</span>]</span>
           </div>
-          <div id="collapseFunctions" class="panel-collapse collapse in">
-            <div class="panel-body">
-              <div ng-repeat="(name, obj) in getByType('function')">
-                <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
-                <span>[<span class="doc">{{obj.summary}}</span>]</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </bs-panel>
+
       </div>
 
     </div>
