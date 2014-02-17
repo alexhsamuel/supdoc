@@ -150,6 +150,7 @@ def _inspect_class(context, fqname, class_):
         )
     if context.include(class_):
         result.update(
+            name    =class_.__name__,
             fqname  =str(fqname),
             lines   =_get_lines(class_),
             bases   =[ c.__name__ for c in class_.__bases__ ],
@@ -176,6 +177,7 @@ def _inspect_parameter(parameter):
 
 def _inspect_function(context, fqname, function):
     result = dict(
+        name    =function.__name__,
         fqname  =str(fqname),
         type    ="function",
         )

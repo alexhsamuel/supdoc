@@ -3,9 +3,16 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="module title">{{api.name}}</div>
-      <div class="fqname-note">{{api.fqname}}</div>
+      <div class="subtitle">
+        <span ng-show="api.type == 'module'">
+          module <span class="module">{{api.fqname}}</span>
+        </span>
+        <span ng-show="api.type != 'module'">
+          {{api.type}} in <span class="module">{{getParent(api.fqname)}}
+        </span>
+      </div>
     </div>
-    <div class="panel-body">
+    <div class="panel-body" ng-show="api.summary || api.doc">
       <p class="lead">
         {{api.summary}}
       </p>
@@ -36,12 +43,12 @@
           </dl>
         </bs-panel>
 
-        <bs-panel title="Imports" collapsed="true">
+        <bs-panel title="Imports" collapsed="true" ng-show="api.type == 'module'">
           <table>
             <tr ng-repeat="(name, obj) in getByType('module')">
               <td class="dict-summary"><span class="identifier">{{name}}</span></td>
               <td class="dict-summary import">
-                <span class="module" ng-click="getApi(obj.fqname) ? navigateTo(obj.fqname) : null">{{obj.fqname}}</span>
+                <span class="module" ng-click="navigateTo(obj.fqname)">{{obj.fqname}}</span>
               </td>
             </tr>
           </table>
@@ -50,7 +57,7 @@
         <bs-panel title="Classes">
           <dl>
             <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType('class')">
-              <span class="identifier">{{name}}</span>
+              <span class="identifier" ng-click="navigateTo(obj.fqname)">{{name}}</span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
               <span>{{obj.summary}}</span>

@@ -14,6 +14,11 @@
 - Mark modules part of Python library.
 - Link Python library modules to docs.
 - Style navigatable links.  Change pointer?
+- Only include direct module contents, not imported stuff.
+- Label protected / private contents.
+- Select protected / private contents.
+- Label inherited contents and where they're inherited from
+- Select inherited contents or not.
 
 --------------------------------------------------------------------------------
 Before upload to github:
