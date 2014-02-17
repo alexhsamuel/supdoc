@@ -26,31 +26,47 @@
       <div class="panel-group" id="contents-group">
 
         <bs-panel title="Submodules" collapsed="true" ng-show="submoduleNames.length > 0">
-          <div ng-repeat="fqname in submoduleNames">
-            <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
-            <span>{{getApi(fqname).summary}}</span>
-          </div>
+          <dl>
+            <dt class="dict-summary" ng-repeat-start="fqname in submoduleNames">
+              <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
+            </dt>
+            <dd class="dict-summary" ng-repeat-end>
+              <span>{{getApi(fqname).summary}}</span>
+            </dd>
+          </dl>
         </bs-panel>
 
         <bs-panel title="Imports" collapsed="true">
-          <div ng-repeat="(name, obj) in getByType('module')">
-            <span class="module">{{name}}</span>
-            = <span class="module" ng-click="getApi(obj.fqname) ? navigateTo(obj.fqname) : null">{{obj.fqname}}</span>
-          </div>
+          <table>
+            <tr ng-repeat="(name, obj) in getByType('module')">
+              <td class="dict-summary"><span class="identifier">{{name}}</span></td>
+              <td class="dict-summary import">
+                <span class="module" ng-click="getApi(obj.fqname) ? navigateTo(obj.fqname) : null">{{obj.fqname}}</span>
+              </td>
+            </tr>
+          </table>
         </bs-panel>
 
         <bs-panel title="Classes">
-          <div ng-repeat="(name, obj) in getByType('class')">
-            <span class="identifier">{{name}}</span>
-            <span>{{obj.summary}}</span>
-          </div>
+          <dl>
+            <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType('class')">
+              <span class="identifier">{{name}}</span>
+            </dt>
+            <dd class="dict-summary" ng-repeat-end>
+              <span>{{obj.summary}}</span>
+            </dd>
+          </dl>
         </bs-panel>
 
         <bs-panel title="Functions">
-          <div ng-repeat="(name, obj) in getByType('function')">
-            <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
-            <span>[<span class="doc">{{obj.summary}}</span>]</span>
-          </div>
+          <dl>
+            <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType('function')">
+              <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+            </dt>
+            <dd class="dict-summary" ng-repeat-end>
+              <span class="doc">{{obj.summary}}</span>
+            </dd>
+          </dl>
         </bs-panel>
 
       </div>

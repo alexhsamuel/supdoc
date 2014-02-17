@@ -10,6 +10,9 @@
 - Create a larger test corpus.
 - Fix tabs.
 - Make accordian state persistent across navigation.
+- Mark built-in / frozen / extension modules.
+- Mark modules part of Python library.
+- Link Python library modules to docs.
 
 --------------------------------------------------------------------------------
 Before upload to github:

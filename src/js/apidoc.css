@@ -1,7 +1,7 @@
 .module {
     color: #305070;
     font-family: Consolas, "Liberation Mono", monospace;
-    font-size: 90%;
+    font-size: 100%;
     letter-spacing: -0.5px;
 }
 
@@ -15,7 +15,7 @@
 .identifier {
     color: #1060e0;
     font-family: Consolas, "Liberation Mono", monospace;
-    font-size: 90%;
+    font-size: 100%;
     letter-spacing: -0.02em;
 }
 
@@ -48,6 +48,29 @@ h1.identifier {
 /* Padding for fixed navbar. */
 body { 
   padding-top: 50px; 
+}
+
+td.dict-summary {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 1em;
+  padding-right: 0;
+}
+
+td.import:before {
+  content: "→";
+}
+
+dl {
+  margin-bottom: 4px;
+}
+
+dt.dict-summary {
+  clear: left;
+}
+
+dd.dict-summary {
+  margin-left: 1.5em;
 }
 
 /*----------------------------------------------------------------------------*/
