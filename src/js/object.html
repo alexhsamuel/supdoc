@@ -1,8 +1,17 @@
 <div class="container" ng-controller="ObjectController">
-  <h1 class="module">{{api.name}}</h1>
-  <p class="lead">
-    {{api.doc}}
-  </p>
+  <br>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="module title">{{api.name}}</div>
+      <div class="fqname-note">{{api.fqname}}</div>
+    </div>
+    <div class="panel-body">
+      <p class="lead">
+        {{api.summary}}
+      </p>
+      <p ng-repeat="par in api.doc">{{par}}</p>
+    </div>
+  </div>
 
   <ul class="nav nav-tabs">
     <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
@@ -28,7 +37,7 @@
             <div class="panel-body">
               <div ng-repeat="fqname in submoduleNames">
                 <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
-                <span>{{getApi(fqname).doc}}</span>
+                <span>{{getApi(fqname).summary}}</span>
               </div>
             </div>
           </div>                
@@ -64,7 +73,7 @@
             <div class="panel-body">
               <div ng-repeat="(name, obj) in getByType('class')">
                 <span class="identifier">{{name}}</span>
-                <span>{{obj.doc}}</span>
+                <span>{{obj.summary}}</span>
               </div>
             </div>
           </div>
@@ -82,7 +91,7 @@
             <div class="panel-body">
               <div ng-repeat="(name, obj) in getByType('function')">
                 <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
-                <span>[<span class="doc">{{obj.doc}}</span>]</span>
+                <span>[<span class="doc">{{obj.summary}}</span>]</span>
               </div>
             </div>
           </div>

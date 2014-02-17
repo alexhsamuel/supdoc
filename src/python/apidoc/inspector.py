@@ -43,6 +43,29 @@ class Context:
 
 
 
+def _get_doc(obj):
+    doc = inspect.getdoc(obj)
+    if doc is None or doc.strip() == "":
+        return {}
+    else:
+        # Construct paragraphs separated by blank lines.
+        # FIXME: While pretty standard, this behavior should be configurable.
+        paragraphs = []
+        new = True
+        for line in doc.splitlines():
+            if line == "":
+                new = True
+            elif new:
+                paragraphs.append(line)
+                new = False
+            else:
+                paragraphs[-1] += " " + line
+        return {
+            "summary": paragraphs.pop(0),
+            "doc": paragraphs,
+        }
+
+
 def _get_lines(obj):
     try:
         lines, start_num = inspect.getsourcelines(obj)
@@ -85,14 +108,14 @@ def _inspect_package_or_module(context, fqname, module):
         source = file.readlines()
 
     result.update(
-      # source      =source,
-        doc         =inspect.getdoc(module),
+        source      =source,
         dict        =dict( 
             (n, _inspect(context, fqname + n, o)) 
             for n, o in inspect.getmembers(module)
             if not is_special_symbol(n)
             ),
         )
+    result.update(_get_doc(module))
 
     if modules.is_package(module):
         # Include modules and packages that are direct children.
@@ -129,7 +152,6 @@ def _inspect_class(context, fqname, class_):
         result.update(
             fqname  =str(fqname),
             lines   =_get_lines(class_),
-            doc     =inspect.getdoc(class_),
             bases   =[ c.__name__ for c in class_.__bases__ ],
             mro     =[ c.__name__ for c in inspect.getmro(class_) ],
             dict    ={
@@ -138,6 +160,7 @@ def _inspect_class(context, fqname, class_):
                 if not is_special_symbol(n)
                 },
             )
+        result.update(_get_doc(class_))
     return result
 
 
@@ -160,12 +183,12 @@ def _inspect_function(context, fqname, function):
         signature = inspect.signature(function)
         result.update(
             lines       =_get_lines(function),
-            doc         =inspect.getdoc(function),
             parameters  =[
                 _inspect_parameter(p)
                 for n, p in signature.parameters.items()
                 ],
             )
+        result.update(_get_doc(function))
     return result
 
 

@@ -19,12 +19,23 @@
     letter-spacing: -0.02em;
 }
 
+.fqname-note {
+  color: #a0a0a0;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 80%;
+  letter-spacing: -0.02em;
+  padding-bottom: 20px;
+}
+
 h1.identifier {
   font-size: 2.6em;
 }
 
-h1.module {
+.module.title {
   font-size: 2.6em;
+  margin-top: 30px;
+  margin-bottom: 5px;
+  line-height: 0.75;
 }
 
 .parameters {

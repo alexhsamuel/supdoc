@@ -36,5 +36,14 @@ ObjectModule.controller(
       return '(' + parameters.map(function (p) { return p.name }).join(', ') + ')'
     }
 
+    // Returns source lines of the displayed object.
+    $scope.getSource = function () {
+        var sourceLines = $scope.api && $scope.api.source ? $scope.api.source : []
+        var source = ''
+        for (var i = 0; i < sourceLines.length; ++i) 
+            source = source + sourceLines[i]
+        return source
+    }
+
   })
 
