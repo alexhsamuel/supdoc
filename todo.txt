@@ -13,6 +13,7 @@
 - Mark built-in / frozen / extension modules.
 - Mark modules part of Python library.
 - Link Python library modules to docs.
+- Style navigatable links.  Change pointer?
 
 --------------------------------------------------------------------------------
 Before upload to github:
