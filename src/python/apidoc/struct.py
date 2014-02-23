@@ -3,6 +3,8 @@ from   inspect import Parameter, Signature
 
 #------------------------------------------------------------------------------
 
+# FIXME: Add an immutable option.
+
 class Record(type):
 
 	class Base:
@@ -31,6 +33,13 @@ class Record(type):
 				", ".join( "{}={!r}".format(
 					n, getattr(self, n)) for n in self.__fields__ ))
 
+
+		def sub(self, *args, **kw_args):
+			bound = self.__signature__.bind(*args, **kw_args)
+			dict = OrderedDict(self.__dict__)
+			dict.update(bound.arguments)
+			return self.__class__(**dict)
+					
 
 		def __setattr__(self, name, value):
 			try:

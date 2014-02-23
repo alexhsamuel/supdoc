@@ -28,18 +28,11 @@ def is_special_symbol(symbol):
 
 class Context:
 
-    def __init__(self):
-        pass
+    def __init__(self, module=None):
+        self.__module = module
 
 
-    def include(self, obj):
-        try:
-            path = inspect.getsourcefile(obj)
-        except TypeError:
-            # Built-in module.
-            return False
-        else:
-            return path is not None
+    def with_module(self, module):
 
 
 
@@ -112,7 +105,7 @@ def _inspect_package_or_module(context, fqname, module):
         dict        =dict( 
             (n, _inspect(context, fqname + n, o)) 
             for n, o in inspect.getmembers(module)
-            if not is_special_symbol(n)
+            if not is_special_symbol(n) 
             ),
         )
     result.update(_get_doc(module))
@@ -146,22 +139,23 @@ def inspect_package(context, path):
 
 def _inspect_class(context, fqname, class_):
     result = dict(
-        type        ="class",
+        type    ="class",
+        name    =class_.__name__,
+        fqname  =str(fqname),
         )
-    if context.include(class_):
-        result.update(
-            name    =class_.__name__,
-            fqname  =str(fqname),
-            lines   =_get_lines(class_),
-            bases   =[ c.__name__ for c in class_.__bases__ ],
-            mro     =[ c.__name__ for c in inspect.getmro(class_) ],
-            dict    ={
-                n: _inspect(context, fqname + n, o)
-                for n, o in inspect.getmembers(class_)
-                if not is_special_symbol(n)
-                },
-            )
-        result.update(_get_doc(class_))
+    result.update(
+        name    =class_.__name__,
+        fqname  =str(fqname),
+        lines   =_get_lines(class_),
+        bases   =[ c.__name__ for c in class_.__bases__ ],
+        mro     =[ c.__name__ for c in inspect.getmro(class_) ],
+        dict    ={
+            n: _inspect(context, fqname + n, o)
+            for n, o in inspect.getmembers(class_)
+            if not is_special_symbol(n)
+            },
+        )
+    result.update(_get_doc(class_))
     return result
 
 
@@ -181,16 +175,15 @@ def _inspect_function(context, fqname, function):
         fqname  =str(fqname),
         type    ="function",
         )
-    if context.include(function):
-        signature = inspect.signature(function)
-        result.update(
-            lines       =_get_lines(function),
-            parameters  =[
-                _inspect_parameter(p)
-                for n, p in signature.parameters.items()
-                ],
-            )
-        result.update(_get_doc(function))
+    signature = inspect.signature(function)
+    result.update(
+        lines       =_get_lines(function),
+        parameters  =[
+            _inspect_parameter(p)
+            for n, p in signature.parameters.items()
+            ],
+        )
+    result.update(_get_doc(function))
     return result
 
 
