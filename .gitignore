@@ -2,3 +2,4 @@
 __pycache__
 *.pyc
 src/js/apidoc.json
+config.mk
