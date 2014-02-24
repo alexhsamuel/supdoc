@@ -32,6 +32,10 @@
 
       <div class="panel-group" id="contents-group">
 
+        <label class="checkbox-inline" ng-show="api.type == 'class'">
+          <input type="checkbox" ng-model="inherited">Show Inherited
+        </label>
+
         <bs-panel title="Submodules" collapsed="true" ng-show="submoduleNames.length > 0">
           <dl>
             <dt class="dict-summary" ng-repeat-start="fqname in submoduleNames">
@@ -71,6 +75,7 @@
               <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
               <span ng-if="obj.module != getApi(fqname).module">
               defined in {{obj.module}} as {{obj.qualname}}
+              <span ng-if="inherited">INHERITED</span>
               </span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
