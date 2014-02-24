@@ -27,7 +27,7 @@ App.controller(
       var result = []
       for (var name in module.modules) {
         var submodule = module.modules[name]
-        result.push(submodule.fqname)
+        result.push(submodule.module)
         result = result.concat(getModuleFqnames(submodule))
       }
       return result

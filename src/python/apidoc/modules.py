@@ -1,6 +1,7 @@
 import functools
 import importlib
 from   importlib.machinery import SourceFileLoader
+import inspect
 import logging
 import os
 import sys
@@ -23,6 +24,15 @@ class Name:
             parts = tuple(parts)
         assert len(parts) > 0
         self.__parts = parts
+
+
+    @classmethod
+    def of(class_, obj):
+        if inspect.ismodule(obj):
+            name = obj.__name__
+        else:
+            name = obj.__qualname__
+        return class_(name)
 
 
     def __str__(self):
@@ -72,7 +82,7 @@ class Name:
 
 
     def __add__(self, part):
-        return self.__class__(self.__parts + (part, ))
+        return self.__class__(self.__parts + tuple(part.split(".")))
 
 
 

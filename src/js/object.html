@@ -69,6 +69,9 @@
           <dl>
             <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType('function')">
               <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+              <span ng-if="obj.module != getApi(fqname).module">
+              defined in {{obj.module}} as {{obj.qualname}}
+              </span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
               <span class="doc">{{obj.summary}}</span>
