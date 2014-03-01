@@ -7,7 +7,7 @@ import os
 import sys
 import types
 
-from   apidoc.path import Path
+from   path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -86,16 +86,6 @@ class Name:
 
 
 
-def get_module_name_from_path(path, base_path):
-    """
-    Constructs the name of a module from its path relative to the import path.
-    """
-    path = Path(path)
-    base_path = Path(base_path)
-    parts = path.with_suffix(None).relative_to(base_path).parts
-    return Name(parts)
-    
-
 # FIXME: Don't rely on the module in the path.
 def import_module_from_filename(path):
     path = Path(path)
@@ -132,26 +122,55 @@ def is_package_dir(path):
     return path.is_dir() and (path / "__init__.py").exists()
 
 
-def enumerate_package(path):
-    """
-    Generates subpackages and modules under a top-level package.
-    """
-    path = Path(path)
-    if not is_package_dir(path):
-        raise ValueError("{} is not a package dir".format(path))
+def name_getter(base_path):
+    base_path = Path.ensure(base_path)
 
-    # The import base is the parent of the top-level package.
-    base_path = path.parent
+    def get_name(path):
+        path = Path.ensure(path)
+        return Name(path.with_suffix(None).relative_to(base_path).parts)
 
-    def enumerate(path):
-        yield get_module_name_from_path(path, base_path), path / "__init__.py"
-        for sub_path in path.iterdir():
-            if sub_path.suffix == ".py" and sub_path.stem != "__init__":
-                yield get_module_name_from_path(sub_path, base_path), sub_path
-            elif is_package_dir(sub_path):
-                yield from enumerate(sub_path)
-    
-    return enumerate(path)
+    return get_name
+
+
+def find_modules(path, base_path=None):
+    """
+    Generates full names of packages and modules under a top-level package.
+
+    Includes standard Python module files and package directories only.
+    A package name will be generated before its submodules.
+
+    @param path
+      Path to a module or a package directory, which is assumed to be at the
+      top level.
+    @param base_path
+      The base path to import from (i.e. what would be in the PYTHONPATH).
+      If None, uses the parent of 'path'.
+    """
+    path = Path.ensure(path)
+    base_path = path.parent if base_path is None else Path.ensure(base_path)
+
+    get_name = name_getter(base_path)
+    def find(path):
+        if path.suffix == ".py" and path.stem != "__init__":
+            yield get_name(path)
+        elif is_package_dir(path):
+            yield get_name(path)
+            for sub_path in path.iterdir():
+                yield from find(sub_path)
+
+    return find(path)
+        
+
+def find_all_modules(path):
+    """
+    Generates full names of all packages and modules in a directory.
+
+    The directory is treated as the PYTHONPATH directory for imports.
+    """
+    base_path = Path.ensure(path)
+    for path in base_path.iterdir():
+        if path.suffix == ".py" or is_package_dir(path):
+            yield from find_modules(path, base_path)
 
 
 def get_submodules(package):
@@ -181,15 +200,19 @@ def load_module(name, path):
 
 if __name__ == "__main__":
     # Remove this module's directory from the load path.
-    sys.path.remove(os.path.dirname(os.path.realpath(sys.argv[0])))
+    try:
+        sys.path.remove(os.path.dirname(os.path.realpath(sys.argv[0])))
+    except ValueError as exc:
+        logging.info(exc)
 
-    pkg = Path(sys.argv[1])
-    top = pkg.parent
-
-    for name, path in enumerate_package(pkg):
-        print("{!s:24} -> {}".format(name, path))
-
-        module = SourceFileLoader(str(name), str(path)).load_module()
-        print(module)
+    path = sys.argv[1]
+    sys.path.insert(0, path)
+    for full_name in find_all_modules(path):
+        try:
+            module = importlib.import_module(str(full_name))
+        except Exception as exc:
+            logging.error("can't import {}: {}".format(full_name, exc))
+        else:
+            print(module)
 
 

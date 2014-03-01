@@ -23,10 +23,12 @@ class Path(pathlib.PosixPath):
     """
 
     def __new__(class_, *args, **kw_args):
-        if len(args) == 1 and len(kw_args) == 0 and isinstance(args[0], Path):
-            return args[0]
-        else:
-            return resolve(pathlib.PosixPath.__new__(class_, *args, **kw_args))
+        return resolve(pathlib.PosixPath.__new__(class_, *args, **kw_args))
+
+
+    @classmethod
+    def ensure(class_, obj):
+        return obj if isinstance(obj, class_) else class_(obj)
 
 
     def with_suffix(self, suffix):

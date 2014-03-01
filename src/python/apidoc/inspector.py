@@ -102,6 +102,8 @@ def _inspect_package_or_module(fqname, module):
     path = _get_module_path(module)
     with path.open() as file:
         source = file.readlines()
+    # FIXME
+    source = None
 
     result.update(
         source      =source,
@@ -124,19 +126,21 @@ def _inspect_package_or_module(fqname, module):
     return result
 
 
-def inspect_package(path):
-    path = Path(path)
-    if not modules.is_package_dir(path):
-        raise ValueError("not a package directory: {}".format(path))
+def inspect_packages(paths):
+    modules = {}
+    for path in paths:
+        path = Path(path)
+        if not modules.is_package_dir(path):
+            raise ValueError("not a package directory: {}".format(path))
 
-    fqname = Name(path.stem)
-    package = modules.load_module(fqname, path / "__init__.py")
+        fqname = Name(path.stem)
+        package = modules.load_module(fqname, path / "__init__.py")
+        apidoc = _inspect_package_or_module(fqname, package)
+        return (str(fqname), apidoc)
+
     return dict(
-        fqname  =None,
-        type    ="toplevel",
-        modules ={
-            str(fqname): _inspect_package_or_module(fqname, package)
-            },
+        type        ="modules",
+        modules     =modules,
         )
 
 
@@ -216,8 +220,7 @@ import json
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    infos = inspect_package( 
-    sys.argv[1])
+    infos = inspect_packages(sys.argv[1 :])
     json.dump(infos, sys.stdout, indent=1)
 
 
