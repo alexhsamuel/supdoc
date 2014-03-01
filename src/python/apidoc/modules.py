@@ -7,7 +7,7 @@ import os
 import sys
 import types
 
-from   path import Path
+from   .path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -173,7 +173,10 @@ def find_all_modules(path):
             yield from find_modules(path, base_path)
 
 
-def get_submodules(package):
+def get_package_contents(package):
+    """
+    Returns the full names of modules contained directly in a package.
+    """
     if not is_package(package):
         raise TypeError("not a package")
 

@@ -10,14 +10,15 @@ Invoke like this:
 #-------------------------------------------------------------------------------
 
 import functools
+import importlib
 import inspect
 import logging
 import os
 import sys
 
-from   apidoc import modules
-from   apidoc.modules import Name
-from   apidoc.path import Path
+from   . import modules
+from   .modules import Name
+from   .path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -31,10 +32,6 @@ def is_in_module(obj, module):
 
 def is_in_class(obj, class_):
     return Name(obj.__qualname__).parent == class_.__qualmame__
-
-
-def get_fqname(obj):
-    return Name(obj.__module__) + obj.__qualname__
 
 
 #-------------------------------------------------------------------------------
@@ -83,32 +80,34 @@ def _get_module_path(module):
     return None if path is None else Path(path)
 
 
-def _inspect_module(fqname, module):
+def _inspect_module_ref(module):
     return dict(
         type    ="module",
-        module  =module.__name__,
-        name    =Name.of(module).base,
+        name    =str(Name.of(module)),
         path    =str(_get_module_path(module)),
         )
 
 
-def _inspect_package_or_module(fqname, module):
-    result = _inspect_module(fqname, module)
+INCLUDE_SOURCE = False  # FIXME
 
-    # FIXME: Work around a bug in Python 3.4 that occurs whe importing
-    # an empty module file.
-    # source = inspect.getsourcelines(module)
-    import tokenize
-    path = _get_module_path(module)
-    with path.open() as file:
-        source = file.readlines()
-    # FIXME
-    source = None
+def _inspect_module(module):
+    result = _inspect_module_ref(module)
+
+    if INCLUDE_SOURCE:
+        # FIXME: Work around a bug in Python 3.4 that occurs whe importing
+        # an empty module file.
+        # source = inspect.getsourcelines(module)
+        import tokenize
+        path = _get_module_path(module)
+        with path.open() as file:
+            source = file.readlines()
+    else:
+        source = None
 
     result.update(
         source      =source,
         dict        =dict( 
-            (n, _inspect(fqname + n, o, module)) 
+            (n, _inspect(o, module)) 
             for n, o in inspect.getmembers(module)
             if not is_special_symbol(n) 
             ),
@@ -116,41 +115,16 @@ def _inspect_package_or_module(fqname, module):
     result.update(_get_doc(module))
 
     if modules.is_package(module):
-        # Include modules and packages that are direct children.
-        result.update(
-            type    ="package",
-            modules = {
-                n: _inspect_package_or_module(fqname + n, m)
-                for n, m in modules.get_submodules(module)
-            })
+        result["type"] = "package"
     return result
 
 
-def inspect_packages(paths):
-    modules = {}
-    for path in paths:
-        path = Path(path)
-        if not modules.is_package_dir(path):
-            raise ValueError("not a package directory: {}".format(path))
-
-        fqname = Name(path.stem)
-        package = modules.load_module(fqname, path / "__init__.py")
-        apidoc = _inspect_package_or_module(fqname, package)
-        return (str(fqname), apidoc)
-
-    return dict(
-        type        ="modules",
-        modules     =modules,
-        )
-
-
-def _inspect_class(fqname, class_, module):
+def _inspect_class(class_, module):
     result = dict(
         type    ="class",
         name    =class_.__name__,
         qualname=class_.__qualname__,
         module  =class_.__module__,
-        fqname  =str(get_fqname(class_)),
         )
     if is_in_module(class_, module):
         result.update(
@@ -158,7 +132,7 @@ def _inspect_class(fqname, class_, module):
             bases   =[ c.__name__ for c in class_.__bases__ ],
             mro     =[ c.__name__ for c in inspect.getmro(class_) ],
             dict    ={
-                n: _inspect(fqname + n, o, module)
+                n: _inspect(o, module)
                 for n, o in inspect.getmembers(class_)
                 if not is_special_symbol(n)
             },
@@ -179,7 +153,6 @@ def _inspect_parameter(parameter):
 
 
 def _inspect_function(function, module):
-    fqname = get_fqname(function)
     signature = inspect.signature(function)
     result = dict(
         type        ="function",
@@ -199,13 +172,13 @@ def _inspect_function(function, module):
     return result
 
 
-def _inspect(fqname, obj, module):
+def _inspect(obj, module):
     if inspect.isfunction(obj):
         return _inspect_function(obj, module)
     elif inspect.isclass(obj):
-        return _inspect_class(fqname, obj, module)
+        return _inspect_class(obj, module)
     elif inspect.ismodule(obj):
-        return _inspect_module(fqname, obj)
+        return _inspect_module_ref(obj)
     else:
         return {
             "type"  : "value",
@@ -214,13 +187,25 @@ def _inspect(fqname, obj, module):
 
 
 
+def inspect_modules(full_names):
+    modules = {
+        str(n): _inspect_module(importlib.import_module(str(n)))
+        for n in full_names
+        }
+    return dict(
+        type        ="modules",
+        modules     =modules,
+        )
+
+
 #-------------------------------------------------------------------------------
 
 import json
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    infos = inspect_packages(sys.argv[1 :])
+    module_names = modules.find_modules(sys.argv[1])
+    infos = inspect_modules(module_names)
     json.dump(infos, sys.stdout, indent=1)
 
 
