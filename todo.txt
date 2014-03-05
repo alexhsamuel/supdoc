@@ -1,3 +1,4 @@
+- Serve Bootstrap, AngularJS, etc locally.
 - Make module list hierarchical.
 - Make module list collapsible.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
