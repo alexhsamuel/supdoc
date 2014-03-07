@@ -30,18 +30,37 @@ def join_pars(lines):
                 yield par
             par = None
         elif par is None:
-            par = [line.rstrip()]
+            par = [line]
         else:
-            par.append(line.rstrip())
+            par.append(line)
     if par is not None:
         yield par
+
+
+def get_common_indent(lines):
+    """
+    Extracts the common indentation for lines.
+
+    @return
+      The common indentation size, and the lines with that indentaiton removed.
+    """
+    indent = min( get_indent(l) for l in lines )
+    return indent, tuple( l[min_indent :] for l in lines )
 
 
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     lines = ( l.expandtabs().rstrip() for l in sys.stdin )
-    for par in join_pars(remove_indent(lines)):
-        print(par)
+    pars = join_pars(lines)
+    pars = [ get_common_indent(p) for p in pars ]
+    min_indent = min( i for i, _ in pars )
+    pars = [ (i - min_indent, p) for i, p in pars ]
+    for i, p in pars:
+        print(i)
+        for l in p:{
+            print(l)
+        print()
+
 
 
