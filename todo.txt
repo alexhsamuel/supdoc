@@ -1,4 +1,3 @@
-- Serve Bootstrap, AngularJS, etc locally.
 - Make module list hierarchical.
 - Make module list collapsible.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
@@ -35,3 +34,4 @@ Done
 - Rename moduleName -> fqName et seq.
 - Make json fully hierarchical.  List submodules in packages.
 - Package breadcrumbs.
+- Serve Bootstrap, AngularJS, etc locally.
