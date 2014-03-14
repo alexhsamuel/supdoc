@@ -1,0 +1,110 @@
+<div class="container" ng-controller="ObjectController">
+  <br>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="module title">{{module.name}}</div>
+      <div class="subtitle">
+        <span ng-show="api.type == 'module'">
+          module <span class="module">{{api.fqname}}</span>
+        </span>
+        <span ng-show="api.type != 'module'">
+          {{api.type}} in <span class="module">{{getParent(api.fqname)}}
+        </span>
+      </div>
+    </div>
+    <div class="panel-body" ng-show="api.summary || api.doc">
+      <p class="lead">
+        {{api.summary}}
+      </p>
+      <p ng-repeat="par in api.doc">{{par}}</p>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs">
+    <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
+    <li><a class="" href="#details" data-toggle="tab">Details</a></li>
+    <li><a class="" href="#source" data-toggle="tab">Source</a></li>
+  </ul>
+  <br>
+
+  <div class="tab-content">
+    <div class="tab-pane fade in active" id="contents">
+
+      <div class="panel-group" id="contents-group">
+
+        <label class="checkbox-inline" ng-show="api.type == 'class'">
+          <input type="checkbox" ng-model="inherited">Show Inherited
+        </label>
+
+        <bs-panel title="Submodules" collapsed="true" ng-show="submoduleNames.length > 0">
+          <dl>
+            <dt class="dict-summary" ng-repeat-start="fqname in submoduleNames">
+              <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
+            </dt>
+            <dd class="dict-summary" ng-repeat-end>
+              <span>{{getApi(fqname).summary}}</span>
+            </dd>
+          </dl>
+        </bs-panel>
+
+        <bs-panel title="Imports" collapsed="true" ng-show="api.type == 'module'">
+          <table>
+            <tr ng-repeat="(name, obj) in getByType('module')">
+              <td class="dict-summary"><span class="identifier">{{name}}</span></td>
+              <td class="dict-summary import">
+                <span class="module" ng-click="navigateTo(obj.fqname)">{{obj.fqname}}</span>
+              </td>
+            </tr>
+          </table>
+        </bs-panel>
+
+        <bs-panel title="Classes">
+          <dl>
+            <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType('class')">
+              <span class="identifier" ng-click="navigateTo(obj.fqname)">{{name}}</span>
+            </dt>
+            <dd class="dict-summary" ng-repeat-end>
+              <span>{{obj.summary}}</span>
+            </dd>
+          </dl>
+        </bs-panel>
+
+        <bs-panel title="Functions">
+          <dl>
+            <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType('function')">
+              <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+              <span ng-if="obj.module != getApi(fqname).module && inherited">
+              defined in {{obj.module}} as {{obj.qualname}}
+              </span>
+            </dt>
+            <dd class="dict-summary" ng-repeat-end>
+              <span class="doc">{{obj.summary}}</span>
+            </dd>
+          </dl>
+        </bs-panel>
+
+      </div>
+
+    </div>
+
+    <div class="tab-pane fade" id="details">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Details</h3>
+        </div>
+        <div class="panel-body">
+          <dl class="dl-horizontal">
+            <dt>from</dt>
+            <dd><span class="filename">{{obj.path}}</span></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="source">
+      <pre><small>{{getSource()}}</small></pre>
+    </div>
+
+  </div>
+
+</div>

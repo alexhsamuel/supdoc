@@ -6,8 +6,8 @@ App.config(
   function ($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(true)
     $routeProvider
-      .when('/apyi', { templateUrl: '/title.html' })
-      .when('/apyi/:fqname', { templateUrl: '/object.html' }) 
+      .when('/apyi', { templateUrl: '/index.html' })
+      .when('/apyi/:fullname', { templateUrl: '/module.html' }) 
       .otherwise({ templateUrl: '/error.html' }) 
   })
 
@@ -23,18 +23,12 @@ App.controller(
         $scope.top = result
       })
 
-    function getModuleFqnames(module) {
-      var result = []
-      for (var name in module.modules) {
-        var submodule = module.modules[name]
-        result.push(submodule.module)
-        result = result.concat(getModuleFqnames(submodule))
-      }
-      return result
+    $scope.getModuleFqnames = function () {
+      return Object.keys($scope.top.modules)
     }
 
-    $scope.getModuleFqnames = function () {
-      return getModuleFqnames($scope.top)
+    $scope.getModule = function (fullname) {
+      return $scope.top != null ? $scope.top.modules[fullname] : undefined
     }
 
     $scope.getApi = function (fqname) { 
@@ -50,14 +44,14 @@ App.controller(
     
     $scope.$watch(
       'fqname',
-      function (fqname) {
-        // Fish out the API for the new object.
-        $scope.api = $scope.getApi(fqname)
+      function (fullname) {
+        // Fish out the API for the containing module.
+        $scope.module = $scope.getModule(fullname)
 
         // Construct parents.
         $scope.parents = []
-        if (fqname)
-          fqname.split('.').reduce(
+        if (fullname)
+          fullname.split('.').reduce(
             function (p, n) {
               p.push(p.length > 0 ? p[p.length - 1] + '.' + n : n)
               return p
@@ -65,13 +59,15 @@ App.controller(
             $scope.parents)
 
         // Update the location.
-        if (isDefined(fqname))
-          $location.path('/apyi/' + fqname)
+        if (isDefined(fullname))
+          $location.path('/apyi/' + fullname)
       })
 
-    $scope.navigateTo = function (fqname) {
-      if ($scope.getApi(fqname))
-        $scope.fqname = fqname
+    $scope.navigateToModule = function (fullname) {
+      if ($scope.getModule(fullname)) {
+        console.log("navigate to module " + fullname)
+        $scope.fqname = fullname
+      }
     }
 
     $scope.getLastPart = function (fqname) {
@@ -91,10 +87,11 @@ App.controller(
     // Watch for location changes.  This also initializes fqname.
     $scope.$watch(
       function () { 
-        return $routeParams.fqname
+        return $routeParams.fullname
       },
-      function (fqname) { 
-        $scope.fqname = fqname 
+      function (fullname) { 
+        $scope.fqname = fullname
+        console.log("location from URI: " + fullname)
       })
 
   })
