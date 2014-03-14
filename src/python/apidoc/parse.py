@@ -58,7 +58,7 @@ if __name__ == "__main__":
     pars = [ (i - min_indent, p) for i, p in pars ]
     for i, p in pars:
         print(i)
-        for l in p:{
+        for l in p:
             print(l)
         print()
 

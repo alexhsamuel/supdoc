@@ -23,14 +23,29 @@ from   .path import Path
 #-------------------------------------------------------------------------------
 
 def is_special_symbol(symbol):
+    """
+    Returns true if `symbol` is a Python special symbol.
+
+    Special symbols begin and end with double underscores.
+    """
     return symbol.startswith("__") and symbol.endswith("__")
 
 
 def is_in_module(obj, module):
+    """
+    Returns true if an object is in a module.
+
+    The object must have a `__module__` attribute.
+    """
     return sys.modules[obj.__module__] is module
 
 
 def is_in_class(obj, class_):
+    """
+    Returns true if and object is an attribute of a class.
+
+    All sorts of attriutes (including various method types) are included.
+    """
     return Name(obj.__qualname__).parent == class_.__qualmame__
 
 
@@ -82,9 +97,10 @@ def _get_module_path(module):
 
 def _inspect_module_ref(module):
     return dict(
-        type    ="module",
-        name    =str(Name.of(module)),
-        path    =str(_get_module_path(module)),
+        type        ="module",
+        name        =str(Name.of(module)),
+        path        =str(_get_module_path(module)),
+        is_import   =True,
         )
 
 
@@ -120,13 +136,15 @@ def _inspect_module(module):
 
 
 def _inspect_class(class_, module):
+    is_def = is_in_module(class_, module)
     result = dict(
-        type    ="class",
-        name    =class_.__name__,
-        qualname=class_.__qualname__,
-        module  =class_.__module__,
+        type        ="class",
+        name        =class_.__name__,
+        qualname    =class_.__qualname__,
+        module      =class_.__module__,
+        is_import   =not is_def,
         )
-    if is_in_module(class_, module):
+    if is_def:
         result.update(
             lines   =_get_lines(class_),
             bases   =[ c.__name__ for c in class_.__bases__ ],
@@ -153,18 +171,20 @@ def _inspect_parameter(parameter):
 
 
 def _inspect_function(function, module):
+    is_def = is_in_module(function, module)
     signature = inspect.signature(function)
     result = dict(
         type        ="function",
         name        =function.__name__,
         qualname    =function.__qualname__,
         module      =function.__module__,
+        is_import   =not is_def,
         parameters  =[
             _inspect_parameter(p)
             for n, p in signature.parameters.items()
             ],
         )
-    if is_in_module(function, module):
+    if is_def:
         result.update(
             lines       =_get_lines(function),
             )
@@ -188,6 +208,14 @@ def _inspect(obj, module):
 
 
 def inspect_modules(full_names):
+    """
+    Imports and inspects modules.
+
+    @param full_names
+      Iterable of importable full names of modules.
+    @return
+      JSO API documentation for the modules.
+    """
     modules = {
         str(n): _inspect_module(importlib.import_module(str(n)))
         for n in full_names

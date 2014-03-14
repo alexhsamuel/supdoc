@@ -29,7 +29,19 @@ ObjectModule.controller(
       var dict = $scope.module ? $scope.module.dict : {}
       for (var name in dict) {
         var obj = dict[name]
-        if (obj.type == type)
+        if (obj.type == type && ! obj.is_import)
+          result[name] = obj
+      }
+      return result
+    }
+
+    // FIXME: Abstract out this filtering with above.
+    $scope.getImports = function () {
+      var result = {}
+      var dict = $scope.module ? $scope.module.dict : {}
+      for (var name in dict) {
+        var obj = dict[name]
+        if (obj.is_import)
           result[name] = obj
       }
       return result

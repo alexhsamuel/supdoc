@@ -38,12 +38,18 @@
           </dl>
         </bs-panel>
 
-        <bs-panel title="Imports" collapsed="true" ng-show="api.type == 'module'">
+        <bs-panel title="Imports" collapsed="true">
           <table>
-            <tr ng-repeat="(name, obj) in getByType('module')">
+            <tr ng-repeat="(name, obj) in getImports()">
               <td class="dict-summary"><span class="identifier">{{name}}</span></td>
               <td class="dict-summary import">
-                <span class="module" ng-click="navigateTo(obj.fqname)">{{obj.fqname}}</span>
+                <span ng-if="obj.type != 'module'">
+                  {{obj.type}} <span class="identifier">{{obj.name}}</span> in
+                </span>
+                module
+                <span class="module" ng-click="navigateToModule(obj.module || obj.name)">
+                  {{obj.module || obj.name}}
+                </span>
               </td>
             </tr>
           </table>
