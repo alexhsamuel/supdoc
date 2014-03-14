@@ -145,12 +145,22 @@ def _inspect_class(class_, module):
         is_import   =not is_def,
         )
     if is_def:
+        def inspect_member(obj):
+            result = _inspect(obj, module)
+            try:
+                qualname = obj.__qualname__
+            except AttributeError:
+                pass
+            else:
+                result["class"] = str(Name(qualname).parent)
+            return result
+
         result.update(
             lines   =_get_lines(class_),
             bases   =[ c.__name__ for c in class_.__bases__ ],
             mro     =[ c.__name__ for c in inspect.getmro(class_) ],
             dict    ={
-                n: _inspect(o, module)
+                n: inspect_member(o)
                 for n, o in inspect.getmembers(class_)
                 if not is_special_symbol(n)
             },

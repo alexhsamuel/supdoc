@@ -41,11 +41,15 @@
 
         <bs-panel title="Methods">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType(obj, 'function')">
+            <dt class="dict-summary" ng-repeat-start="(name, fn) in getByType(obj, 'function')">
               <span class="identifier">{{name}}</span>
-              <span class="parameters">{{formatParameters(obj.parameters)}}</span>
-              <span ng-if="obj.module != getApi(fqname).module && inherited">
-              defined in {{obj.module}} as {{obj.qualname}}
+              <span class="parameters">{{formatParameters(fn.parameters)}}</span>
+              <span ng-if="fn.module != getApi(fqname).module && fn.class != obj.name">
+                defined 
+                from <span class="identifier">{{fn.class}}</span>
+                <span ng-if="fn.module != module.name">
+                  in <span class="module">{{fn.module}}</span> 
+                </span>
               </span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>

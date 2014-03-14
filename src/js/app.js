@@ -49,7 +49,7 @@ App.controller(
 
       // Fish out the API for the containing module.
       $scope.module = $scope.getModule(fullname)
-      $scope.obj = isDefined($scope.name) ? $scope.module.dict[$scope.name] : null
+      $scope.obj = $scope.module && $scope.name ? $scope.module.dict[$scope.name] : null
 
       // Construct parents.
       $scope.parents = []
