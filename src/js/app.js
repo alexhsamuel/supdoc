@@ -69,7 +69,7 @@ App.controller(
 
     $scope.navigateToModule = function (fullname) {
       if ($scope.getModule(fullname)) {
-        console.log("navigate to module " + fullname)
+        console.log("nav: module: " + fullname)
         $scope.fqname = fullname
       }
     }
@@ -95,7 +95,7 @@ App.controller(
       },
       function (fullname) { 
         $scope.fqname = fullname
-        console.log("location from URI: " + fullname)
+        console.log("nav: from URI: " + fullname)
       })
 
   })

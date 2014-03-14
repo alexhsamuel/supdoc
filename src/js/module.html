@@ -4,19 +4,14 @@
     <div class="panel-heading">
       <div class="module title">{{module.name}}</div>
       <div class="subtitle">
-        <span ng-show="api.type == 'module'">
-          module <span class="module">{{api.fqname}}</span>
-        </span>
-        <span ng-show="api.type != 'module'">
-          {{api.type}} in <span class="module">{{getParent(api.fqname)}}
-        </span>
+        module <span class="module">{{module.fqname}}</span>
       </div>
     </div>
-    <div class="panel-body" ng-show="api.summary || api.doc">
+    <div class="panel-body" ng-show="module.summary || module.doc">
       <p class="lead">
-        {{api.summary}}
+        {{module.summary}}
       </p>
-      <p ng-repeat="par in api.doc">{{par}}</p>
+      <p ng-repeat="par in module.doc">{{par}}</p>
     </div>
   </div>
 
@@ -32,13 +27,9 @@
 
       <div class="panel-group" id="contents-group">
 
-        <label class="checkbox-inline" ng-show="api.type == 'class'">
-          <input type="checkbox" ng-model="inherited">Show Inherited
-        </label>
-
-        <bs-panel title="Submodules" collapsed="true" ng-show="submoduleNames.length > 0">
+        <bs-panel title="Submodules" collapsed="true" ng-show="getSubmoduleNames().length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="fqname in submoduleNames">
+            <dt class="dict-summary" ng-repeat-start="fqname in getSubmoduleNames()">
               <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>

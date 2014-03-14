@@ -11,15 +11,18 @@ ObjectModule.controller(
   function ($scope) {
   	$scope.id = 'ObjectController'
 
-    /* Names of direct submodules.  */
-    $scope.$watch(
-      'api',
-      function (api) {
-        $scope.submoduleNames = 
-        api && api.modules 
-        ? mapObjToArr(api.modules, function (_, m) { return m.fqname })
-        : []
-      })
+    /* Return names of direct submodules.  */
+    $scope.getSubmoduleNames = function () {
+      var names = []
+      if ($scope.module != null) {
+        var moduleName = $scope.module.name
+        for (name in $scope.top.modules)
+          if (name.length > moduleName.length
+              && name.substr(0, moduleName.length) == moduleName) 
+            names.push(name)
+      }
+      return names
+    }
 
     $scope.getByType = function (type) {
       var result = {}
