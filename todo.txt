@@ -1,7 +1,10 @@
+- Rename $scope.fqname.
+- Make $scope.module the module name, $scope.mod the object.
+- Inherited attributes.
+- Use Angular directives to set up Bootstrap stuff e.g. module link, class link.
 - Make module list hierarchical.
 - Make module list collapsible.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
-- Use Angular directives to set up Bootstrap stuff.
 - Create a class page.
 - Create a function page.
 - Add values / other accordion section.
