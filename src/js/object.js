@@ -24,9 +24,9 @@ ObjectModule.controller(
       return names
     }
 
-    $scope.getByType = function (type) {
+    $scope.getByType = function (obj, type) {
       var result = {}
-      var dict = $scope.module ? $scope.module.dict : {}
+      var dict = obj ? obj.dict : {}
       for (var name in dict) {
         var obj = dict[name]
         if (obj.type == type && ! obj.is_import)

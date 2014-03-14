@@ -8,6 +8,7 @@ App.config(
     $routeProvider
       .when('/apyi', { templateUrl: '/title.html' })
       .when('/apyi/:fullname', { templateUrl: '/module.html' }) 
+      .when('/apyi/:fullname/:name', { templateUrl: '/class.html' })
       .otherwise({ templateUrl: '/error.html' }) 
   })
 
@@ -42,29 +43,51 @@ App.controller(
   function ($scope, $location, $routeParams) {
     $scope.id = 'NavigationController'
     
-    $scope.$watch(
-      'fqname',
-      function (fullname) {
-        // Fish out the API for the containing module.
-        $scope.module = $scope.getModule(fullname)
+    function onNav() {
+      var fullname = $scope.fqname
+      var name = $scope.name
 
-        // Construct parents.
-        $scope.parents = []
-        if (fullname)
-          fullname.split('.').reduce(
-            function (p, n) {
-              p.push(p.length > 0 ? p[p.length - 1] + '.' + n : n)
-              return p
-            },
-            $scope.parents)
+      // Fish out the API for the containing module.
+      $scope.module = $scope.getModule(fullname)
+      $scope.obj = isDefined($scope.name) ? $scope.module.dict[$scope.name] : null
 
-        // Update the location.
-        if (isDefined(fullname))
-          $location.path('/apyi/' + fullname)
-      })
+      // Construct parents.
+      $scope.parents = []
+      if (fullname)
+        fullname.split('.').reduce(
+          function (p, n) {
+            p.push(p.length > 0 ? p[p.length - 1] + '.' + n : n)
+            return p
+          },
+          $scope.parents)
+
+      // Update the location.
+      var location = "/apyi"
+      if (isDefined(fullname)) {
+        location += "/" + fullname
+        if (isDefined(name)) {
+          location += "/" + name
+        }
+      }
+      console.log("location -> " + location)
+      $location.path(location)
+    }
+
+    $scope.$watch('fqname', onNav)
+    $scope.$watch('name', onNav)
 
     $scope.navigateToTop = function () {
       $scope.fqname = ''
+    }
+
+    $scope.navigateTo = function(obj) {
+      if (obj.type == "module") 
+        $scope.navigateToModule(obj.name)
+      else if (obj.type == "class") {
+        console.log("nav: class: " + obj.name + " in " + obj.module)
+        $scope.fqname = obj.module
+        $scope.name = obj.name
+      }
     }
 
     $scope.navigateToModule = function (fullname) {
@@ -96,6 +119,14 @@ App.controller(
       function (fullname) { 
         $scope.fqname = fullname
         console.log("nav: from URI: " + fullname)
+      })
+    $scope.$watch(
+      function () {
+        return $routeParams.name
+      },
+      function (name) {
+        $scope.name = name
+        console.log("nav: from URI: " + name + " in " + $scope.fqname)
       })
 
   })
