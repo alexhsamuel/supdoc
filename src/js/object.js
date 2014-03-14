@@ -26,7 +26,7 @@ ObjectModule.controller(
 
     $scope.getByType = function (type) {
       var result = {}
-      var dict = $scope.api ? $scope.api.dict : []
+      var dict = $scope.module ? $scope.module.dict : {}
       for (var name in dict) {
         var obj = dict[name]
         if (obj.type == type)
