@@ -11,7 +11,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def translate_path(self, path):
         if path.startswith("/apyi"):
-            path = "/apyi.html"
+            path = "/index.html"
         new_path = super().translate_path(path)
         return new_path
 

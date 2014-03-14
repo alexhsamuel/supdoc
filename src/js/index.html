@@ -1,4 +1,33 @@
-<h1>All Modules</h1>
-<div ng-repeat="fullname in getModuleFqnames()">
-  <span ng-click="navigateToModule(fullname)" class="module">{{fullname}}</span>
-</div>
+<!doctype html>
+<html ng-app="App" style="overflow-y: scroll">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/ext/bootstrap.min.css">
+    <link rel="stylesheet" href="/ext/bootstrap-theme.min.css">
+
+    <link rel="stylesheet" href="/apidoc.css">
+
+    <script src="/ext/jquery.js"></script>
+    <script src="/ext/bootstrap.min.js"></script>
+    <script src="/ext/angular.js"></script>
+    <script src="/ext/angular-animate.js"></script>
+    <script src="/ext/angular-route.js"></script>
+
+    <script src="/app.js"></script>
+    <script src="/object.js"></script>
+  </head>
+  <body ng-controller="ApiController">
+    <div ng-controller="NavigationController">
+      <ng-include src="'/navbar.html'"></ng-include>
+      <div class="container" ng-view>
+        <!-- Route-dependent content goes here -->
+      </div>
+      <hr>
+      <footer class="container">
+        <p>&copy; Alex Samuel 2014</p>
+      </footer>
+    </div>
+  </body>
+</html>

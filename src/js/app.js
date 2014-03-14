@@ -6,7 +6,7 @@ App.config(
   function ($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(true)
     $routeProvider
-      .when('/apyi', { templateUrl: '/index.html' })
+      .when('/apyi', { templateUrl: '/title.html' })
       .when('/apyi/:fullname', { templateUrl: '/module.html' }) 
       .otherwise({ templateUrl: '/error.html' }) 
   })
