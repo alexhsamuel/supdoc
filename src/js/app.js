@@ -63,6 +63,10 @@ App.controller(
           $location.path('/apyi/' + fullname)
       })
 
+    $scope.navigateToTop = function () {
+      $scope.fqname = ''
+    }
+
     $scope.navigateToModule = function (fullname) {
       if ($scope.getModule(fullname)) {
         console.log("navigate to module " + fullname)
