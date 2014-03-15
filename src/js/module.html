@@ -30,7 +30,7 @@
         <bs-panel title="Submodules" collapsed="true" ng-show="getSubmoduleNames().length > 0">
           <dl>
             <dt class="dict-summary" ng-repeat-start="fqname in getSubmoduleNames()">
-              <span class="module" ng-click="navigateTo(fqname)">{{getLastPart(fqname)}}</span>
+              <span class="module" ng-click="navigateToModule(fqname)">{{getLastPart(fqname)}}</span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
               <span>{{getApi(fqname).summary}}</span>
