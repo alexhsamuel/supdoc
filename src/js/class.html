@@ -45,8 +45,7 @@
               <span class="identifier">{{name}}</span>
               <span class="parameters">{{formatParameters(fn.parameters)}}</span>
               <span ng-if="fn.module != getApi(fqname).module && fn.class != obj.name">
-                defined 
-                from <span class="identifier">{{fn.class}}</span>
+                inherited from <span class="identifier">{{fn.class}}</span>
                 <span ng-if="fn.module != module.name">
                   in <span class="module">{{fn.module}}</span> 
                 </span>

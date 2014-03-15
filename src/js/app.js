@@ -65,7 +65,7 @@ App.controller(
       var location = "/apyi"
       if (isDefined(fullname)) {
         location += "/" + fullname
-        if (isDefined(name)) {
+        if (name) {
           location += "/" + name
         }
       }
@@ -91,9 +91,11 @@ App.controller(
     }
 
     $scope.navigateToModule = function (fullname) {
+      console.log("navigateToModule(" + fullname + ")")
       if ($scope.getModule(fullname)) {
         console.log("nav: module: " + fullname)
         $scope.fqname = fullname
+        $scope.name = ""
       }
     }
 
