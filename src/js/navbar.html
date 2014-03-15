@@ -5,11 +5,11 @@
         {{projectName || "APIDoc"}}
       </a>
     </div>
-    <ul ng-repeat="parent in parents" class="nav navbar-nav nav-fqname" ng-class="{first: $index == 0}">
+    <ul ng-repeat="parent in parents" class="nav navbar-nav nav-moduleName" ng-class="{first: $index == 0}">
       <li><a href="#" ng-click="navigateToModule(parent)">{{getLastPart(parent)}}</a></li>
     </ul>
     <ul class="nav navbar-nav">
-      {{nav.fqname}}
+      {{nav.moduleName}}
     </ul>
   </div>
 </nav>

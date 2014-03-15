@@ -112,18 +112,18 @@ dd.dict-summary {
   padding-right: 0px;
 }
 
-.nav-fqname>li>a {
+.nav-moduleName>li>a {
   padding-left: 0px;
   padding-right: 0px;
 }
 
-.nav-fqname>li>a:before {
+.nav-moduleName>li>a:before {
   content: "\2022";
   padding-left: 8px;
   padding-right: 8px;
 }
 
-.nav-fqname.first>li>a:before {
+.nav-moduleName.first>li>a:before {
   content: "";
   padding-left: 8px;
   padding-right: 8px;

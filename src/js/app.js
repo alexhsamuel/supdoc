@@ -32,8 +32,8 @@ App.controller(
       return $scope.top != null ? $scope.top.modules[fullname] : undefined
     }
 
-    $scope.getApi = function (fqname) { 
-      return lookUp($scope.top, fqname) 
+    $scope.getApi = function (moduleName) { 
+      return lookUp($scope.top, moduleName) 
     }
 
   })
@@ -44,7 +44,7 @@ App.controller(
     $scope.id = 'NavigationController'
     
     function onNav() {
-      var fullname = $scope.fqname
+      var fullname = $scope.moduleName
       var name = $scope.name
 
       // Fish out the API for the containing module.
@@ -73,11 +73,11 @@ App.controller(
       $location.path(location)
     }
 
-    $scope.$watch('fqname', onNav)
+    $scope.$watch('moduleName', onNav)
     $scope.$watch('name', onNav)
 
     $scope.navigateToTop = function () {
-      $scope.fqname = ''
+      $scope.moduleName = ''
     }
 
     $scope.navigateTo = function(obj) {
@@ -85,7 +85,7 @@ App.controller(
         $scope.navigateToModule(obj.name)
       else if (obj.type == "class") {
         console.log("nav: class: " + obj.name + " in " + obj.module)
-        $scope.fqname = obj.module
+        $scope.moduleName = obj.module
         $scope.name = obj.name
       }
     }
@@ -94,32 +94,32 @@ App.controller(
       console.log("navigateToModule(" + fullname + ")")
       if ($scope.getModule(fullname)) {
         console.log("nav: module: " + fullname)
-        $scope.fqname = fullname
+        $scope.moduleName = fullname
         $scope.name = ""
       }
     }
 
-    $scope.getLastPart = function (fqname) {
-      var parts = fqname.split('.')
+    $scope.getLastPart = function (moduleName) {
+      var parts = moduleName.split('.')
       return parts[parts.length - 1]
     }
 
-    $scope.getParent = function (fqname) {
-      if (fqname) {
-        var parts = fqname.split('.')
+    $scope.getParent = function (moduleName) {
+      if (moduleName) {
+        var parts = moduleName.split('.')
         return parts.slice(0, parts.length - 1).join('.')
       }
       else
         return null
     }
 
-    // Watch for location changes.  This also initializes fqname.
+    // Watch for location changes.  This also initializes moduleName.
     $scope.$watch(
       function () { 
         return $routeParams.fullname
       },
       function (fullname) { 
-        $scope.fqname = fullname
+        $scope.moduleName = fullname
         console.log("nav: from URI: " + fullname)
       })
     $scope.$watch(
@@ -128,7 +128,7 @@ App.controller(
       },
       function (name) {
         $scope.name = name
-        console.log("nav: from URI: " + name + " in " + $scope.fqname)
+        console.log("nav: from URI: " + name + " in " + $scope.moduleName)
       })
 
   })
@@ -182,12 +182,12 @@ function mapObjToArr(obj, fn) {
 
 //-----------------------------------------------------------------------------
 
-function lookUp(api, fqname) {
+function lookUp(api, moduleName) {
   if (api == null)
     return null
-  if (isUndefined(fqname) || fqname == '')
+  if (isUndefined(moduleName) || moduleName == '')
     return api
-  var names = fqname.split('.')
+  var names = moduleName.split('.')
   for (var i = 0; i < names.length; ++i) {
     var name = names[i]
     if (api.modules && name in api.modules) 

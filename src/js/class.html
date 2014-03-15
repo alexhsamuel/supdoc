@@ -5,7 +5,7 @@
       <div class="identifier title">{{obj.name}}</div>
       <div class="subtitle">
         class <span class="identifier">{{obj.qualname}}</span>
-          in <span class="module">{{obj.module}}</span>
+          in <span class="module" ng-click="navigateToModule(obj.module)">{{obj.module}}</span>
       </div>
     </div>
     <div class="panel-body" ng-show="obj.summary || obj.doc">
@@ -51,7 +51,7 @@
             <dt class="dict-summary" ng-repeat-start="(name, fn) in getByType(obj, 'function')">
               <span class="identifier">{{name}}</span>
               <span class="parameters">{{formatParameters(fn.parameters)}}</span>
-              <span ng-if="fn.module != getApi(fqname).module && fn.class != obj.name">
+              <span ng-if="fn.module != getApi(moduleName).module && fn.class != obj.name">
                 inherited from <span class="identifier">{{fn.class}}</span>
                 <span ng-if="fn.module != module.name">
                   in <span class="module">{{fn.module}}</span> 
@@ -68,7 +68,7 @@
           <dl>
             <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType(obj, 'value')">
               <span class="identifier">{{name}}</span>
-              <span ng-if="obj.module != getApi(fqname).module && inherited">
+              <span ng-if="obj.module != getApi(moduleName).module && inherited">
               defined in {{obj.module}} as {{obj.qualname}}
               </span>
             </dt>

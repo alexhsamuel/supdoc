@@ -4,7 +4,7 @@
     <div class="panel-heading">
       <div class="module title">{{module.name}}</div>
       <div class="subtitle">
-        module <span class="module">{{module.fqname}}</span>
+        module <span class="module">{{module.moduleName}}</span>
       </div>
     </div>
     <div class="panel-body" ng-show="module.summary || module.doc">
@@ -29,11 +29,11 @@
 
         <bs-panel title="Submodules" collapsed="true" ng-show="getSubmoduleNames().length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="fqname in getSubmoduleNames()">
-              <span class="module" ng-click="navigateToModule(fqname)">{{getLastPart(fqname)}}</span>
+            <dt class="dict-summary" ng-repeat-start="moduleName in getSubmoduleNames()">
+              <span class="module" ng-click="navigateToModule(moduleName)">{{getLastPart(moduleName)}}</span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
-              <span>{{getApi(fqname).summary}}</span>
+              <span>{{getApi(moduleName).summary}}</span>
             </dd>
           </dl>
         </bs-panel>
@@ -70,7 +70,7 @@
           <dl>
             <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType(module, 'function')">
               <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
-              <span ng-if="obj.module != getApi(fqname).module && inherited">
+              <span ng-if="obj.module != getApi(moduleName).module && inherited">
               defined in {{obj.module}} as {{obj.qualname}}
               </span>
             </dt>

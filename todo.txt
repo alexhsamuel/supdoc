@@ -1,4 +1,3 @@
-- Rename $scope.fqname.
 - Make $scope.module the module name, $scope.mod the object.
 - Inherited attributes.
 - Use Angular directives to set up Bootstrap stuff e.g. module link, class link.
