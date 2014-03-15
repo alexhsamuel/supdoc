@@ -19,11 +19,11 @@ class Record(type):
                     value = default
                 else:
                     try:
-                    value = type(value)
-                except Exception as exc:
-                    raise TypeError(
-                        "can't convert {!r} to {} for {}"
-                        .format(value, type.__name__, name)) from exc
+                        value = type(value)
+                    except Exception as exc:
+                        raise TypeError(
+                            "can't convert {!r} to {} for {}"
+                            .format(value, type.__name__, name)) from exc
                     setattr(self, name, value)
                     
 
@@ -56,12 +56,12 @@ class Record(type):
                     super().__setattr__(name, value)
 
 
-	@classmethod
+        @classmethod
         def __prepare__(metaclass, name, bases):
             return OrderedDict()
 
 
-	def __new__(metaclass, name, bases, dict):
+        def __new__(metaclass, name, bases, dict):
             # FIXME: Support subclassing records.
             if len(bases) > 0:
                 raise TypeError("a Record cannnot have base classes")
@@ -71,20 +71,20 @@ class Record(type):
                     for n, v in dict.items() 
                     if not n.startswith("_")
                 )
-		signature = Signature([ 
+                signature = Signature([ 
                     Parameter(n, Parameter.POSITIONAL_OR_KEYWORD, default=d)
                     for n, (_, d) in fields.items() 
                 ])
 
-		obj = type.__new__(metaclass, name, bases, dict)
+                obj = type.__new__(metaclass, name, bases, dict)
                 obj.__fields__ = fields
                 obj.__signature__ = signature
                 obj.__slots__ = tuple(fields)
 
-		return obj
+                return obj
 
 
-	def __init__(self, *args, **kw_args):
+        def __init__(self, *args, **kw_args):
             pass
 
 
