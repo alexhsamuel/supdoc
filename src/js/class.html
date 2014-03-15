@@ -16,6 +16,13 @@
     </div>
   </div>
 
+  <div>
+    Base classes:
+    <span ng-repeat="class in obj.bases">
+      <span class="module" ng-click="navigateToModule(class)">{{class}}</span>
+    </span
+  </div>
+
   <ul class="nav nav-tabs">
     <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
     <li><a class="" href="#details" data-toggle="tab">Details</a></li>
