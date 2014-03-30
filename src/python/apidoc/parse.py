@@ -54,6 +54,7 @@ def get_common_indent(lines):
 #-------------------------------------------------------------------------------
 
 DOCTEST = htmlgen._make_element("doctest")
+IDENTIFIER = htmlgen._make_element("identifier")
 
 def parse_doc(doc):
     # Split into paragraphs.
@@ -68,6 +69,14 @@ def parse_doc(doc):
     min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
     pars = [ (i - min_indent, p) for i, p in pars ]
 
+    # FIXME: Replace this with real identifier resolution.  That probably
+    # involves parsing docs in a second pass, once the entire symbol table has
+    # been discovered.
+    def fix_identifiers(par):
+        def id(match):
+            return str(IDENTIFIER(match.group(1)))
+        return re.sub(r"`([^`]*)`", id, par)
+
     def to_html(indent, par):
         if len(par) == 2 and len(par[1]) > 1 and all( c == "=" for c in par[1] ):
             return H1(par[0])
@@ -76,7 +85,7 @@ def parse_doc(doc):
         elif indent > 0 and par[0].startswith(">>>"):
             return DOCTEST(*par)
         else:
-            return P(*par)
+            return P(fix_identifiers(" ".join(par)))
     
     doc = "".join( 
         to_html(i, p).format(indent="", terminator="\n") 

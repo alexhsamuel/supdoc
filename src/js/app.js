@@ -173,12 +173,30 @@ App.directive(
       restrict: 'E',
       transclude: true,
       replace: true,
-      link: function (scope) { console.log("doctest.link()") },
       scope: {},
       template: '<pre ng-transclude></pre>'
     }
   }])
       
+App.directive(
+  'identifier',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      scope: {},
+      template: '<span class="identifier" ng-transclude></span>'
+    }
+  })
+
+// Includes HTML + dynamic (live) AngularJS markup into the DOM.
+//
+// Usage:
+//
+//   <ANY compile="EXPRESSION">
+//
+// where EXPRESSION returns HTML + AngularJS source.
 App.directive(
   'compile',
   ['$compile', function ($compile) {

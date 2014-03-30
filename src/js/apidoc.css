@@ -1,22 +1,22 @@
 .module {
-    color: #305070;
-    font-family: Consolas, "Liberation Mono", monospace;
-    font-size: 100%;
-    letter-spacing: -0.5px;
+  color: #305070;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 100%;
+  letter-spacing: -0.5px;
 }
 
 .filename {
-    color: #405070;
-    font-family: Consolas, "Liberation Mono", monospace;
-    font-size: 90%;
-    letter-spacing: -1px;
+  color: #405070;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 90%;
+  letter-spacing: -1px;
 }
 
 .identifier {
-    color: #1060e0;
-    font-family: Consolas, "Liberation Mono", monospace;
-    font-size: 100%;
-    letter-spacing: -0.02em;
+  color: #1060e0;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 100%;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
@@ -127,5 +127,23 @@ dd.dict-summary {
   content: "";
   padding-left: 8px;
   padding-right: 8px;
+}
+
+/*----------------------------------------------------------------------------*/
+
+.summary {
+  color: #306050;
+}
+
+.apidoc h1 {
+  font-size: 140%;
+  font-weight: normal;
+  margin-top: 28px;
+}
+
+.apidoc h2 {
+  font-size: 120%;
+  font-weight: normal;
+  margin-top: 24px;
 }
 
