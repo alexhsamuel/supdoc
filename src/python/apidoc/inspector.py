@@ -16,7 +16,7 @@ import logging
 import os
 import sys
 
-from   . import modules
+from   . import modules, parse
 from   .modules import Name
 from   .path import Path
 
@@ -56,21 +56,10 @@ def _get_doc(obj):
     if doc is None or doc.strip() == "":
         return {}
     else:
-        # Construct paragraphs separated by blank lines.
-        # FIXME: While pretty standard, this behavior should be configurable.
-        paragraphs = []
-        new = True
-        for line in doc.splitlines():
-            if line == "":
-                new = True
-            elif new:
-                paragraphs.append(line)
-                new = False
-            else:
-                paragraphs[-1] += " " + line
+        summary, doc = parse.parse_doc(doc)
         return {
-            "summary": paragraphs.pop(0),
-            "doc": paragraphs,
+            "summary": summary,
+            "doc": doc,
         }
 
 

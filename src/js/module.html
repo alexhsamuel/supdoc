@@ -11,7 +11,9 @@
       <p class="lead">
         {{module.summary}}
       </p>
-      <p ng-repeat="par in module.doc">{{par}}</p>
+      <div class="apidoc">
+        <div compile="module.doc"></div>
+      </div>
     </div>
   </div>
 

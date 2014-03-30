@@ -55,17 +55,17 @@ def get_common_indent(lines):
 
 DOCTEST = htmlgen._make_element("doctest")
 
-def parse_doc(lines):
+def parse_doc(doc):
     # Split into paragraphs.
-    lines = ( l.expandtabs().rstrip() for l in lines )
+    lines = ( l.expandtabs().rstrip() for l in doc.splitlines() )
     pars = join_pars(lines)
 
     pars = list(pars)
     summary = " ".join( l.strip() for l in pars.pop(0) )
 
-    # Remove overall indentation.
+    # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ]
-    min_indent = min( i for i, _ in pars )
+    min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
     pars = [ (i - min_indent, p) for i, p in pars ]
 
     def to_html(indent, par):

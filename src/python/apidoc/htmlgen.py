@@ -60,7 +60,7 @@ class Element:
 
     def generate(self, terminator="", indent="", depth=0):
         prefix = indent * depth
-        yield prefix + format_tag(self.__tag, self.__attrs) + terminator
+        yield prefix + format_tag(self.__tag, self.__attrs)
         for child in self.__children:
             try:
                 yield from child.generate(terminator, indent, depth + 1)

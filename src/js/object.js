@@ -8,8 +8,8 @@ ObjectModule.config(
 
 ObjectModule.controller(
   'ObjectController', 
-  function ($scope) {
-  	$scope.id = 'ObjectController'
+  function ($scope, $sce) {
+    $scope.id = 'ObjectController'
 
     /* Return names of direct submodules.  */
     $scope.getSubmoduleNames = function () {
@@ -58,6 +58,11 @@ ObjectModule.controller(
         for (var i = 0; i < sourceLines.length; ++i) 
             source = source + sourceLines[i]
         return source
+    }
+
+    $scope.getDoc = function () { 
+      // FIXME: Allow SCE to do some sort of validation here?
+      return $sce.trustAsHtml($scope.module.doc) 
     }
 
   })

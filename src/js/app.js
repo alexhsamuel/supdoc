@@ -147,8 +147,8 @@ App.directive(
         title: '@title',
         collapsed: '=collapsed'
       },
-      link: function (scope) {
-        scope.collapseId = ('collapse' + scope.title).replace(/[^\w]/g, '')
+      link: function ($scope) {
+        $scope.collapseId = ('collapse' + $scope.title).replace(/[^\w]/g, '')
       },
       template: 
        '<div class="panel panel-default">\
@@ -165,6 +165,36 @@ App.directive(
         </div>'
     }
   })
+
+App.directive(
+  'doctest', 
+  ['$compile', function($compile) {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      link: function (scope) { console.log("doctest.link()") },
+      scope: {},
+      template: '<pre ng-transclude></pre>'
+    }
+  }])
+      
+App.directive(
+  'compile',
+  ['$compile', function ($compile) {
+    return function(scope, element, attrs) {
+      scope.$watch(
+        function (scope) {
+          return scope.$eval(attrs.compile)
+        },
+        function (value) {
+          element.html(value)
+          $compile(element.contents())(scope)
+        }
+      )
+    }
+  }])
+
 
 //-----------------------------------------------------------------------------
 
