@@ -1,6 +1,9 @@
 import re
 import sys
 
+from   . import htmlgen
+from   .htmlgen import *
+
 #-------------------------------------------------------------------------------
 
 _SPACES = re.compile(" *")
@@ -45,22 +48,47 @@ def get_common_indent(lines):
       The common indentation size, and the lines with that indentaiton removed.
     """
     indent = min( get_indent(l) for l in lines )
-    return indent, tuple( l[min_indent :] for l in lines )
+    return indent, tuple( l[indent :] for l in lines )
 
 
 #-------------------------------------------------------------------------------
 
-if __name__ == "__main__":
-    lines = ( l.expandtabs().rstrip() for l in sys.stdin )
+DOCTEST = htmlgen._make_element("doctest")
+
+def parse_doc(lines):
+    # Split into paragraphs.
+    lines = ( l.expandtabs().rstrip() for l in lines )
     pars = join_pars(lines)
+
+    pars = list(pars)
+    summary = " ".join( l.strip() for l in pars.pop(0) )
+
+    # Remove overall indentation.
     pars = [ get_common_indent(p) for p in pars ]
     min_indent = min( i for i, _ in pars )
     pars = [ (i - min_indent, p) for i, p in pars ]
-    for i, p in pars:
-        print(i)
-        for l in p:
-            print(l)
-        print()
 
+    def to_html(indent, par):
+        if len(par) == 2 and len(par[1]) > 1 and all( c == "=" for c in par[1] ):
+            return H1(par[0])
+        elif len(par) == 2 and len(par[1]) > 1 and all( c == "-" for c in par[1] ):
+            return H2(par[0])
+        elif indent > 0 and par[0].startswith(">>>"):
+            return DOCTEST(*par)
+        else:
+            return P(*par)
+    
+    doc = "".join( 
+        to_html(i, p).format(indent="", terminator="\n") 
+        for i, p in pars 
+    )
+    return summary, doc
+
+
+if __name__ == "__main__":
+    summary, doc = parse_doc(sys.stdin)
+    print("summary: " + summary)
+    print
+    print(doc)
 
 

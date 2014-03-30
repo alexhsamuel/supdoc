@@ -105,7 +105,7 @@ _elements = tuple(
         "TITLE",
         "UL",
         )
-    )
+    ) + tuple( _make_element("H{}".format(i)) for i in range(1, 10) )
 
 globals().update( (e.__name__, e) for e in _elements )
 
