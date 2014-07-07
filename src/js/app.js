@@ -6,9 +6,9 @@ App.config(
   function ($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(true)
     $routeProvider
-      .when('/apyi', { templateUrl: '/title.html' })
-      .when('/apyi/:fullname', { templateUrl: '/module.html' }) 
-      .when('/apyi/:fullname/:name', { templateUrl: '/class.html' })
+      .when('/doc', { templateUrl: '/title.html' })
+      .when('/doc/:fullname', { templateUrl: '/module.html' }) 
+      .when('/doc/:fullname/:name', { templateUrl: '/class.html' })
       .otherwise({ templateUrl: '/error.html' }) 
   })
 
@@ -62,7 +62,7 @@ App.controller(
           $scope.parents)
 
       // Update the location.
-      var location = "/apyi"
+      var location = "/doc"
       if (isDefined(fullname)) {
         location += "/" + fullname
         if (name) {
@@ -118,19 +118,21 @@ App.controller(
     // Watch for location changes.  This also initializes moduleName.
     $scope.$watch(
       function () { 
+        console.log("route fullname: " + $routeParams.fullname)
         return $routeParams.fullname
       },
       function (fullname) { 
-        $scope.moduleName = fullname
         console.log("nav: from URI: " + fullname)
+        $scope.moduleName = fullname
       })
     $scope.$watch(
       function () {
+        console.log("route name: " + $routeParams.name)
         return $routeParams.name
       },
       function (name) {
-        $scope.name = name
         console.log("nav: from URI: " + name + " in " + $scope.moduleName)
+        $scope.name = name
       })
 
   })
