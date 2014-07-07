@@ -5,6 +5,7 @@ Invoke like this:
 
   python3 -m apidoc.inspector /path/to/package > apidoc.json
 
+Use `inspect_modules()` to produce API documentation for modules.
 """
 
 #-------------------------------------------------------------------------------
@@ -15,8 +16,9 @@ import inspect
 import logging
 import os
 import sys
+import types
 
-from   . import modules, parse
+from   . import modules, parse, base
 from   .modules import Name
 from   .path import Path
 
@@ -51,12 +53,73 @@ def is_in_class(obj, class_):
 
 #-------------------------------------------------------------------------------
 
-def _get_doc(obj):
+def _format_identifier_obj(name, obj):
+    """
+    Formats an identifier that has been resolved to some `obj`.
+    """
+    print("_fio({!r}, {!r})".format(name, obj), file=sys.stderr)
+    if isinstance(obj, types.ModuleType):
+        return parse.MODULE(obj.__name__)
+    elif isinstance(obj, type):
+        # FIXME: Separate classes?
+        return parse.TYPE(name)  # FIXME: Full name.
+    elif callable(obj):
+        # FIXME: Separate functions?
+        return parse.CALLABLE(name)  # FIXME: Full name.
+    else:
+        return parse.IDENTIFIER(name)
+
+
+def _format_identifier(name, contexts):
+    for context in contexts:
+        # If the context is callable, check its parameters.
+        if callable(context):
+            sig = inspect.signature(context)
+            if name in sig.parameters:
+                return parse.PARAMETER(name)
+
+        # Look up the name in the context, if any.
+        try:
+            obj = base.look_up(name, context)
+        except AttributeError:
+            pass
+        else:
+            return _format_identifier_obj(name, obj)
+
+        # If the context is a module, look up the name in all parent packages.
+        if isinstance(context, types.ModuleType):
+            module = context
+            while True:
+                module = sys.modules[module.__package__]
+                if module == "" or module == context:
+                    break
+                try:
+                    obj = base.look_up(name, module)
+                except AttributeError:
+                    pass
+                else:
+                    return _format_identifier_obj(name, obj)
+            
+    # Try as a fully-qualified name at the top level.
+    try:
+        obj = base.import_look_up(name)
+    except NameError:
+        pass
+    else:
+        return _format_identifier_obj(name, obj)
+
+    return parse.IDENTIFIER(name)
+
+
+#-------------------------------------------------------------------------------
+
+def _get_doc(obj, contexts):
     doc = inspect.getdoc(obj)
     if doc is None or doc.strip() == "":
         return {}
     else:
-        summary, doc = parse.parse_doc(doc)
+        summary, doc = parse.parse_doc(
+            doc, lambda n: _format_identifier(n, contexts))
         return {
             "summary": summary,
             "doc": doc,
@@ -117,7 +180,7 @@ def _inspect_module(module):
             if not is_special_symbol(n) 
             ),
         )
-    result.update(_get_doc(module))
+    result.update(_get_doc(module, (module, )))
 
     if modules.is_package(module):
         result["type"] = "package"
@@ -154,7 +217,7 @@ def _inspect_class(class_, module):
                 if not is_special_symbol(n)
             },
            )
-        result.update(_get_doc(class_))
+        result.update(_get_doc(class_, (class_, module, )))
 
     return result
 
@@ -187,7 +250,8 @@ def _inspect_function(function, module):
         result.update(
             lines       =_get_lines(function),
             )
-        result.update(_get_doc(function))
+        result.update(
+            _get_doc(function, (function, module, )))
     return result
 
 

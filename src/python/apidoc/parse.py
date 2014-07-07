@@ -1,7 +1,7 @@
 import re
 import sys
 
-from   . import htmlgen
+from   . import htmlgen, base
 from   .htmlgen import *
 
 #-------------------------------------------------------------------------------
@@ -53,10 +53,19 @@ def get_common_indent(lines):
 
 #-------------------------------------------------------------------------------
 
-DOCTEST = htmlgen._make_element("doctest")
-IDENTIFIER = htmlgen._make_element("identifier")
+DOCTEST         = htmlgen._make_element("doctest")
+IDENTIFIER      = htmlgen._make_element("identifier")
+MODULE          = htmlgen._make_element("module")
+TYPE            = htmlgen._make_element("type")
+CALLABLE        = htmlgen._make_element("callable")
+PARAMETER       = htmlgen._make_element("parameter")
 
-def parse_doc(doc):
+def default_format_identifier(name):
+    return str(IDENTIFIER(name))
+
+
+# FIXME: Split this up.  Identifier handling elsewhere.
+def parse_doc(doc, format_identifier=default_format_identifier):
     # Split into paragraphs.
     lines = ( l.expandtabs().rstrip() for l in doc.splitlines() )
     pars = join_pars(lines)
@@ -74,7 +83,10 @@ def parse_doc(doc):
     # been discovered.
     def fix_identifiers(par):
         def id(match):
-            return str(IDENTIFIER(match.group(1)))
+            name = match.group(1)
+            if name.endswith("()"):
+                name = name[: -2]
+            return str(format_identifier(name))
         return re.sub(r"`([^`]*)`", id, par)
 
     def to_html(indent, par):
@@ -87,6 +99,8 @@ def parse_doc(doc):
         else:
             return P(fix_identifiers(" ".join(par)))
     
+    summary = fix_identifiers(summary)
+
     doc = "".join( 
         to_html(i, p).format(indent="", terminator="\n") 
         for i, p in pars 

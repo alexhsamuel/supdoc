@@ -14,8 +14,8 @@ hierarchy.
   >>> import apidoc.modules
   >>> names = apidoc.modules.find_modules(path)
 
-The `find_modules()` function generates the list of /fully-qualified module
-names/ below `path`, which is assumed to be at the top level of the
+The `modules.find_modules()` function generates the list of /fully-qualified
+module names/ below `path`, which is assumed to be at the top level of the
 `PYTHONPATH`.
 
 """

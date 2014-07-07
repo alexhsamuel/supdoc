@@ -91,11 +91,13 @@ App.controller(
     }
 
     $scope.navigateToModule = function (fullname) {
-      console.log("navigateToModule(" + fullname + ")")
       if ($scope.getModule(fullname)) {
-        console.log("nav: module: " + fullname)
+        console.log("navigateToModule " + fullname)
         $scope.moduleName = fullname
         $scope.name = ""
+      }
+      else {
+        console.log("navigateToModule: " + fullname + " not found")
       }
     }
 
@@ -187,6 +189,26 @@ App.directive(
       replace: true,
       scope: {},
       template: '<span class="identifier" ng-transclude></span>'
+    }
+  })
+
+App.directive(
+  'module',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      link: function (scope, element, attrs) {
+        console.log(element)
+        var fullname = attrs.fullname || element.text()
+        element.on('click', function () {
+          // FIXME: Doesn't quite work.
+          console.log('module click DOES NOT WORK')
+          scope.navigateToModule(fullname)
+        })
+      },
+      template: '<span class="module" ng-transclude></span>'
     }
   })
 
