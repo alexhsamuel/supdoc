@@ -1,15 +1,21 @@
 "use strict"
 
-var App = angular.module('App', ['ngRoute', 'ObjectModule'])
+var App = angular.module('App', ['ui.router', 'ObjectModule'])
 
 App.config(
-  function ($locationProvider, $routeProvider) {
+  function ($locationProvider, $stateProvider, $urlRouterProvider) {
     $locationProvider.html5Mode(true)
-    $routeProvider
-      .when('/doc', { templateUrl: '/title.html' })
-      .when('/doc/:fullname', { templateUrl: '/module.html' }) 
-      .when('/doc/:fullname/:name', { templateUrl: '/class.html' })
-      .otherwise({ templateUrl: '/error.html' }) 
+
+    $stateProvider
+      .state('index', {
+        url: '/doc',
+        templateUrl: "/title.html",
+      })
+      .state('module', {
+        url: '/doc/:moduleName',
+        templateUrl: "/module.html",
+      })
+
   })
 
 App.controller(
@@ -40,61 +46,57 @@ App.controller(
 
 App.controller(
   'NavigationController', 
-  function ($scope, $location, $routeParams) {
+  function ($scope, $location, $rootScope, $state) {
     $scope.id = 'NavigationController'
     
-    function onNav() {
-      var fullname = $scope.moduleName
-      var name = $scope.name
+    // On angular-ui-route state changes, set up for the new object shown.
+    $rootScope.$on('$stateChangeSuccess', function (event, state, params) { 
+      var moduleName = params.moduleName
+      var name = params.name
 
-      // Fish out the API for the containing module.
-      $scope.module = $scope.getModule(fullname)
-      $scope.obj = $scope.module && $scope.name ? $scope.module.dict[$scope.name] : null
+      if (moduleName) {
+        if (name) 
+          console.log("navigate to object " + name + " in module " + moduleName)
+        else
+          console.log("navigate to module " + moduleName)
+      }
+      else
+        console.log("navigate to top")
 
       // Construct parents.
-      $scope.parents = []
-      if (fullname)
-        fullname.split('.').reduce(
+      var parents = []
+      if (moduleName)
+        moduleName.split('.').reduce(
           function (p, n) {
             p.push(p.length > 0 ? p[p.length - 1] + '.' + n : n)
             return p
           },
-          $scope.parents)
+          parents)
 
-      // Update the location.
-      var location = "/doc"
-      if (isDefined(fullname)) {
-        location += "/" + fullname
-        if (name) {
-          location += "/" + name
-        }
-      }
-      console.log("location -> " + location)
-      $location.path(location)
-    }
+      $scope.moduleName = moduleName
+      $scope.name = name
+      $scope.module = $scope.getModule(moduleName)
+      $scope.obj = $scope.module && $scope.name ? $scope.module.dict[$scope.name] : null
+      $scope.parents = parents
+    })
 
-    $scope.$watch('moduleName', onNav)
-    $scope.$watch('name', onNav)
+    // High-level navigation methods.
 
     $scope.navigateToTop = function () {
-      $scope.moduleName = ''
+      $state.go('index')
     }
 
-    $scope.navigateTo = function(obj) {
-      if (obj.type == "module") 
-        $scope.navigateToModule(obj.name)
-      else if (obj.type == "class") {
-        console.log("nav: class: " + obj.name + " in " + obj.module)
-        $scope.moduleName = obj.module
-        $scope.name = obj.name
+    $scope.navigateTo = function (obj) {
+      if (obj.type == 'module') 
+        $state.go('module', { moduleName: obj.name })
+      else if (obj.type == 'class') {
+        $state.go('object', { moduleName: obj.module, name: obj.name })
       }
     }
 
     $scope.navigateToModule = function (fullname) {
       if ($scope.getModule(fullname)) {
-        console.log("navigateToModule " + fullname)
-        $scope.moduleName = fullname
-        $scope.name = ""
+        $state.go('module', { moduleName: fullname })
       }
       else {
         console.log("navigateToModule: " + fullname + " not found")
@@ -114,26 +116,6 @@ App.controller(
       else
         return null
     }
-
-    // Watch for location changes.  This also initializes moduleName.
-    $scope.$watch(
-      function () { 
-        console.log("route fullname: " + $routeParams.fullname)
-        return $routeParams.fullname
-      },
-      function (fullname) { 
-        console.log("nav: from URI: " + fullname)
-        $scope.moduleName = fullname
-      })
-    $scope.$watch(
-      function () {
-        console.log("route name: " + $routeParams.name)
-        return $routeParams.name
-      },
-      function (name) {
-        console.log("nav: from URI: " + name + " in " + $scope.moduleName)
-        $scope.name = name
-      })
 
   })
 
@@ -202,15 +184,13 @@ App.directive(
       transclude: true,
       replace: true,
       link: function (scope, element, attrs) {
-        console.log(element)
-        var fullname = attrs.fullname || element.text()
+        // On click, navigate to the module.
         element.on('click', function () {
-          // FIXME: Doesn't quite work.
-          console.log('module click DOES NOT WORK')
+          var fullname = attrs.fullname || element.text()
           scope.navigateToModule(fullname)
         })
       },
-      template: '<span class="module" ng-transclude></span>'
+      template: '<a class="module" ng-transclude></span>'
     }
   })
 

@@ -2,9 +2,9 @@
   <br>
   <div class="panel panel-default">
     <div class="panel-heading">
-      <div class="module title">{{module.name}}</div>
+      <div class="module title">{{getLastPart(module.name)}}</div>
       <div class="subtitle">
-        module <span class="module">{{module.moduleName}}</span>
+        module {{module.name}}
       </div>
     </div>
     <div class="panel-body" ng-show="module.summary || module.doc">
@@ -32,7 +32,7 @@
         <bs-panel title="Submodules" collapsed="true" ng-show="getSubmoduleNames().length > 0">
           <dl>
             <dt class="dict-summary" ng-repeat-start="moduleName in getSubmoduleNames()">
-              <span class="module" ng-click="navigateToModule(moduleName)">{{getLastPart(moduleName)}}</span>
+              <module fullname="{{moduleName}}">{{getLastPart(moduleName)}}</module>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
               <span>{{getApi(moduleName).summary}}</span>
@@ -48,10 +48,7 @@
                 <span ng-if="obj.type != 'module'">
                   {{obj.type}} <span class="identifier">{{obj.name}}</span> in
                 </span>
-                module
-                <span class="module" ng-click="navigateToModule(obj.module || obj.name)">
-                  {{obj.module || obj.name}}
-                </span>
+                module <module>{{obj.module || obj.name}}</module>
               </td>
             </tr>
           </table>

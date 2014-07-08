@@ -5,4 +5,4 @@ http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js
 http://netdna.bootstrapcdn.com/bootstrap/3.0.3/fonts/glyphicons-halflings-regular.woff
 https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.js
 https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-animate.js
-https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-route.js
+http://angular-ui.github.io/ui-router/release/angular-ui-router.js
