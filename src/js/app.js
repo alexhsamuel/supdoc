@@ -15,9 +15,9 @@ App.config(
         url: '/doc/:moduleName',
         templateUrl: "/module.html",
       })
-      .state('type', {
+      .state('object', {
         url: '/doc/:moduleName/:name',
-        templateUrl: "/type.html",
+        templateUrl: "/object.html",
       })
 
   })
@@ -42,6 +42,21 @@ App.controller(
       return $scope.top != null ? $scope.top.modules[fullname] : undefined
     }
 
+    $scope.getObj = function (modname, objname) {
+      var mod = $scope.getModule(modname)
+      if (! mod || ! objname)
+        return mod
+
+      var parts = objname.split('.')
+      var obj = mod
+      for (var i = 0; i < parts.length; ++i) {
+        obj = obj.dict[parts[i]]
+        if (! obj)
+          return obj
+      }
+      return obj
+    }
+
     $scope.getApi = function (moduleName) { 
       return lookUp($scope.top, moduleName) 
     }
@@ -58,6 +73,7 @@ App.controller(
       var moduleName = params.moduleName
       var name = params.name
 
+      // Show what we're doing on the console.
       if (moduleName) {
         if (name) 
           console.log("navigate to object " + name + " in module " + moduleName)
@@ -80,7 +96,7 @@ App.controller(
       $scope.moduleName = moduleName
       $scope.name = name
       $scope.module = $scope.getModule(moduleName)
-      $scope.obj = $scope.module && $scope.name ? $scope.module.dict[$scope.name] : null
+      $scope.obj = $scope.getObj(moduleName, name)
       $scope.parents = parents
     })
 
@@ -90,12 +106,21 @@ App.controller(
       $state.go('index')
     }
 
+    // FIXME: Merge navigateTo{Obj,Module} into this one function.
     $scope.navigateTo = function (obj) {
       if (obj.type == 'module') 
         $state.go('module', { moduleName: obj.name })
-      else if (obj.type == 'class') {
+      else if (obj.type == 'class') 
         $state.go('object', { moduleName: obj.module, name: obj.name })
-      }
+      else
+        console.log("can't navigate to " + obj.name + " of type " + obj.type)
+    }
+
+    $scope.navigateToObj = function (modname, objname) {
+      if ($scope.getObj(modname, objname))
+        $state.go('object', { moduleName: modname, name: objname })
+      else
+        console.log("navigateToObj: " + modname + "/" + objname + " not found")
     }
 
     $scope.navigateToModule = function (fullname) {
@@ -238,6 +263,7 @@ function mapObjToArr(obj, fn) {
 
 //-----------------------------------------------------------------------------
 
+// FIXME: Remove.
 function lookUp(api, moduleName) {
   if (api == null)
     return null

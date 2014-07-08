@@ -4,7 +4,8 @@
     <div class="panel-heading">
       <div class="module title">{{getLastPart(module.name)}}</div>
       <div class="subtitle">
-        module {{module.name}}
+        module 
+        <span ng-show="getParent(moduleName)"><module>{{getParent(moduleName)}}</module>.</span>{{getLastPart(moduleName)}}
       </div>
     </div>
     <div class="panel-body" ng-show="module.summary || module.doc">

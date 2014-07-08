@@ -2,21 +2,16 @@
   <br>
   <div class="panel panel-default">
     <div class="panel-heading">
-      <div class="module title">{{api.name}}</div>
+      <div class="module title">{{obj.name}}</div>
       <div class="subtitle">
-        <span ng-show="api.type == 'module'">
-          module <span class="module">{{api.moduleName}}</span>
-        </span>
-        <span ng-show="api.type != 'module'">
-          {{api.type}} in <span class="module">{{getParent(api.moduleName)}}
-        </span>
+        {{obj.type}} in <module>{{moduleName}}</module>
       </div>
     </div>
-    <div class="panel-body" ng-show="api.summary || api.doc">
+    <div class="panel-body" ng-show="obj.summary || obj.doc">
       <p class="lead">
-        {{api.summary}}
+        {{obj.summary}}
       </p>
-      <p ng-repeat="par in api.doc">{{par}}</p>
+      <p ng-repeat="par in obj.doc">{{obj}}</p>
     </div>
   </div>
 
@@ -32,31 +27,9 @@
 
       <div class="panel-group" id="contents-group">
 
-        <label class="checkbox-inline" ng-show="api.type == 'class'">
+        <label class="checkbox-inline" ng-show="obj.type == 'class'">
           <input type="checkbox" ng-model="inherited">Show Inherited
         </label>
-
-        <bs-panel title="Submodules" collapsed="true" ng-show="submoduleNames.length > 0">
-          <dl>
-            <dt class="dict-summary" ng-repeat-start="moduleName in submoduleNames">
-              <span class="module" ng-click="navigateTo(moduleName)">{{getLastPart(moduleName)}}</span>
-            </dt>
-            <dd class="dict-summary" ng-repeat-end>
-              <span>{{getApi(moduleName).summary}}</span>
-            </dd>
-          </dl>
-        </bs-panel>
-
-        <bs-panel title="Imports" collapsed="true" ng-show="api.type == 'module'">
-          <table>
-            <tr ng-repeat="(name, obj) in getByType('module')">
-              <td class="dict-summary"><span class="identifier">{{name}}</span></td>
-              <td class="dict-summary import">
-                <span class="module" ng-click="navigateTo(obj.moduleName)">{{obj.moduleName}}</span>
-              </td>
-            </tr>
-          </table>
-        </bs-panel>
 
         <bs-panel title="Classes">
           <dl>
@@ -74,7 +47,7 @@
             <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType('function')">
               <span class="identifier">{{name}}</span><span class="parameters">{{formatParameters(obj.parameters)}}</span>
               <span ng-if="obj.module != getApi(moduleName).module && inherited">
-              defined in {{obj.module}} as {{obj.qualname}}
+                defined in {{obj.module}} as {{obj.qualname}}
               </span>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
