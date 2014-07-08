@@ -15,6 +15,10 @@ App.config(
         url: '/doc/:moduleName',
         templateUrl: "/module.html",
       })
+      .state('type', {
+        url: '/doc/:moduleName/:name',
+        templateUrl: "/type.html",
+      })
 
   })
 
