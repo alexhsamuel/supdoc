@@ -61,6 +61,27 @@ App.controller(
       return lookUp($scope.top, moduleName) 
     }
 
+    /**
+     * Returns the last part of a dotted name.
+     */
+    $scope.getLastPart = function (name) {
+      console.log("getLastPart(" + name + ")")
+      var parts = name.split('.')
+      return parts[parts.length - 1]
+    }
+
+    /**
+     * Returns the parent part of a dotted name, or null if it has non.
+     */
+    $scope.getParent = function (name) {
+      if (name) {
+        var parts = name.split('.')
+        return parts.slice(0, parts.length - 1).join('.')
+      }
+      else
+        return null
+    }
+
   })
 
 App.controller(
@@ -130,20 +151,6 @@ App.controller(
       else {
         console.log("navigateToModule: " + fullname + " not found")
       }
-    }
-
-    $scope.getLastPart = function (moduleName) {
-      var parts = moduleName.split('.')
-      return parts[parts.length - 1]
-    }
-
-    $scope.getParent = function (moduleName) {
-      if (moduleName) {
-        var parts = moduleName.split('.')
-        return parts.slice(0, parts.length - 1).join('.')
-      }
-      else
-        return null
     }
 
   })
