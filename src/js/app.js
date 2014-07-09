@@ -219,9 +219,17 @@ App.directive(
           scope.navigateToModule(fullname)
         })
       },
-      template: '<a class="module" ng-transclude></span>'
+      template: '<a class="identifier module" ng-transclude></span>'
     }
   })
+
+function navigateOnClick(scope, element, attrs) {
+  element.on('click', function () {
+    // Use the 'fullname' attribute if present, otherwise the element text.
+    var fullname = attrs.fullname || element.text()
+    scope.navigateToObj(scope.moduleName, fullname)
+  })
+}
 
 App.directive(
   'class',
@@ -230,14 +238,20 @@ App.directive(
       restrict: 'E',
       transclude: true,
       replace: true,
-      link: function (scope, element, attrs) {
-        // On click, navigate to the module.
-        element.on('click', function () {
-          var fullname = attrs.fullname || element.text()
-          scope.navigateToObj(scope.moduleName, fullname)
-        })
-      },
-      template: '<a class="module" ng-transclude></span>'
+      link: navigateOnClick,
+      template: '<a class="identifier class" ng-transclude></span>'
+    }
+  })
+
+App.directive(
+  'function',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      link: navigateOnClick,
+      template: '<a class="identifier function" ng-transclude></span>'
     }
   })
 

@@ -1,8 +1,21 @@
-.module {
-  color: #305070;
+.identifier {
+  color: #1060e0;
   font-family: Consolas, "Liberation Mono", monospace;
   font-size: 100%;
+  letter-spacing: -0.02em;
+}
+
+.module {
+  color: #305070;
   letter-spacing: -0.5px;
+}
+
+.class {
+  color: #106060;
+}
+
+.function {
+  color: #501060;
 }
 
 .filename {
@@ -10,13 +23,6 @@
   font-family: Consolas, "Liberation Mono", monospace;
   font-size: 90%;
   letter-spacing: -1px;
-}
-
-.identifier {
-  color: #1060e0;
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 100%;
-  letter-spacing: -0.02em;
 }
 
 .subtitle {

@@ -24,15 +24,25 @@ ObjectModule.controller(
       return names
     }
 
-    $scope.getByType = function (obj, type) {
+    /**
+     * Returns an array of objects in the 'dict' of 'type'.
+     */
+    $scope.get = function (type) {
       var result = {}
-      var dict = obj ? obj.dict : {}
+      var dict = $scope.obj ? $scope.obj.dict : {}
       for (var name in dict) {
         var obj = dict[name]
         if (obj.type == type && ! obj.is_import)
           result[name] = obj
       }
       return result
+    }
+
+    /**
+     * Returns true iff the 'dict' has any elements of 'type'.
+     */
+    $scope.has = function (type) {
+      return $scope.get(type).length > 0
     }
 
     // FIXME: Abstract out this filtering with above.
