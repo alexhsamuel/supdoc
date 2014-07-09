@@ -35,11 +35,17 @@ def is_special_symbol(symbol):
 
 def is_in_module(obj, module):
     """
-    Returns true if an object is in a module.
+    Returns true if an object is defined in a module.
 
-    The object must have a `__module__` attribute.
+    Uses the object's `__module__` attribute.  If not available, returns False.
     """
-    return sys.modules[obj.__module__] is module
+    if inspect.isfunction(obj) or inspect.isclass(obj):
+        try:
+            return obj.__module__ == module.__name__
+        except AttributeError:
+            return False
+    else:
+        return False
 
 
 def is_in_class(obj, class_):
@@ -48,7 +54,7 @@ def is_in_class(obj, class_):
 
     All sorts of attriutes (including various method types) are included.
     """
-    return Name(obj.__qualname__).parent == class_.__qualmame__
+    return Name(obj.__qualname__).parent == class_.__qualname__
 
 
 #-------------------------------------------------------------------------------
@@ -188,38 +194,60 @@ def _inspect_module(module):
     return result
 
 
-def _inspect_class(class_, module):
-    is_def = is_in_module(class_, module)
-    result = dict(
+def _inspect_class_ref(class_):
+    """
+    Returns API documentation for a reference to a class.
+    """
+    return dict(
         type        ="class",
         name        =class_.__name__,
         qualname    =class_.__qualname__,
         module      =class_.__module__,
-        is_import   =not is_def,
+        is_import   =True,
         )
-    if is_def:
-        def inspect_member(obj):
+
+
+def _inspect_class(class_, module):
+    # Start with basic reference information.
+    result = _inspect_class_ref(class_)
+    result.update(is_import=False)
+
+    class_name = class_.__qualname__
+
+    def inspect_attr(obj):
+        """
+        Returns documentation for an attribute of the class.
+        """
+        # Infer the object's containing class from the qualname, if present.
+        try:
+            qualname = Name(obj.__qualname__)
+        except AttributeError:
+            parent = None
+        else:
+            parent = str(qualname.parent) if qualname.has_parent else None
+
+        # Check that it matches the class we're inspecting.
+        if parent is not None and parent != class_name:
+            # Not originally member of this class, even though it appears here.
+            return _inspect_ref(obj)
+        else:
             result = _inspect(obj, module)
-            try:
-                qualname = Name(obj.__qualname__)
-            except AttributeError:
-                pass
-            else:
-                if qualname.has_parent:
-                    result["class"] = str(qualname.parent)
+            result["class"] = class_name
             return result
 
-        result.update(
-            lines   =_get_lines(class_),
-            bases   =[ c.__name__ for c in class_.__bases__ ],
-            mro     =[ c.__name__ for c in inspect.getmro(class_) ],
-            dict    ={
-                n: inspect_member(o)
-                for n, o in inspect.getmembers(class_)
-              # if not is_special_symbol(n)
-            },
-           )
-        result.update(_get_doc(class_, (class_, module, )))
+    class_dict = {
+        n: inspect_attr(o)
+        for n, o in inspect.getmembers(class_)
+      # if not is_special_symbol(n)
+        }
+
+    result.update(
+        lines       =_get_lines(class_),
+        bases       =[ c.__name__ for c in class_.__bases__ ],
+        mro         =[ c.__name__ for c in inspect.getmro(class_) ],
+        dict        =class_dict,
+       )
+    result.update(_get_doc(class_, (class_, module, )))
 
     return result
 
@@ -234,42 +262,72 @@ def _inspect_parameter(parameter):
         )
 
 
-def _inspect_function(function, module):
-    is_def = is_in_module(function, module)
-    signature = inspect.signature(function)
-    result = dict(
+def _inspect_function_ref(function):
+    return dict(
         type        ="function",
         name        =function.__name__,
         qualname    =function.__qualname__,
         module      =function.__module__,
-        is_import   =not is_def,
-        parameters  =[
-            _inspect_parameter(p)
-            for n, p in signature.parameters.items()
-            ],
         )
-    if is_def:
-        result.update(
-            lines       =_get_lines(function),
-            )
-        result.update(
-            _get_doc(function, (function, module, )))
+
+
+def _inspect_function(function, module):
+    result = _inspect_function_ref(function)
+    result.update(is_import=False)
+
+    signature = inspect.signature(function)
+    parameters = [
+        _inspect_parameter(p)
+        for n, p in signature.parameters.items()
+        ]
+
+    result.update(
+        _get_doc(function, (function, module, )),
+        lines       =_get_lines(function),
+        parameters  =parameters,
+        )
     return result
 
 
-def _inspect(obj, module):
+def _inspect_value(obj):
+    return dict(
+        type        ="value",
+        value_type  =_inspect_ref(type(obj)),
+        value       =repr(obj),
+        )
+
+
+def _inspect_ref(obj):
     if inspect.isfunction(obj):
-        return _inspect_function(obj, module)
+        return _inspect_function_ref(obj)
     elif inspect.isclass(obj):
-        return _inspect_class(obj, module)
+        return _inspect_class_ref(obj)
     elif inspect.ismodule(obj):
         return _inspect_module_ref(obj)
     else:
-        return {
-            "type"  : "value",
-            "value" : repr(obj),
-            }
+        return _inspect_value(obj)
 
+
+done = set()
+
+def _inspect(obj, module):
+    if is_in_module(obj, module):
+        # FIXME: Completely bogus.
+        if id(obj) in done:
+            print("WARNING: already processed {!r}".format(obj), file=sys.stderr)
+            return {}
+        done.add(id(obj))
+
+        if inspect.isfunction(obj):
+            return _inspect_function(obj, module)
+        elif inspect.isclass(obj):
+            return _inspect_class(obj, module)
+        else:
+            # FIXME
+            raise NotImplementedError(
+                "don't know how to inspect {!r}".format(obj))
+    else:
+        return _inspect_ref(obj)
 
 
 def inspect_modules(full_names):
