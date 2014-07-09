@@ -34,7 +34,7 @@ ObjectModule.controller(
      * @param is_import
      *   Whether to return imported or defined objects, or undefined for both.
      */
-    $scope.get = function (type, is_import) {
+    $scope.getAttributes = function (type, is_import) {
       var dict = $scope.obj ? $scope.obj.dict : {}
       var result = []
       for (var name in dict) {

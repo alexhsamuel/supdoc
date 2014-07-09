@@ -44,14 +44,10 @@ App.controller(
     }
 
     /**
-     * Returns docs for a fully-qualified 'modname'.
+     * Returns docs for an object, or a module if 'objname' is undefined.
      */
-    $scope.getModule = function (modname) {
-      return $scope.top != null ? $scope.top.modules[modname] : undefined
-    }
-
     $scope.getObj = function (modname, objname) {
-      var mod = $scope.getModule(modname)
+      var mod = $scope.top != null ? $scope.top.modules[modname] : undefined
       if (! mod || ! objname)
         return mod
 
@@ -119,7 +115,7 @@ App.controller(
 
       $scope.moduleName = moduleName
       $scope.name = name
-      $scope.module = $scope.getModule(moduleName)
+      $scope.module = $scope.getObj(moduleName)
       $scope.obj = $scope.getObj(moduleName, name)
       $scope.parents = parents
     })
@@ -148,7 +144,7 @@ App.controller(
     }
 
     $scope.navigateToModule = function (fullname) {
-      if ($scope.getModule(fullname)) {
+      if ($scope.getObj(fullname)) {
         $state.go('module', { moduleName: fullname })
       }
       else {

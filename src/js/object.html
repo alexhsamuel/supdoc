@@ -33,9 +33,9 @@
           <input type="checkbox" ng-model="inherited">Show Inherited
         </label>
 
-        <bs-panel title="Classes" ng-if="get('class', false).length > 0">
+        <bs-panel title="Classes" ng-if="getAttributes('class', false).length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="obj in get('class', false)">
+            <dt class="dict-summary" ng-repeat-start="obj in getAttributes('class', false)">
               <class fullname="{{obj.qualname}}">{{obj.name}}</class>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
@@ -44,11 +44,11 @@
           </dl>
         </bs-panel>
 
-        <bs-panel title="Functions" ng-if="get('function', false).length > 0">
+        <bs-panel title="Functions" ng-if="getAttributes('function', false).length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="obj in get('function', false)">
+            <dt class="dict-summary" ng-repeat-start="obj in getAttributes('function', false)">
               <ng-include src="'functionParameters'"></ng-include>
-              <span ng-if="obj.module != getModule(moduleName).module && inherited">
+              <span ng-if="obj.module != getObj(moduleName).module && inherited">
                 defined in {{obj.module}} as {{obj.qualname}}
               </span>
             </dt>
