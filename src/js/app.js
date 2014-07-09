@@ -223,6 +223,24 @@ App.directive(
     }
   })
 
+App.directive(
+  'class',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      link: function (scope, element, attrs) {
+        // On click, navigate to the module.
+        element.on('click', function () {
+          var fullname = attrs.fullname || element.text()
+          scope.navigateToObj(scope.moduleName, fullname)
+        })
+      },
+      template: '<a class="module" ng-transclude></span>'
+    }
+  })
+
 // Includes HTML + dynamic (live) AngularJS markup into the DOM.
 //
 // Usage:

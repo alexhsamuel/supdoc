@@ -58,7 +58,7 @@
         <bs-panel title="Classes">
           <dl>
             <dt class="dict-summary" ng-repeat-start="(name, obj) in getByType(module, 'class')">
-              <span class="identifier" ng-click="navigateTo(obj)">{{name}}</span>
+              <class>{{name}}</class>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
               <span>{{obj.summary}}</span>
