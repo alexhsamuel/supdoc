@@ -65,7 +65,6 @@ App.controller(
      * Returns the last part of a dotted name.
      */
     $scope.getLastPart = function (name) {
-      console.log("getLastPart(" + name + ")")
       var parts = name.split('.')
       return parts[parts.length - 1]
     }
