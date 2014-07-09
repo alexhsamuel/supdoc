@@ -17,6 +17,17 @@
 
     <script src="/app.js"></script>
     <script src="/object.js"></script>
+    
+    <!-- Random Angular snippets.  FIXME: Move elsewhere.  -->
+    <script type="text/ng-template" id="functionParameters">
+      <function fullname="{{obj.qualname}}">{{obj.name}}</function>
+      <span class="parameters">(
+        <span ng-repeat="p in obj.parameters">
+          <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
+        </span>
+      )</span>
+    </script>
+
   </head>
   <body ng-controller="ApiController">
     <div ng-controller="NavigationController">

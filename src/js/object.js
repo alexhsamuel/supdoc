@@ -57,14 +57,6 @@ ObjectModule.controller(
       return result
     }
 
-    $scope.formatParameters = function (parameters) {
-      return '(' 
-        + parameters.map(function (p) { 
-          return "<parameter>" + p.name + "</parameter>"
-        }).join(', ') 
-        + ')'
-    }
-
     // Returns source lines of the displayed object.
     $scope.getSource = function () {
         var sourceLines = $scope.api && $scope.api.source ? $scope.api.source : []

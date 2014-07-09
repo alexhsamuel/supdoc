@@ -48,6 +48,7 @@ h1.identifier {
   color: black;
   font-family: Consolas, "Liberation Mono", monospace;
   font-size: 90%;
+  font-weight: normal;
   letter-spacing: -0.04em;
 }
 
