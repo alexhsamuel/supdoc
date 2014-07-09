@@ -57,7 +57,7 @@ DOCTEST         = htmlgen._make_element("doctest")
 IDENTIFIER      = htmlgen._make_element("identifier")
 MODULE          = htmlgen._make_element("module")
 TYPE            = htmlgen._make_element("type")
-CALLABLE        = htmlgen._make_element("callable")
+FUNCTION        = htmlgen._make_element("function")
 PARAMETER       = htmlgen._make_element("parameter")
 
 def default_format_identifier(name):

@@ -61,10 +61,12 @@ def _format_identifier_obj(name, obj):
         return parse.MODULE(obj.__name__)
     elif isinstance(obj, type):
         # FIXME: Separate classes?
-        return parse.TYPE(name)  # FIXME: Full name.
+        return parse.TYPE(
+            name, module=obj.__module__, fullname=obj.__qualname__)
     elif callable(obj):
         # FIXME: Separate functions?
-        return parse.CALLABLE(name)  # FIXME: Full name.
+        return parse.FUNCTION(
+            name, module=obj.__module__, fullname=obj.__qualname__)
     else:
         return parse.IDENTIFIER(name)
 

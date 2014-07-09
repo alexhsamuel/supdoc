@@ -11,7 +11,9 @@
       <p class="lead">
         {{obj.summary}}
       </p>
-      <p ng-repeat="par in obj.doc">{{obj}}</p>
+      <div class="apidoc">
+        <div compile="obj.doc"></div>
+      </div>
     </div>
   </div>
 

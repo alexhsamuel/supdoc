@@ -55,7 +55,7 @@
           </table>
         </bs-panel>
 
-        <bs-panel title="Classes">
+        <bs-panel title="Classes" ng-if="has('class')">
           <dl>
             <dt class="dict-summary" ng-repeat-start="obj in get('class')">
               <class>{{obj.name}}</class>
@@ -66,7 +66,7 @@
           </dl>
         </bs-panel>
 
-        <bs-panel title="Functions">
+        <bs-panel title="Functions" ng-if="has('function')">
           <dl>
             <dt class="dict-summary" ng-repeat-start="obj in get('function')">
               <ng-include src="'functionParameters'"></ng-include>
