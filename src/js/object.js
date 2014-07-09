@@ -43,6 +43,13 @@ ObjectModule.controller(
             && (! isDefined(is_import) || obj.is_import == is_import))
           result.push(obj)
       }
+      
+      result.sort(function (obj0, obj1) {
+        var name0 = obj0.name
+        var name1 = obj1.name
+        // FIXME: Handle special names?  Handle underscores?
+        return name0 < name1 ? -1 : name0 > name1 ? 1 : 0
+      })
       return result
     }
 
