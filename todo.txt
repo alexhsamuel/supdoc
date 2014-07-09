@@ -1,11 +1,12 @@
 - Make $scope.modname the module name, $scope.mod the object.
-- Sort module list on index.
+- property, staticmethod, classmethod
 - Add non-module paths to breadcrumbs.
 - Fix/test inherited attributes.
 - Test on a third-party library.
 - Make module list hierarchical.
 - Make module list collapsible.
 - Load modules separately.
+- Controller architecture makes no sense.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
 - Add values / other accordion section.
 - Use Ace for code.
@@ -41,3 +42,4 @@ Done
 - Use Angular directives to set up Bootstrap stuff e.g. module link, class link.
 - Create a class page.
 - Create a function page.
+- Sort module list on index.
