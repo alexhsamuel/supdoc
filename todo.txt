@@ -1,35 +1,50 @@
-- Make $scope.modname the module name, $scope.mod the object.
-- property, staticmethod, classmethod
+Doc support
+* property, staticmethod, classmethod
+* other values than types, functions
+
+Markup
+* Javadoc.
+* Mark built-in / frozen / extension modules.
+* Mark modules part of Python library.
+* Mark protected, private contents.
+- Link Python library modules to docs.
+
+UI
+* Better function object pages, with params etc.
+* Resurrect source.
+* Label or select protected, private contents.
+* Label inherited contents and where they're inherited from
+* Select inherited contents or not.
+- Fix tabs.
+- Details?
+- Style navigatable links.  Change pointer?
 - Add non-module paths to breadcrumbs.
 - Fix/test inherited attributes.
-- Test on a third-party library.
 - Make module list hierarchical.
 - Make module list collapsible.
-- Load modules separately.
-- Controller architecture makes no sense.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
 - Add values / other accordion section.
 - Use Ace for code.
-- Write markup formatters.
-- Create a larger test corpus.
-- Fix tabs.
 - Make accordian state persistent across navigation.
-- Mark built-in / frozen / extension modules.
-- Mark modules part of Python library.
-- Link Python library modules to docs.
-- Style navigatable links.  Change pointer?
-- Only include direct module contents, not imported stuff.
-- Label protected / private contents.
-- Select protected / private contents.
-- Label inherited contents and where they're inherited from
-- Select inherited contents or not.
 
---------------------------------------------------------------------------------
-Before upload to github:
+Integeration
+- Load modules separately.
+- Dynamic inspection + server.
+
+Internals
+- Controller architecture makes no sense.
+- Don't need to store name for objects if we have qualname.
+
+Project
+* Name.
+* Logo.
 - Copyright banners in source.
 - Copyright banner on page.
-- Name.
-- Logo.
+
+Testint
+* Test on a third-party library.
+* Test on standard library.
+- Create a larger test corpus.
 
 ================================================================================
 Done
@@ -43,3 +58,4 @@ Done
 - Create a class page.
 - Create a function page.
 - Sort module list on index.
+- Make $scope.modname the module name, $scope.mod the object.
