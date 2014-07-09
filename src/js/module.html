@@ -57,8 +57,8 @@
 
         <bs-panel title="Classes">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="(name, obj) in get('class')">
-              <class>{{name}}</class>
+            <dt class="dict-summary" ng-repeat-start="obj in get('class')">
+              <class>{{obj.name}}</class>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
               <span>{{obj.summary}}</span>
@@ -68,8 +68,8 @@
 
         <bs-panel title="Functions">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="(name, obj) in get('function')">
-              <function>{{name}}</function><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+            <dt class="dict-summary" ng-repeat-start="obj in get('function')">
+              <function>{{obj.name}}</function><span class="parameters">{{formatParameters(obj.parameters)}}</span>
               <span ng-if="obj.module != getApi(moduleName).module && inherited">
               defined in {{obj.module}} as {{obj.qualname}}
               </span>

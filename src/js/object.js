@@ -28,12 +28,12 @@ ObjectModule.controller(
      * Returns an array of objects in the 'dict' of 'type'.
      */
     $scope.get = function (type) {
-      var result = {}
       var dict = $scope.obj ? $scope.obj.dict : {}
+      var result = []
       for (var name in dict) {
         var obj = dict[name]
         if (obj.type == type && ! obj.is_import)
-          result[name] = obj
+          result.push(obj)
       }
       return result
     }
@@ -58,7 +58,11 @@ ObjectModule.controller(
     }
 
     $scope.formatParameters = function (parameters) {
-      return '(' + parameters.map(function (p) { return p.name }).join(', ') + ')'
+      return '(' 
+        + parameters.map(function (p) { 
+          return "<parameter>" + p.name + "</parameter>"
+        }).join(', ') 
+        + ')'
     }
 
     // Returns source lines of the displayed object.

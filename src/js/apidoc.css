@@ -45,10 +45,14 @@ h1.identifier {
 }
 
 .parameters {
-    color: black;
-    font-family: Consolas, "Liberation Mono", monospace;
-    font-size: 90%;
-    letter-spacing: -0.04em;
+  color: black;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 90%;
+  letter-spacing: -0.04em;
+}
+
+.parameter {
+  font-style: italic;
 }
 
 /* Padding for fixed navbar. */

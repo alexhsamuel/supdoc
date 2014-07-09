@@ -33,8 +33,8 @@
 
         <bs-panel title="Classes" ng-if="has('class')">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="(name, obj) in get('class')">
-              <class fullname="{{obj.qualname}}">{{name}}</class>
+            <dt class="dict-summary" ng-repeat-start="obj in get('class')">
+              <class fullname="{{obj.qualname}}">{{obj.name}}</class>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
               <span>{{obj.summary}}</span>
@@ -44,8 +44,12 @@
 
         <bs-panel title="Functions" ng-if="has('function')">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="(name, obj) in get('function')">
-              <function>{{name}}</function><span class="parameters">{{formatParameters(obj.parameters)}}</span>
+            <dt class="dict-summary" ng-repeat-start="obj in get('function')">
+              <function fullname="{{obj.qualname}}">{{obj.name}}</function>
+                <span class="parameters">(
+                  <span ng-repeat="p in obj.parameters">
+                    <span class="parameter">{{p.name}}</span>, </span>
+                )</span>
               <span ng-if="obj.module != getApi(moduleName).module && inherited">
                 defined in {{obj.module}} as {{obj.qualname}}
               </span>
