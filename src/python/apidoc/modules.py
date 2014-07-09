@@ -75,6 +75,11 @@ class Name:
 
 
     @property
+    def has_parent(self):
+        return len(self.__parts) > 1
+
+
+    @property
     def parent(self):
         if len(self.__parts) == 1:
             raise AttributeError("name '{}' has no parent".format(self))

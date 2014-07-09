@@ -56,7 +56,7 @@ def get_common_indent(lines):
 DOCTEST         = htmlgen._make_element("doctest")
 IDENTIFIER      = htmlgen._make_element("identifier")
 MODULE          = htmlgen._make_element("module")
-TYPE            = htmlgen._make_element("type")
+CLASS           = htmlgen._make_element("class")
 FUNCTION        = htmlgen._make_element("function")
 PARAMETER       = htmlgen._make_element("parameter")
 

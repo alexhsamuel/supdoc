@@ -60,11 +60,10 @@ def _format_identifier_obj(name, obj):
     if isinstance(obj, types.ModuleType):
         return parse.MODULE(obj.__name__)
     elif isinstance(obj, type):
-        # FIXME: Separate classes?
-        return parse.TYPE(
+        # FIXME: Classes?
+        return parse.CLASS(
             name, module=obj.__module__, fullname=obj.__qualname__)
     elif callable(obj):
-        # FIXME: Separate functions?
         return parse.FUNCTION(
             name, module=obj.__module__, fullname=obj.__qualname__)
     else:
@@ -202,11 +201,12 @@ def _inspect_class(class_, module):
         def inspect_member(obj):
             result = _inspect(obj, module)
             try:
-                qualname = obj.__qualname__
+                qualname = Name(obj.__qualname__)
             except AttributeError:
                 pass
             else:
-                result["class"] = str(Name(qualname).parent)
+                if qualname.has_parent:
+                    result["class"] = str(qualname.parent)
             return result
 
         result.update(
@@ -216,7 +216,7 @@ def _inspect_class(class_, module):
             dict    ={
                 n: inspect_member(o)
                 for n, o in inspect.getmembers(class_)
-                if not is_special_symbol(n)
+              # if not is_special_symbol(n)
             },
            )
         result.update(_get_doc(class_, (class_, module, )))
