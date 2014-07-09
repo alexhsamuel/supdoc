@@ -34,12 +34,20 @@ App.controller(
         $scope.top = result
       })
 
-    $scope.getModuleFqnames = function () {
-      return Object.keys($scope.top.modules)
+    /**
+     * Returns names of all modules.
+     */
+    $scope.getAllModnames = function () {
+      var modnames = Object.keys($scope.top.modules)
+      modnames.sort()
+      return modnames
     }
 
-    $scope.getModule = function (fullname) {
-      return $scope.top != null ? $scope.top.modules[fullname] : undefined
+    /**
+     * Returns docs for a fully-qualified 'modname'.
+     */
+    $scope.getModule = function (modname) {
+      return $scope.top != null ? $scope.top.modules[modname] : undefined
     }
 
     $scope.getObj = function (modname, objname) {
@@ -55,10 +63,6 @@ App.controller(
           return obj
       }
       return obj
-    }
-
-    $scope.getApi = function (moduleName) { 
-      return lookUp($scope.top, moduleName) 
     }
 
     /**

@@ -48,7 +48,7 @@
           <dl>
             <dt class="dict-summary" ng-repeat-start="obj in get('function', false)">
               <ng-include src="'functionParameters'"></ng-include>
-              <span ng-if="obj.module != getApi(moduleName).module && inherited">
+              <span ng-if="obj.module != getModule(moduleName).module && inherited">
                 defined in {{obj.module}} as {{obj.qualname}}
               </span>
             </dt>
