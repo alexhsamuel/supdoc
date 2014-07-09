@@ -28,6 +28,9 @@ class Name:
 
     @classmethod
     def of(class_, obj):
+        """
+        The name of an arbitrary object.
+        """
         if inspect.ismodule(obj):
             name = obj.__name__
         else:
@@ -71,16 +74,25 @@ class Name:
 
     @property
     def base(self):
+        """
+        The last part of the name.
+        """
         return self.__parts[-1]
 
 
     @property
     def has_parent(self):
+        """
+        True if there is a parent name; false for a top-level name.
+        """
         return len(self.__parts) > 1
 
 
     @property
     def parent(self):
+        """
+        The name of the parent component of the name.
+        """
         if len(self.__parts) == 1:
             raise AttributeError("name '{}' has no parent".format(self))
         return self.__class__(self.__parts[: -1])
