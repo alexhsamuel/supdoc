@@ -30,9 +30,9 @@
 
       <div class="panel-group" id="contents-group">
 
-        <bs-panel title="Submodules" collapsed="true" ng-show="getSubmoduleNames().length > 0">
+        <bs-panel title="Submodules" collapsed="true" ng-show="getSubmodules().length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="moduleName in getSubmoduleNames()">
+            <dt class="dict-summary" ng-repeat-start="moduleName in getSubmodules()">
               <module fullname="{{moduleName}}">{{getLastPart(moduleName)}}</module>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
@@ -43,8 +43,8 @@
 
         <bs-panel title="Imports" collapsed="true">
           <table>
-            <tr ng-repeat="(name, obj) in getImports()">
-              <td class="dict-summary"><span class="identifier">{{name}}</span></td>
+            <tr ng-repeat="obj in get(undefined, true)">
+              <td class="dict-summary"><span class="identifier">{{obj.name}}</span></td>
               <td class="dict-summary import">
                 <span ng-if="obj.type != 'module'">
                   {{obj.type}} <span class="identifier">{{obj.name}}</span> in
@@ -55,9 +55,9 @@
           </table>
         </bs-panel>
 
-        <bs-panel title="Classes" ng-if="has('class')">
+        <bs-panel title="Classes" ng-if="get('class', false).length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="obj in get('class')">
+            <dt class="dict-summary" ng-repeat-start="obj in get('class', false)">
               <class>{{obj.name}}</class>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
@@ -66,9 +66,9 @@
           </dl>
         </bs-panel>
 
-        <bs-panel title="Functions" ng-if="has('function')">
+        <bs-panel title="Functions" ng-if="get('function', false).length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="obj in get('function')">
+            <dt class="dict-summary" ng-repeat-start="obj in get('function', false)">
               <ng-include src="'functionParameters'"></ng-include>
             </dt>
             <dd class="dict-summary" ng-repeat-end>

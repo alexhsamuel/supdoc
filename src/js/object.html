@@ -33,9 +33,9 @@
           <input type="checkbox" ng-model="inherited">Show Inherited
         </label>
 
-        <bs-panel title="Classes" ng-if="has('class')">
+        <bs-panel title="Classes" ng-if="get('class', false).length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="obj in get('class')">
+            <dt class="dict-summary" ng-repeat-start="obj in get('class', false)">
               <class fullname="{{obj.qualname}}">{{obj.name}}</class>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
@@ -44,9 +44,9 @@
           </dl>
         </bs-panel>
 
-        <bs-panel title="Functions" ng-if="has('function')">
+        <bs-panel title="Functions" ng-if="get('function', false).length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="obj in get('function')">
+            <dt class="dict-summary" ng-repeat-start="obj in get('function', false)">
               <ng-include src="'functionParameters'"></ng-include>
               <span ng-if="obj.module != getApi(moduleName).module && inherited">
                 defined in {{obj.module}} as {{obj.qualname}}

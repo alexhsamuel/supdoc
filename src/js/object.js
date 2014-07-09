@@ -11,8 +11,10 @@ ObjectModule.controller(
   function ($scope, $sce) {
     $scope.id = 'ObjectController'
 
-    /* Return names of direct submodules.  */
-    $scope.getSubmoduleNames = function () {
+    /**
+      * Returns the names of direct submodules.  
+      */
+    $scope.getSubmodules = function () {
       var names = []
       if ($scope.module != null) {
         var moduleName = $scope.module.name
@@ -25,34 +27,21 @@ ObjectModule.controller(
     }
 
     /**
-     * Returns an array of objects in the 'dict' of 'type'.
+     * Returns objects from the object's 'dict'.
+     *
+     * @param type
+     *   The type of objects to return, or undefined for all.
+     * @param is_import
+     *   Whether to return imported or defined objects, or undefined for both.
      */
-    $scope.get = function (type) {
+    $scope.get = function (type, is_import) {
       var dict = $scope.obj ? $scope.obj.dict : {}
       var result = []
       for (var name in dict) {
         var obj = dict[name]
-        if (obj.type == type && ! obj.is_import)
+        if (   (! isDefined(type) || obj.type == type)
+            && (! isDefined(is_import) || obj.is_import == is_import))
           result.push(obj)
-      }
-      return result
-    }
-
-    /**
-     * Returns true iff the 'dict' has any elements of 'type'.
-     */
-    $scope.has = function (type) {
-      return $scope.get(type).length > 0
-    }
-
-    // FIXME: Abstract out this filtering with above.
-    $scope.getImports = function () {
-      var result = {}
-      var dict = $scope.module ? $scope.module.dict : {}
-      for (var name in dict) {
-        var obj = dict[name]
-        if (obj.is_import)
-          result[name] = obj
       }
       return result
     }
@@ -64,11 +53,6 @@ ObjectModule.controller(
         for (var i = 0; i < sourceLines.length; ++i) 
             source = source + sourceLines[i]
         return source
-    }
-
-    $scope.getDoc = function () { 
-      // FIXME: Allow SCE to do some sort of validation here?
-      return $sce.trustAsHtml($scope.module.doc) 
     }
 
   })
