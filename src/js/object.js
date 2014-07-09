@@ -17,10 +17,10 @@ ObjectModule.controller(
     $scope.getSubmodules = function () {
       var names = []
       if ($scope.module != null) {
-        var moduleName = $scope.module.name
+        var modname = $scope.module.name
         for (name in $scope.top.modules)
-          if (name.length > moduleName.length
-              && name.substr(0, moduleName.length) == moduleName) 
+          if (name.length > modname.length
+              && name.substr(0, modname.length) == modname) 
             names.push(name)
       }
       return names

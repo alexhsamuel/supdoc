@@ -5,7 +5,7 @@
       <div class="module title">{{getLastPart(module.name)}}</div>
       <div class="subtitle">
         module 
-        <span ng-show="getParent(moduleName)"><module>{{getParent(moduleName)}}</module>.</span>{{getLastPart(moduleName)}}
+        <span ng-show="getParent(modname)"><module>{{getParent(modname)}}</module>.</span>{{getLastPart(modname)}}
       </div>
     </div>
     <div class="panel-body" ng-show="module.summary || module.doc">
@@ -32,11 +32,11 @@
 
         <bs-panel title="Submodules" collapsed="true" ng-show="getSubmodules().length > 0">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="moduleName in getSubmodules()">
-              <module fullname="{{moduleName}}">{{getLastPart(moduleName)}}</module>
+            <dt class="dict-summary" ng-repeat-start="modname in getSubmodules()">
+              <module fullname="{{modname}}">{{getLastPart(modname)}}</module>
             </dt>
             <dd class="dict-summary" ng-repeat-end>
-              <span>{{getObj(moduleName).summary}}</span>
+              <span>{{getObj(modname).summary}}</span>
             </dd>
           </dl>
         </bs-panel>

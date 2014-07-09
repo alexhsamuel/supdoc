@@ -12,11 +12,11 @@ App.config(
         templateUrl: "/title.html",
       })
       .state('module', {
-        url: '/doc/:moduleName',
+        url: '/doc/:modname',
         templateUrl: "/module.html",
       })
       .state('object', {
-        url: '/doc/:moduleName/:name',
+        url: '/doc/:modname/:name',
         templateUrl: "/object.html",
       })
 
@@ -90,33 +90,33 @@ App.controller(
     
     // On angular-ui-route state changes, set up for the new object shown.
     $rootScope.$on('$stateChangeSuccess', function (event, state, params) { 
-      var moduleName = params.moduleName
+      var modname = params.modname
       var name = params.name
 
       // Show what we're doing on the console.
-      if (moduleName) {
+      if (modname) {
         if (name) 
-          console.log("navigate to object " + name + " in module " + moduleName)
+          console.log("navigate to object " + name + " in module " + modname)
         else
-          console.log("navigate to module " + moduleName)
+          console.log("navigate to module " + modname)
       }
       else
         console.log("navigate to top")
 
       // Construct parents.
       var parents = []
-      if (moduleName)
-        moduleName.split('.').reduce(
+      if (modname)
+        modname.split('.').reduce(
           function (p, n) {
             p.push(p.length > 0 ? p[p.length - 1] + '.' + n : n)
             return p
           },
           parents)
 
-      $scope.moduleName = moduleName
+      $scope.modname = modname
       $scope.name = name
-      $scope.module = $scope.getObj(moduleName)
-      $scope.obj = $scope.getObj(moduleName, name)
+      $scope.module = $scope.getObj(modname)
+      $scope.obj = $scope.getObj(modname, name)
       $scope.parents = parents
     })
 
@@ -129,23 +129,23 @@ App.controller(
     // FIXME: Merge navigateTo{Obj,Module} into this one function.
     $scope.navigateTo = function (obj) {
       if (obj.type == 'module') 
-        $state.go('module', { moduleName: obj.name })
+        $state.go('module', { modname: obj.name })
       else if (obj.type == 'class') 
-        $state.go('object', { moduleName: obj.module, name: obj.name })
+        $state.go('object', { modname: obj.module, name: obj.name })
       else
         console.log("can't navigate to " + obj.name + " of type " + obj.type)
     }
 
     $scope.navigateToObj = function (modname, objname) {
       if ($scope.getObj(modname, objname))
-        $state.go('object', { moduleName: modname, name: objname })
+        $state.go('object', { modname: modname, name: objname })
       else
         console.log("navigateToObj: " + modname + "/" + objname + " not found")
     }
 
     $scope.navigateToModule = function (fullname) {
       if ($scope.getObj(fullname)) {
-        $state.go('module', { moduleName: fullname })
+        $state.go('module', { modname: fullname })
       }
       else {
         console.log("navigateToModule: " + fullname + " not found")
@@ -232,7 +232,7 @@ App.directive(
 function navigateOnClick(scope, element, attrs) {
   element.on('click', function () {
     // Use the 'module' attribute if present, otherwise this module.
-    var modname = attrs.module || scope.moduleName
+    var modname = attrs.module || scope.modname
     // Use the 'fullname' attribute if present, otherwise the element text.
     var fullname = attrs.fullname || element.text()
     scope.navigateToObj(modname, fullname)
@@ -304,12 +304,12 @@ function mapObjToArr(obj, fn) {
 //-----------------------------------------------------------------------------
 
 // FIXME: Remove.
-function lookUp(api, moduleName) {
+function lookUp(api, modname) {
   if (api == null)
     return null
-  if (isUndefined(moduleName) || moduleName == '')
+  if (isUndefined(modname) || modname == '')
     return api
-  var names = moduleName.split('.')
+  var names = modname.split('.')
   for (var i = 0; i < names.length; ++i) {
     var name = names[i]
     if (api.modules && name in api.modules) 
