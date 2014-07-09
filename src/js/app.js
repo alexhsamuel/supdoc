@@ -16,7 +16,7 @@ App.config(
         templateUrl: "/module.html",
       })
       .state('object', {
-        url: '/doc/:modname/:name',
+        url: '/doc/:modname/:objname',
         templateUrl: "/object.html",
       })
 
@@ -91,12 +91,12 @@ App.controller(
     // On angular-ui-route state changes, set up for the new object shown.
     $rootScope.$on('$stateChangeSuccess', function (event, state, params) { 
       var modname = params.modname
-      var name = params.name
+      var objname = params.objname
 
       // Show what we're doing on the console.
       if (modname) {
-        if (name) 
-          console.log("navigate to object " + name + " in module " + modname)
+        if (objname) 
+          console.log("navigate to object " + objname + " in module " + modname)
         else
           console.log("navigate to module " + modname)
       }
@@ -114,9 +114,9 @@ App.controller(
           parents)
 
       $scope.modname = modname
-      $scope.name = name
+      $scope.objname = objname
       $scope.module = $scope.getObj(modname)
-      $scope.obj = $scope.getObj(modname, name)
+      $scope.obj = $scope.getObj(modname, objname)
       $scope.parents = parents
     })
 
@@ -131,14 +131,14 @@ App.controller(
       if (obj.type == 'module') 
         $state.go('module', { modname: obj.name })
       else if (obj.type == 'class') 
-        $state.go('object', { modname: obj.module, name: obj.name })
+        $state.go('object', { modname: obj.module, objname: obj.name })
       else
         console.log("can't navigate to " + obj.name + " of type " + obj.type)
     }
 
     $scope.navigateToObj = function (modname, objname) {
       if ($scope.getObj(modname, objname))
-        $state.go('object', { modname: modname, name: objname })
+        $state.go('object', { modname: modname, objname: objname })
       else
         console.log("navigateToObj: " + modname + "/" + objname + " not found")
     }
