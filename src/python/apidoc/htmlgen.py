@@ -1,29 +1,49 @@
-import html
+"""
+Tools for generating HTML.
+"""
+
+#-------------------------------------------------------------------------------
+
+from   html import escape
 import functools
 
 #-------------------------------------------------------------------------------
 
-def terminate(terminator, strings):
-    result = terminator.join(strings)
-    if len(result) > 0:
-        result += terminator
-    return result
-
-
 def format_tag(name, attrs={}, close=False):
+    """
+    Returns HTML text of the opening or closing tag of an element.
+
+    @param attrs
+      A map of attributes; must be `None` if `close` is true.
+    @param close
+      True for a closing tag.
+    """
     if len(attrs) == 0:
         attr_str = ""
     else:
         assert not close
         attr_str = " " + " ".join( 
-            '{}="{}"'.format(n, html.escape(v, quote=True)) 
+            '{}="{}"'.format(n, escape(v, quote=True)) 
             for n, v in attrs.items() )
     return "<" + ("/" if close else "") + name + attr_str + ">"
 
 
 class Element:
+    """
+    An HTML element.
+    """
 
     def __init__(self, tag, *children, **attrs):
+        """
+        @param tag
+          The elent tag.
+        @param children
+          The elements children, either other elements or text.
+        @type children
+          iterable of `Element` or `str`
+        @param attrs
+          Additional attributes, with string values.
+        """
         try:
             attrs["class"] = attrs.pop("class_")
         except KeyError:
@@ -49,16 +69,25 @@ class Element:
 
     @property
     def children(self):
+        """
+        A sequence of children, including elements and text.
+        """
         return self.__children
 
 
     @property
     def attrs(self):
+        """
+        A map from attribute names to values.
+        """
         # FIXME: Return a read-only view.
         return self.__attrs
 
 
     def generate(self, terminator="", indent="", depth=0):
+        """
+        Yields lines of HTML for this element and its children.
+        """
         prefix = indent * depth
         yield prefix + format_tag(self.__tag, self.__attrs)
         for child in self.__children:
@@ -70,6 +99,9 @@ class Element:
 
 
     def format(self, terminator="\n", indent=" ", depth=0):
+        """
+        Returns HTML text of this element.
+        """
         return "".join(self.generate(terminator, indent, depth))
 
 
