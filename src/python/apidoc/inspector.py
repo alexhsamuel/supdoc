@@ -57,7 +57,6 @@ def _format_identifier_obj(name, obj):
     """
     Formats an identifier that has been resolved to some `obj`.
     """
-    print("_fio({!r}, {!r})".format(name, obj), file=sys.stderr)
     if isinstance(obj, types.ModuleType):
         return parse.MODULE(obj.__name__)
     elif isinstance(obj, type):
@@ -90,9 +89,10 @@ def _format_identifier(name, contexts):
         if isinstance(context, types.ModuleType):
             module = context
             while True:
-                module = sys.modules[module.__package__]
-                if module == "" or module == context:
+                package = sys.modules[modules.__package__]
+                if package == module:
                     break
+                module = package
                 try:
                     obj = base.look_up(name, module)
                 except AttributeError:
