@@ -4,6 +4,7 @@ Doc support
 
 Markup
 * Javadoc.
+* Distinguish packages from modules.
 * Mark built-in / frozen / extension modules.
 * Mark modules part of Python library.
 * Mark protected, private contents.
@@ -16,6 +17,8 @@ UI
 * Label inherited contents and where they're inherited from
 * Select inherited contents or not.
 - Fix tabs.
+- Move imports to a tab?
+- Show submodules in a better way.
 - Details?
 - Style navigatable links.  Change pointer?
 - Add non-module paths to breadcrumbs.
@@ -36,6 +39,7 @@ Internals
 - Don't need to store name for objects if we have qualname.
 
 Project
+* github
 * Name.
 * Logo.
 - Copyright banners in source.
