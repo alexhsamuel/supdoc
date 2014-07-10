@@ -12,8 +12,8 @@ ObjectModule.controller(
     $scope.id = 'ObjectController'
 
     /**
-      * Returns the names of direct submodules.  
-      */
+     * Returns the names of direct submodules.  
+     */
     $scope.getSubmodules = function () {
       var names = []
       if ($scope.module != null) {
