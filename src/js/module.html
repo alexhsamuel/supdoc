@@ -67,7 +67,7 @@
             <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames('class', false)" ng-controller="Attrs">
               <class fullname="{{attr.qualname}}">{{attrname}}</class>
             </dt>
-            <dd class="dict-summary" ng-repeat-end>
+            <dd class="dict-summary" ng-repeat-end ng-controller="Attrs">
               <span>{{attr.summary}}</span>
             </dd>
           </dl>
