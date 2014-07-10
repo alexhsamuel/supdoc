@@ -8,15 +8,15 @@ App.config(
 
     $stateProvider
       .state('index', {
-        url: '/doc',
+        url: '/supdoc',
         templateUrl: "/title.html",
       })
       .state('module', {
-        url: '/doc/:modname',
+        url: '/supdoc/:modname',
         templateUrl: "/module.html",
       })
       .state('object', {
-        url: '/doc/:modname/:objname',
+        url: '/supdoc/:modname/:objname',
         templateUrl: "/object.html",
       })
 

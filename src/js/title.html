@@ -1,9 +1,9 @@
-<h1>All Modules</h1>
+<h1 class="lead">module index</h1>
 <dl class="dl-horizontal">
   <dt class="dict-summary" ng-repeat-start="modname in getAllModnames()" style="text-align:left;">
     <module>{{modname}}</module>
   </dt>
-  <dd class="dict-summary" ng-repeat-end>
+  <dd class="dict-summary" style="padding-bottom: 0.4em" ng-repeat-end>
     <span class="dict-summary">{{getObj(modname).summary}}</span>
   </dd>
 </dl>
