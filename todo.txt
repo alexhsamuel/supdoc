@@ -39,8 +39,6 @@ Internals
 - Don't need to store name for objects if we have qualname.
 
 Project
-* github
-* Name.  supdoc!
 * Logo.
 - Copyright banners in source.
 - Copyright banner on page.
@@ -63,4 +61,6 @@ Done
 - Create a function page.
 - Sort module list on index.
 - Make $scope.modname the module name, $scope.mod the object.
-- staticmethod, classmethod
+* staticmethod, classmethod
+* Name.  supdoc!
+* github
