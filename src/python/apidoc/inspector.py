@@ -209,11 +209,22 @@ def _inspect_class_ref(class_):
 
 
 SKIP_ATTRIBUTES = {
+    "__bases__",
+    "__basicsize__",            # FIXME: elsewhere
     "__dict__",
+    "__dictoffset__",
     "__doc__",
+    "__flags__",                # FIXME: elsewhere
+    "__itemsize__",             # FIXME: elsewhere
     "__module__",
+    "__mro__",
     "__name__",
+    "__prepare__",
     "__qualname__",
+    "__subclasshook__", 
+    "__text_signature__",       # FIXME: elsewhere
+    "__weakref__",
+    "__weakrefoffset__",
     }
 
 def _inspect_class(class_, module):
@@ -263,14 +274,25 @@ def _inspect_class(class_, module):
             return result
 
 
+    def skip(n, o):
+        if n in SKIP_ATTRIBUTES:
+            return True
+        try:
+            qualname = o.__qualname__
+        except AttributeError:
+            pass
+        else:
+            # FIXME: This is terrible.
+            if qualname.split(".", 1)[0] in ("object", "type"):
+                return True
+        return False
+
     class_dict = {
         # getmembers return bound names; try to get the unbound descriptor.
         n: inspect_attr(class_.__dict__.get(n, o))
         for n, o in inspect.getmembers(class_)
       # if not is_special_symbol(n)
-        if n not in SKIP_ATTRIBUTES
-        # FIXME: Terrible.
-        and not getattr(o, "__qualname__", "").startswith("object.")
+        if not skip(n, o)
         }
 
     result.update(
