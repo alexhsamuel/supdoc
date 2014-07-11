@@ -24,6 +24,14 @@ from   .path import Path
 
 #-------------------------------------------------------------------------------
 
+doc_warning = logging.warning
+doc_info    = logging.info
+
+
+def is_class_method(obj):
+    return inspect.ismethod(obj) and isinstance(obj.__self__, type)
+
+
 def is_special_symbol(symbol):
     """
     Returns true if `symbol` is a Python special symbol.
@@ -39,22 +47,15 @@ def is_in_module(obj, module):
 
     Uses the object's `__module__` attribute.  If not available, returns False.
     """
-    if inspect.isfunction(obj) or inspect.isclass(obj):
+    obj = getattr(obj, "__func__", obj)
+
+    if inspect.isfunction(obj) or inspect.ismethod(obj) or inspect.isclass(obj):
         try:
             return obj.__module__ == module.__name__
         except AttributeError:
             return False
     else:
         return False
-
-
-def is_in_class(obj, class_):
-    """
-    Returns true if and object is an attribute of a class.
-
-    All sorts of attriutes (including various method types) are included.
-    """
-    return Name(obj.__qualname__).parent == class_.__qualname__
 
 
 #-------------------------------------------------------------------------------
@@ -207,6 +208,14 @@ def _inspect_class_ref(class_):
         )
 
 
+SKIP_ATTRIBUTES = {
+    "__dict__",
+    "__doc__",
+    "__module__",
+    "__name__",
+    "__qualname__",
+    }
+
 def _inspect_class(class_, module):
     # Start with basic reference information.
     result = _inspect_class_ref(class_)
@@ -218,6 +227,21 @@ def _inspect_class(class_, module):
         """
         Returns documentation for an attribute of the class.
         """
+        if isinstance(obj, classmethod):
+            attr_type = "classmethod"
+            # Look through to the function.
+            obj = obj.__func__
+        elif isinstance(obj, staticmethod):
+            attr_type = "staticmethod"
+            # Look through to the function.
+            obj = obj.__func__
+        # FIXME: Properties.
+        else:
+            attr_type = {
+                "__init__"      : "constructor",
+                "__new__"       : "allocator",
+            }.get(getattr(obj, "__name__", None), None)
+
         # Infer the object's containing class from the qualname, if present.
         try:
             qualname = Name(obj.__qualname__)
@@ -229,16 +253,24 @@ def _inspect_class(class_, module):
         # Check that it matches the class we're inspecting.
         if parent is not None and parent != class_name:
             # Not originally member of this class, even though it appears here.
+            # FIXME: Inherited members.
             return _inspect_ref(obj)
         else:
             result = _inspect(obj, module)
             result["class"] = class_name
+            if attr_type is not None:
+                result["attr_type"] = attr_type
             return result
 
+
     class_dict = {
-        n: inspect_attr(o)
+        # getmembers return bound names; try to get the unbound descriptor.
+        n: inspect_attr(class_.__dict__.get(n, o))
         for n, o in inspect.getmembers(class_)
       # if not is_special_symbol(n)
+        if n not in SKIP_ATTRIBUTES
+        # FIXME: Terrible.
+        and not getattr(o, "__qualname__", "").startswith("object.")
         }
 
     result.update(
@@ -312,13 +344,14 @@ done = set()
 
 def _inspect(obj, module):
     if is_in_module(obj, module):
+        doc_info("inspecting {}".format(obj))
         # FIXME: Completely bogus.
         if id(obj) in done:
-            print("WARNING: already processed {!r}".format(obj), file=sys.stderr)
+            doc_warning("already processed {!r}".format(obj))
             return {}
         done.add(id(obj))
 
-        if inspect.isfunction(obj):
+        if inspect.isfunction(obj) or inspect.ismethod(obj):
             return _inspect_function(obj, module)
         elif inspect.isclass(obj):
             return _inspect_class(obj, module)

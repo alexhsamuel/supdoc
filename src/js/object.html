@@ -53,14 +53,26 @@
                   <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
                 </span>
               )</span>
+              <span ng-if="attr.attr_type && attr.attr_type != 'method'" class="label label-info">
+                {{attr.attr_type}}
+              </span>
               <span ng-if="attr.module != getObj(modname).module && inherited">
                 defined in {{attr.module}} as {{attr.qualname}}
               </span>
             </dt>
-            <dd class="dict-summary" ng-repeat-end>
+            <dd class="dict-summary" ng-repeat-end ng-controller="Attrs">
               <span class="doc"><span compile="attr.summary"></span></span>
             </dd>
           </dl>
+        </bs-panel>
+
+        <bs-panel title="Values" ng-if="getAttrNames('value').length > 0">
+          <div ng-repeat="attrname in getAttrNames('value')" ng-controller="Attrs">
+            <!-- FIXME: What if value_type isn't a class? -->
+            <identifier>{{attrname}}</identifier> = 
+            <span class="source">{{attr.value}}</span> 
+            of type <class>{{attr.value_type.name}}</class>
+          </div>
         </bs-panel>
 
       </div>
