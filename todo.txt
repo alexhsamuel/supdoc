@@ -1,5 +1,5 @@
 Doc support
-* property, staticmethod, classmethod
+* properties
 * other values than types, functions
 
 Markup
@@ -40,7 +40,7 @@ Internals
 
 Project
 * github
-* Name.
+* Name.  supdoc!
 * Logo.
 - Copyright banners in source.
 - Copyright banner on page.
@@ -63,3 +63,4 @@ Done
 - Create a function page.
 - Sort module list on index.
 - Make $scope.modname the module name, $scope.mod the object.
+- staticmethod, classmethod
