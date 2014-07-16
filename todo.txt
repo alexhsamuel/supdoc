@@ -35,6 +35,7 @@ Integeration
 - Dynamic inspection + server.
 
 Internals
+* Rename package apidoc -> supdoc.
 - Controller architecture makes no sense.
 - Don't need to store name for objects if we have qualname.
 
