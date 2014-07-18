@@ -385,6 +385,10 @@ def _inspect(obj, module):
         return _inspect_ref(obj)
 
 
+def inspect_module(modname):
+    return _inspect_module(importlib.import_module(str(modname)))
+
+
 def inspect_modules(full_names):
     """
     Imports and inspects modules.

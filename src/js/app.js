@@ -24,41 +24,78 @@ App.config(
 
 App.controller(
   'ApiController',
-  function ($scope, $http) {
+  function ($scope, $http, $q) {
     $scope.id = 'ApiController'
 
-    // Load up all the API data.
-    $scope.top = null
-    $http.get('/apidoc.json').success(
-      function (result) {
-        $scope.top = result
-      })
+    var modules = {}
+
+    /**
+     * Returns, by loading or from cache, the doc object for a module.
+     */
+    function getModule(name) {
+      var doc = modules[name]
+      if (doc) {
+        console.log('returning ' + name + ' from cache')
+        var deferred = $q.defer()
+        deferred.resolve(doc)
+        return deferred.promise
+      }
+      else {
+        var url = '/doc/' + name
+        console.log('loading ' + name + ' from ' + url)
+
+        return $http.get(url).then(
+          function (response) {
+            console.log('got ' + url)
+            // FIXME: Check success.
+            modules[name] = response.data
+            return doc
+          },
+          function (reason) {
+            console.log('ERROR: failed to load ' + name + ': ' + reason)
+            return undefined
+          })
+      }
+    }
+    
+    // $scope.top = null
+    // getModule('apidoc').then(function (doc) { $scope.top = doc })
+
+    $scope.moduleNames = null
+    // getModule('modules').then(function (doc) { $scope.moduleNames = doc })
+    $http.get('/doc/module-list').then(function (response) {
+      // FIXME: Check success.
+      $scope.moduleNames = response.data
+      console.log("module names = " + $scope.moduleNames)
+    })
 
     /**
      * Returns names of all modules.
      */
     $scope.getAllModnames = function () {
-      var modnames = Object.keys($scope.top.modules)
-      modnames.sort()
-      return modnames
+      return $scope.moduleNames
     }
 
     /**
      * Returns docs for an object, or a module if 'objname' is undefined.
      */
     $scope.getObj = function (modname, objname) {
-      var mod = $scope.top != null ? $scope.top.modules[modname] : undefined
-      if (! mod || ! objname)
-        return mod
+      // var mod = $scope.top != null ? $scope.top.modules[modname] : undefined
+      console.log('getObj(' + modname + ', ' + objname + ')')
+      return getModule(modname).then(function (mod) {
+        console.log('getObj(' + modname + ', ' + objname + ') -> ' + mod)
+        if (! mod || ! objname)
+          return mod
 
-      var parts = objname.split('.')
-      var obj = mod
-      for (var i = 0; i < parts.length; ++i) {
-        obj = obj.dict[parts[i]]
-        if (! obj)
-          return obj
-      }
-      return obj
+        var parts = objname.split('.')
+        var obj = mod
+        for (var i = 0; i < parts.length; ++i) {
+          obj = obj.dict[parts[i]]
+          if (! obj)
+            return obj
+        }
+        return obj
+      })
     }
 
     /**
@@ -115,8 +152,11 @@ App.controller(
 
       $scope.modname = modname
       $scope.objname = objname
-      $scope.module = $scope.getObj(modname)
-      $scope.obj = $scope.getObj(modname, objname)
+      $scope.getObj(modname).then(
+        function (module) { $scope.module = module }).then(
+        function () { 
+          $scope.getObj(modname, objname).then(function (obj) { $scope.obj = obj })
+        })
       $scope.parents = parents
     })
 
@@ -137,19 +177,19 @@ App.controller(
     }
 
     $scope.navigateToObj = function (modname, objname) {
-      if ($scope.getObj(modname, objname))
+      // if ($scope.getObj(modname, objname))
         $state.go('object', { modname: modname, objname: objname })
-      else
-        console.log("navigateToObj: " + modname + "/" + objname + " not found")
+      // else
+      //   console.log("navigateToObj: " + modname + "/" + objname + " not found")
     }
 
     $scope.navigateToModule = function (fullname) {
-      if ($scope.getObj(fullname)) {
+      // if ($scope.getObj(fullname)) {
         $state.go('module', { modname: fullname })
-      }
-      else {
-        console.log("navigateToModule: " + fullname + " not found")
-      }
+      // }
+      // else {
+      //   console.log("navigateToModule: " + fullname + " not found")
+      // }
     }
 
   })

@@ -56,9 +56,9 @@
               <span ng-if="attr.attr_type && attr.attr_type != 'method'" class="label label-info">
                 {{attr.attr_type}}
               </span>
-              <span ng-if="attr.module != getObj(modname).module && inherited">
+              <!--span ng-if="attr.module != getObj(modname).module && inherited">
                 defined in {{attr.module}} as {{attr.qualname}}
-              </span>
+              </span-->
             </dt>
             <dd class="dict-summary" ng-repeat-end ng-controller="Attrs">
               <span class="doc"><span compile="attr.summary"></span></span>
