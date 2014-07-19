@@ -30,26 +30,27 @@ App.controller(
     var modules = {}
 
     /**
-     * Returns, by loading or from cache, the doc object for a module.
+     * Returns a promise for the doc for a module.
      */
     function getModule(name) {
       var doc = modules[name]
-      if (doc) {
-        console.log('returning ' + name + ' from cache')
-        var deferred = $q.defer()
-        deferred.resolve(doc)
-        return deferred.promise
-      }
+      if (! defined(name)) 
+        // No doc; return it.
+        return promiseOf($q, undefined)
+      else if (! defined(name) || doc)
+        // Return the cached value.
+        // FIXME: Update?
+        return promiseOf($q, doc)
       else {
         var url = '/doc/' + name
         console.log('loading ' + name + ' from ' + url)
 
         return $http.get(url).then(
           function (response) {
-            console.log('got ' + url)
+            console.log('loaded ' + url)
             // FIXME: Check success.
             modules[name] = response.data
-            return doc
+            return response.data
           },
           function (reason) {
             console.log('ERROR: failed to load ' + name + ': ' + reason)
@@ -77,13 +78,11 @@ App.controller(
     }
 
     /**
-     * Returns docs for an object, or a module if 'objname' is undefined.
+     * Returns a promise of docs for an object, or a module if 'objname' is
+     * undefined.
      */
     $scope.getObj = function (modname, objname) {
-      // var mod = $scope.top != null ? $scope.top.modules[modname] : undefined
-      console.log('getObj(' + modname + ', ' + objname + ')')
       return getModule(modname).then(function (mod) {
-        console.log('getObj(' + modname + ', ' + objname + ') -> ' + mod)
         if (! mod || ! objname)
           return mod
 
@@ -153,7 +152,9 @@ App.controller(
       $scope.modname = modname
       $scope.objname = objname
       $scope.getObj(modname).then(
-        function (module) { $scope.module = module }).then(
+        function (module) { 
+          $scope.module = module 
+        }).then(
         function () { 
           $scope.getObj(modname, objname).then(function (obj) { $scope.obj = obj })
         })
@@ -329,11 +330,7 @@ App.directive(
 
 //-----------------------------------------------------------------------------
 
-function isUndefined(obj) {
-  return typeof obj === 'undefined'
-}
-
-function isDefined(obj) {
+function defined(obj) {
   return typeof obj !== 'undefined'
 }
 
@@ -347,7 +344,7 @@ function mapObjToArr(obj, fn) {
 function lookUp(api, modname) {
   if (api == null)
     return null
-  if (isUndefined(modname) || modname == '')
+  if (! defined(modname) || modname == '')
     return api
   var names = modname.split('.')
   for (var i = 0; i < names.length; ++i) {
@@ -362,4 +359,12 @@ function lookUp(api, modname) {
   }
   return api
 }
+
+
+function promiseOf($q, value) {
+  var deferred = $q.defer()
+  deferred.resolve(value)
+  return deferred.promise
+}
+
 

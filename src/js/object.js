@@ -15,15 +15,17 @@ ObjectModule.controller(
      * Returns the names of direct submodules.  
      */
     $scope.getSubmodules = function () {
-      var names = []
-      if ($scope.module != null) {
-        var modname = $scope.module.name
-        for (name in $scope.top.modules)
-          if (name.length > modname.length
+      var modname = $scope.modname
+
+      var subnames = []
+      if (modname) 
+        for (var i = 0; i < $scope.moduleNames.length; ++i) {
+          var name = $scope.moduleNames[i]
+          if (name.length > modname.length 
               && name.substr(0, modname.length) == modname) 
-            names.push(name)
-      }
-      return names
+            subnames.push(name)
+        }
+      return subnames
     }
 
     /**
@@ -39,8 +41,8 @@ ObjectModule.controller(
       var result = []
       for (var name in dict) {
         var obj = dict[name]
-        if (   (! isDefined(type) || obj.type == type)
-            && (! isDefined(is_import) || ! isDefined(obj.is_import) || obj.is_import == is_import))
+        if (   (! defined(type) || obj.type == type)
+            && (! defined(is_import) || ! defined(obj.is_import) || obj.is_import == is_import))
           result.push(name)
       }
       
