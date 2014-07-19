@@ -1,3 +1,9 @@
+"""
+Structures and other fixed-schema objects.
+"""
+
+#-------------------------------------------------------------------------------
+
 from   collections import OrderedDict
 from   inspect import Parameter, Signature
 
@@ -6,6 +12,11 @@ from   inspect import Parameter, Signature
 # FIXME: Add an immutable option.
 
 class Record(type):
+    """
+    Record metaclass with a fixed attribute schema
+
+    
+    """
 
     class Base:
 
@@ -56,36 +67,32 @@ class Record(type):
                     super().__setattr__(name, value)
 
 
-        @classmethod
-        def __prepare__(metaclass, name, bases):
-            return OrderedDict()
+    @classmethod
+    def __prepare__(metaclass, name, bases):
+        return OrderedDict()
 
 
-        def __new__(metaclass, name, bases, dict):
-            # FIXME: Support subclassing records.
-            if len(bases) > 0:
-                raise TypeError("a Record cannnot have base classes")
-                bases = (metaclass.Base, )
-                fields = OrderedDict( 
-                    (n, (type(v), v)) 
-                    for n, v in dict.items() 
-                    if not n.startswith("_")
-                )
-                signature = Signature([ 
-                    Parameter(n, Parameter.POSITIONAL_OR_KEYWORD, default=d)
-                    for n, (_, d) in fields.items() 
-                ])
+    def __new__(metaclass, name, bases, dict):
+        # FIXME: Support subclassing records.
+        if len(bases) > 0:
+            raise TypeError("a Record cannnot have base classes")
+        bases = (metaclass.Base, )
+        fields = OrderedDict( 
+            (n, (type(v), v)) 
+            for n, v in dict.items() 
+            if not n.startswith("_")
+        )
+        signature = Signature([ 
+            Parameter(n, Parameter.POSITIONAL_OR_KEYWORD, default=d)
+            for n, (_, d) in fields.items() 
+        ])
 
-                obj = type.__new__(metaclass, name, bases, dict)
-                obj.__fields__ = fields
-                obj.__signature__ = signature
-                obj.__slots__ = tuple(fields)
+        obj = type.__new__(metaclass, name, bases, dict)
+        obj.__fields__ = fields
+        obj.__signature__ = signature
+        obj.__slots__ = tuple(fields)
 
-                return obj
-
-
-        def __init__(self, *args, **kw_args):
-            pass
+        return obj
 
 
 
