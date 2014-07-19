@@ -1,3 +1,9 @@
+"""
+Tools for finding and importing modules.
+"""
+
+#-------------------------------------------------------------------------------
+
 import functools
 import importlib
 from   importlib.machinery import SourceFileLoader

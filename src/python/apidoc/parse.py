@@ -1,3 +1,13 @@
+"""
+Documentation parsing.
+
+This module attempts to support various docstring markup formats as leniently as
+possible.  Even from docstrings with /ad hoc/ markup we attempt to extract as
+much information as possible.
+"""
+
+#-------------------------------------------------------------------------------
+
 import re
 import sys
 

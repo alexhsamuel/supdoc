@@ -1,3 +1,13 @@
+"""
+HTML generation code.
+
+This module is deprecated.
+
+FIXME: Remove me.
+"""
+
+#-------------------------------------------------------------------------------
+
 import logging
 import pathlib
 import shutil

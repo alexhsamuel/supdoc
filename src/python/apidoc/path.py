@@ -1,3 +1,9 @@
+"""
+File system path helper code.
+"""
+
+#-------------------------------------------------------------------------------
+
 import logging
 import pathlib
 
