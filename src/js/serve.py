@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import functools
 import http.server
 import json
 import logging
@@ -14,6 +15,39 @@ from   apidoc import modules, inspector
 # FIXME
 path = None
 
+
+def memoize_with(memo=None):
+    if memo is None:
+        memo = {}
+
+    def memoizer(fn):
+        @functools.wraps(fn)
+        def memoized(*args, **kw_args):
+            # FIXME: Match args to signature first.
+            key = (args, tuple(sorted(kw_args.items())))
+            try:
+                return memo[key]
+            except KeyError:
+                value = memo[key] = fn(*args, **kw_args)
+                return value
+
+        fn.__memo__ = memo
+        return memoized
+
+    return memoizer
+
+
+def memoize(fn):
+    return memoize_with({})(fn)
+
+
+@memoize
+def get_module_doc(modname):
+    logging.info("inspecting doc for {}".format(modname))
+    doc = inspector.inspect_module(modname)
+    return json.dumps(doc).encode("UTF-8")
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
 
     n = 0
@@ -25,12 +59,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 if modname == "module-list":
                     logging.info("getting module list")
                     names = [ str(n) for n in modules.find_modules(path) ]
-                    data = json.dumps(names)
+                    data = json.dumps(names).encode("UTF-8")
                 else:
-                    logging.info("geting doc for {}".format(modname))
-                    doc = inspector.inspect_module(modname)
-                    data = json.dumps(doc)
-                data = data.encode("UTF-8")
+                    data = get_module_doc(modname)
             except Exception as exc:
                 logging.error("problem: {}".format(exc))
                 self.send_error(404, "exception: {!r}".format(exc))
