@@ -50,8 +50,6 @@ def get_module_doc(modname):
 
 class Handler(http.server.SimpleHTTPRequestHandler):
 
-    n = 0
-
     def do_GET(self):
         if self.path.startswith("/doc/"):
             try:
