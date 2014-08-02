@@ -182,7 +182,6 @@ App.controller(
      * Joines lines of text into a string.
      */
     function joinLines(lines) {
-      console.log('joinLines')
       if (! defined(lines))
         return undefined
 
@@ -196,10 +195,11 @@ App.controller(
      * Requests module source and sets $scope.source on load.
      */
     $scope.loadSource = function () {
-      $scope.getSource($scope.modname).then(
-        function (source) {
-          $scope.source = joinLines(source)
-        })
+      if (! defined($scope.source)) 
+        $scope.getSource($scope.modname).then(
+          function (source) {
+            $scope.source = joinLines(source)
+          })
     }
 
     // High-level navigation methods.
