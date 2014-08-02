@@ -56,8 +56,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
     def do_GET(self):
-        if self.path.startswith("/doc/"):
-            try:
+        try:
+            if self.path.startswith("/doc/"):
                 modname = self.path[5 :]
                 if modname == "module-list":
                     logging.info("getting module list")
@@ -67,12 +67,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     jso = inspector.inspect_module(modname)
                 self.send_json(jso)
 
-            except Exception as exc:
-                logging.error("problem: {}".format(exc))
-                self.send_error(404, "exception: {!r}".format(exc))
+            else:
+                super().do_GET()
 
-        else:
-            super().do_GET()
+        except Exception as exc:
+            logging.error("problem: {}".format(exc))
+            self.send_error(404, "exception: {!r}".format(exc))
 
 
     def translate_path(self, path):
