@@ -164,22 +164,27 @@ def _inspect_module_ref(module):
         )
 
 
+def _get_module_source(module):
+    """
+    Returns source lines of a module.
+
+    @rtype
+      sequence of `str`
+    """
+    # FIXME: Work around a bug in Python 3.4 that occurs whe importing
+    # an empty module file.
+    # source = inspect.getsourcelines(module)
+    path = _get_module_path(module)
+    with path.open() as file:
+        return file.readlines()
+
+
 INCLUDE_SOURCE = False  # FIXME
 
 def _inspect_module(module):
     result = _inspect_module_ref(module)
 
-    if INCLUDE_SOURCE:
-        # FIXME: Work around a bug in Python 3.4 that occurs whe importing
-        # an empty module file.
-        # source = inspect.getsourcelines(module)
-        import tokenize
-        path = _get_module_path(module)
-        with path.open() as file:
-            source = file.readlines()
-    else:
-        source = None
-
+    source = _get_module_source(module) if INCLUDE_SOURCE else None
     result.update(
         source      =source,
         dict        =dict( 

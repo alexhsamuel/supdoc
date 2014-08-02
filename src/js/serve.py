@@ -16,6 +16,7 @@ from   apidoc import modules, inspector
 path = None
 
 
+# FIXME: Move elsewhere.
 def memoize_with(memo=None):
     if memo is None:
         memo = {}
@@ -42,13 +43,17 @@ def memoize(fn):
 
 
 @memoize
-def get_module_doc(modname):
-    logging.info("inspecting doc for {}".format(modname))
-    doc = inspector.inspect_module(modname)
-    return json.dumps(doc).encode("UTF-8")
-
-
 class Handler(http.server.SimpleHTTPRequestHandler):
+
+    def send_json(self, jso):
+        data = json.dumps(jso).encode("UTF-8")
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Last-Modified", self.date_time_string(time.time()))
+        self.end_headers()
+        self.wfile.write(data)
+
 
     def do_GET(self):
         if self.path.startswith("/doc/"):
@@ -56,26 +61,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 modname = self.path[5 :]
                 if modname == "module-list":
                     logging.info("getting module list")
-                    names = [ str(n) for n in modules.find_modules(path) ]
-                    data = json.dumps(names).encode("UTF-8")
+                    jso = [ str(n) for n in modules.find_modules(path) ]
                 else:
-                    data = get_module_doc(modname)
+                    logging.info("inspecting doc for {}".format(modname))
+                    jso = inspector.inspect_module(modname)
+                self.send_json(jso)
+
             except Exception as exc:
                 logging.error("problem: {}".format(exc))
                 self.send_error(404, "exception: {!r}".format(exc))
-            else:
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                logging.info("content-length = {}".format(str(len(data))))
-                self.send_header("Content-Length", str(len(data)))
-                self.send_header("Last-Modified", self.date_time_string(time.time()))
-                self.end_headers()
-                self.wfile.write(data)
 
         else:
-            logging.info("starting GET {}".format(self.path))
             super().do_GET()
-            logging.info("done with GET {}".format(self.path))
 
 
     def translate_path(self, path):
