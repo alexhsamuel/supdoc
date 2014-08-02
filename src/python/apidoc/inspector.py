@@ -394,6 +394,10 @@ def inspect_module(modname):
     return _inspect_module(importlib.import_module(str(modname)))
 
 
+def get_module_source(modname):
+    return _get_module_source(importlib.import_module(str(modname)))
+
+
 def inspect_modules(full_names):
     """
     Imports and inspects modules.

@@ -51,16 +51,6 @@ ObjectModule.controller(
       return result
     }
 
-    // Returns source lines of the displayed object.
-    $scope.getSource = function () {
-      console.log("getSource")
-        var sourceLines = $scope.api && $scope.api.source ? $scope.api.source : []
-        var source = ''
-        for (var i = 0; i < sourceLines.length; ++i) 
-            source = source + sourceLines[i]
-        return source
-    }
-
   })
 
 /**

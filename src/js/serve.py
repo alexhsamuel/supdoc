@@ -67,6 +67,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     jso = inspector.inspect_module(modname)
                 self.send_json(jso)
 
+            elif self.path.startswith("/src/"):
+                modname = self.path[5 :]
+                logging.info("getting module source")
+                jso = inspector.get_module_source(modname)
+                self.send_json(jso)
+
             else:
                 super().do_GET()
 

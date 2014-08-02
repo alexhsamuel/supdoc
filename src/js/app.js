@@ -59,11 +59,7 @@ App.controller(
       }
     }
     
-    // $scope.top = null
-    // getModule('apidoc').then(function (doc) { $scope.top = doc })
-
     $scope.moduleNames = null
-    // getModule('modules').then(function (doc) { $scope.moduleNames = doc })
     $http.get('/doc/module-list').then(function (response) {
       // FIXME: Check success.
       $scope.moduleNames = response.data
@@ -95,6 +91,24 @@ App.controller(
         }
         return obj
       })
+    }
+
+    /**
+     * Returns a promise of source lines for a module.
+     */
+    $scope.getSource = function (modname) {
+      var url = '/src/' + modname
+      console.log('loading source for ' + modname + ' from ' + url)
+      return $http.get(url).then(
+        function (response) {
+          console.log('loaded ' + url)
+          // FIXME: Check success.
+          return response.data
+        },
+        function (reason) {
+          console.log('ERROR: failed to load ' + url + ': ' + reason)
+          return undefined
+        })
     }
 
     /**
@@ -159,7 +173,34 @@ App.controller(
           $scope.getObj(modname, objname).then(function (obj) { $scope.obj = obj })
         })
       $scope.parents = parents
+
+      // Don't load source initially.  Do this with 'loadSource'.
+      $scope.source = undefined
     })
+
+    /**
+     * Joines lines of text into a string.
+     */
+    function joinLines(lines) {
+      console.log('joinLines')
+      if (! defined(lines))
+        return undefined
+
+      var text = ''
+      for (var i = 0; i < lines.length; ++i)
+        text = text + lines[i]
+      return text
+    }
+
+    /**
+     * Requests module source and sets $scope.source on load.
+     */
+    $scope.loadSource = function () {
+      $scope.getSource($scope.modname).then(
+        function (source) {
+          $scope.source = joinLines(source)
+        })
+    }
 
     // High-level navigation methods.
 
