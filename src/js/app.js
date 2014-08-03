@@ -43,17 +43,16 @@ App.controller(
         return promiseOf($q, doc)
       else {
         var url = '/doc/' + name
-        console.log('loading ' + name + ' from ' + url)
+        console.log('GET ' + url)
 
         return $http.get(url).then(
           function (response) {
-            console.log('loaded ' + url)
-            // FIXME: Check success.
+            console.log('GET ' + url + ' OK')
             modules[name] = response.data
             return response.data
           },
           function (reason) {
-            console.log('ERROR: failed to load ' + name + ': ' + reason)
+            console.log('ERROR: GET: ' + reason)
             return undefined
           })
       }
@@ -63,7 +62,6 @@ App.controller(
     $http.get('/doc/module-list').then(function (response) {
       // FIXME: Check success.
       $scope.moduleNames = response.data
-      console.log("module names = " + $scope.moduleNames)
     })
 
     /**
@@ -78,19 +76,20 @@ App.controller(
      * undefined.
      */
     $scope.getObj = function (modname, objname) {
-      return getModule(modname).then(function (mod) {
-        if (! mod || ! objname)
-          return mod
+      return getModule(modname).then(
+        function (mod) {
+          if (! mod || ! objname)
+            return mod
 
-        var parts = objname.split('.')
-        var obj = mod
-        for (var i = 0; i < parts.length; ++i) {
-          obj = obj.dict[parts[i]]
-          if (! obj)
-            return obj
-        }
-        return obj
-      })
+          var parts = objname.split('.')
+          var obj = mod
+          for (var i = 0; i < parts.length; ++i) {
+            obj = obj.dict[parts[i]]
+            if (! obj)
+              return obj
+          }
+          return obj
+        })
     }
 
     /**
@@ -98,15 +97,14 @@ App.controller(
      */
     $scope.getSource = function (modname) {
       var url = '/src/' + modname
-      console.log('loading source for ' + modname + ' from ' + url)
+      console.log('GET ' + url)
       return $http.get(url).then(
         function (response) {
-          console.log('loaded ' + url)
-          // FIXME: Check success.
+          console.log('GET ' + url + ' OK')
           return response.data
         },
         function (reason) {
-          console.log('ERROR: failed to load ' + url + ': ' + reason)
+          console.log('ERROR: GET: ' + reason)
           return undefined
         })
     }
@@ -146,12 +144,12 @@ App.controller(
       // Show what we're doing on the console.
       if (modname) {
         if (objname) 
-          console.log("navigate to object " + objname + " in module " + modname)
+          console.log('=> ' + modname + ', ' + objname)
         else
-          console.log("navigate to module " + modname)
+          console.log('=> ' + modname)
       }
       else
-        console.log("navigate to top")
+        console.log('=> module index')
 
       // Construct parents.
       var parents = []
@@ -168,6 +166,10 @@ App.controller(
       $scope.getObj(modname).then(
         function (module) { 
           $scope.module = module 
+        },
+        function () {
+          console.log('ERROR: => ' + modname + ' failed')
+          $scope.module = undefined
         }).then(
         function () { 
           $scope.getObj(modname, objname).then(function (obj) { $scope.obj = obj })
@@ -199,6 +201,10 @@ App.controller(
         $scope.getSource($scope.modname).then(
           function (source) {
             $scope.source = joinLines(source)
+          },
+          function () {
+            console.log('ERROR: get source for ' + $scope.modname)
+            $scope.source = undefined
           })
     }
 
@@ -215,23 +221,17 @@ App.controller(
       else if (obj.type == 'class') 
         $state.go('object', { modname: obj.module, objname: obj.name })
       else
-        console.log("can't navigate to " + obj.name + " of type " + obj.type)
+        console.log('ERROR: => ' + modname + ', ' + obj.name + ' (' + obj.type + ')')
     }
 
     $scope.navigateToObj = function (modname, objname) {
-      // if ($scope.getObj(modname, objname))
-        $state.go('object', { modname: modname, objname: objname })
-      // else
-      //   console.log("navigateToObj: " + modname + "/" + objname + " not found")
+      // FIXME: if (defined(modname) && defined(objname))
+      $state.go('object', { modname: modname, objname: objname })
     }
 
     $scope.navigateToModule = function (fullname) {
-      // if ($scope.getObj(fullname)) {
-        $state.go('module', { modname: fullname })
-      // }
-      // else {
-      //   console.log("navigateToModule: " + fullname + " not found")
-      // }
+      // FIXME: if (defined(fullname))
+      $state.go('module', { modname: fullname })
     }
 
   })
@@ -317,6 +317,7 @@ function navigateOnClick(scope, element, attrs) {
     var modname = attrs.module || scope.modname
     // Use the 'fullname' attribute if present, otherwise the element text.
     var fullname = attrs.fullname || element.text()
+    console.log('click: ' + modname + ", " + fullname)
     scope.navigateToObj(modname, fullname)
   })
 }
