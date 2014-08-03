@@ -20,7 +20,7 @@
   <ul class="nav nav-tabs">
     <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
     <li><a class="" href="#details" data-toggle="tab">Details</a></li>
-    <li><a class="" href="#source" data-toggle="tab">Source</a></li>
+    <li><a class="" href="#source" data-toggle="tab" ng-click="loadSource()">Source</a></li>
   </ul>
   <br>
 
@@ -94,7 +94,7 @@
     </div>
 
     <div class="tab-pane fade" id="source">
-      <pre><small>{{getSource()}}</small></pre>
+      <pre><small>{{source}}</small></pre>
     </div>
 
   </div>
