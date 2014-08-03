@@ -16,6 +16,7 @@ UI
 * Label or select protected, private contents.
 * Label inherited contents and where they're inherited from
 * Select inherited contents or not.
+* Show object name in breadcrumbs.
 - Fix tabs.
 - Move imports to a tab?
 - Show submodules in a better way.
