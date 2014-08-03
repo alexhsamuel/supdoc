@@ -183,7 +183,7 @@ App.controller(
     /**
      * Joines lines of text into a string.
      */
-    function joinLines(lines) {
+    $scope.joinLines = function joinLines(lines) {
       if (! defined(lines))
         return undefined
 
@@ -200,7 +200,7 @@ App.controller(
       if (! defined($scope.source)) 
         $scope.getSource($scope.modname).then(
           function (source) {
-            $scope.source = joinLines(source)
+            $scope.source = source
           },
           function () {
             console.log('ERROR: get source for ' + $scope.modname)

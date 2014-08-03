@@ -140,6 +140,8 @@ def _get_lines(obj):
     except (OSError, ValueError):
         return None
     else:
+        # getsourcelines() stupidly returns a one-indexed line number.  Fix it.
+        start_num -= 1
         return [start_num, start_num + len(lines)]
 
 
