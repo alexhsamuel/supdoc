@@ -13,8 +13,7 @@ from   apidoc import modules, inspector
 #-------------------------------------------------------------------------------
 
 # FIXME
-path = None
-
+module_names = None
 
 # FIXME: Move elsewhere.
 def memoize_with(memo=None):
@@ -42,7 +41,8 @@ def memoize(fn):
     return memoize_with({})(fn)
 
 
-@memoize
+get_module_docs = memoize(inspector.inspect_module)
+
 class Handler(http.server.SimpleHTTPRequestHandler):
 
     def send_json(self, jso):
@@ -61,10 +61,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 modname = self.path[5 :]
                 if modname == "module-list":
                     logging.info("getting module list")
-                    jso = [ str(n) for n in modules.find_modules(path) ]
+                    jso = module_names
                 else:
                     logging.info("inspecting doc for {}".format(modname))
-                    jso = inspector.inspect_module(modname)
+                    jso = get_module_docs(modname)
                 self.send_json(jso)
 
             elif self.path.startswith("/src/"):
@@ -91,10 +91,25 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 #-------------------------------------------------------------------------------
 
+list_sum = lambda ls: sum(( list(l) for l in ls ), [])
+
+
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
     port = 8000
-    path = sys.argv[1]
+    
+    _, *paths = sys.argv
+    module_names = list_sum( 
+        ( str(n) for n in modules.find_modules(p) ) 
+        for p in paths )
+    module_names.extend(
+        ["urllib", "urllib.error", "urllib.request", "urllib.response",
+         "urllib.parse", "urllib.robotparser"])
+    module_names.sort()
+
+    for modname in module_names:
+        logging.info("serving module {}".format(modname))
+
     server = socketserver.TCPServer(("", port), Handler)
     print("serving from port {}".format(port))
     server.serve_forever()
