@@ -317,7 +317,6 @@ function navigateOnClick(scope, element, attrs) {
     var modname = attrs.module || scope.modname
     // Use the 'fullname' attribute if present, otherwise the element text.
     var fullname = attrs.fullname || element.text()
-    console.log('click: ' + modname + ", " + fullname)
     scope.navigateToObj(modname, fullname)
   })
 }
