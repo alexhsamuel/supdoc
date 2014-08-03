@@ -11,8 +11,8 @@ Markup
 - Link Python library modules to docs.
 
 UI
+* Show function arguments on obj page.
 * Better function object pages, with params etc.
-* Resurrect source.
 * Label or select protected, private contents.
 * Label inherited contents and where they're inherited from
 * Select inherited contents or not.
@@ -44,7 +44,7 @@ Project
 - Copyright banners in source.
 - Copyright banner on page.
 
-Testint
+Testing
 * Test on a third-party library.
 * Test on standard library.
 - Create a larger test corpus.
@@ -65,3 +65,4 @@ Done
 * staticmethod, classmethod
 * Name.  supdoc!
 * github
+* Resurrect source.
