@@ -196,6 +196,16 @@ def find_all_modules(path):
             yield from find_modules(path, base_path)
 
 
+def find_std_modules():
+    """
+    Generates full names of Python standard library modules.
+    """
+    lib_dir = os.path.dirname(inspect.__file__)
+    names = find_all_modules(lib_dir)
+    names = ( n for n in names if "test" not in n )
+    return names
+
+
 def get_package_contents(package):
     """
     Returns the full names of modules contained directly in a package.

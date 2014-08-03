@@ -102,13 +102,14 @@ if __name__ == "__main__":
     module_names = list_sum( 
         ( str(n) for n in modules.find_modules(p) ) 
         for p in paths )
-    module_names.extend(
-        ["urllib", "urllib.error", "urllib.request", "urllib.response",
-         "urllib.parse", "urllib.robotparser"])
-    module_names.sort()
 
+    module_names.sort()
     for modname in module_names:
         logging.info("serving module {}".format(modname))
+
+    # Include the standard library.
+    module_names.extend( str(n) for n in modules.find_std_modules() )
+    logging.info("serving standard library modules")
 
     server = socketserver.TCPServer(("", port), Handler)
     print("serving from port {}".format(port))
