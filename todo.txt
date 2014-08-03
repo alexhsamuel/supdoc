@@ -37,6 +37,7 @@ Integeration
 
 Internals
 * Rename package apidoc -> supdoc.
+* Move reintegrate serve.py into Python source.
 - Controller architecture makes no sense.
 - Don't need to store name for objects if we have qualname.
 
