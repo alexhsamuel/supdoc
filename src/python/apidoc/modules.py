@@ -202,7 +202,9 @@ def find_std_modules():
     """
     lib_dir = os.path.dirname(inspect.__file__)
     names = find_all_modules(lib_dir)
+    # Leave out pesky test modules.
     names = ( n for n in names if "test" not in n )
+
     return names
 
 
