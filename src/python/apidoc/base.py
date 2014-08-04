@@ -148,7 +148,7 @@ def import_look_up(name):
         module_name = ".".join(parts[: i])
         try:
             obj = import_(module_name)
-        except ImportError:
+        except (ImportError, ValueError):
             pass
         else:
             # Imported some.  Resolve the rest with getattr.
