@@ -68,3 +68,8 @@ Done
 * Name.  supdoc!
 * github
 * Resurrect source.
+
+================================================================================
+Some markup seen in the wild:
+
+- double back-ticks for identifiers (abc.py)
