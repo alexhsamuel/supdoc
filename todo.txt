@@ -11,6 +11,7 @@ Markup
 - Link Python library modules to docs.
 
 UI
+* Object display based on doc components, rather than on type.
 * Show function arguments on obj page.
 * Better function object pages, with params etc.
 * Label or select protected, private contents.
