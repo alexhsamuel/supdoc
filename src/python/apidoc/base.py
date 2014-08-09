@@ -160,6 +160,7 @@ def import_look_up(name):
             else:
                 # Found all parts.
                 return obj
-    else:
-        raise NameError(name)
+
+    raise NameError(name)
     
+
