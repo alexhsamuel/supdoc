@@ -162,7 +162,6 @@ def _inspect_module_ref(module):
         type        ="module",
         name        =str(Name.of(module)),
         path        =str(_get_module_path(module)),
-        is_import   =True,
         )
 
 
@@ -211,7 +210,6 @@ def _inspect_class_ref(class_):
         name        =class_.__name__,
         qualname    =class_.__qualname__,
         module      =class_.__module__,
-        is_import   =True,
         )
 
 
@@ -237,7 +235,6 @@ SKIP_ATTRIBUTES = {
 def _inspect_class(class_, module):
     # Start with basic reference information.
     result = _inspect_class_ref(class_)
-    result.update(is_import=False)
 
     class_name = class_.__qualname__
 
@@ -334,7 +331,6 @@ def _inspect_function_ref(function):
 
 def _inspect_function(function, module):
     result = _inspect_function_ref(function)
-    result.update(is_import=False)
 
     signature = inspect.signature(function)
     parameters = [
@@ -417,16 +413,5 @@ def inspect_modules(full_names):
         type        ="modules",
         modules     =modules,
         )
-
-
-#-------------------------------------------------------------------------------
-
-import json
-
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
-    module_names = modules.find_modules(sys.argv[1])
-    infos = inspect_modules(module_names)
-    json.dump(infos, sys.stdout, indent=1)
 
 
