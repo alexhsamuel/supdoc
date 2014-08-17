@@ -180,14 +180,10 @@ def _get_module_source(module):
         return file.readlines()
 
 
-INCLUDE_SOURCE = False  # FIXME
-
 def _inspect_module(module):
     result = _inspect_module_ref(module)
 
-    source = _get_module_source(module) if INCLUDE_SOURCE else None
     result.update(
-        source      =source,
         dict        =dict( 
             (n, _inspect(o, module)) 
             for n, o in inspect.getmembers(module)

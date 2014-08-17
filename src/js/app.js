@@ -129,6 +129,8 @@ App.controller(
         return null
     }
 
+    $scope.defined = defined
+
   })
 
 App.controller(
