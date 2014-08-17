@@ -137,7 +137,8 @@ def _get_doc(obj, contexts):
 def _get_lines(obj):
     try:
         lines, start_num = inspect.getsourcelines(obj)
-    except (OSError, ValueError):
+    except (OSError, ValueError) as exc:
+        logging.debug("no source lines for: {!r}: {}".format(obj, exc))
         return None
     else:
         # getsourcelines() stupidly returns a one-indexed line number.  Fix it.
