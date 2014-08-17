@@ -67,6 +67,11 @@ h1.identifier {
   font-style: italic;
 }
 
+.literal {
+  font-weight: normal;
+  color: #b0b0b0;
+}
+
 /* Padding for fixed navbar. */
 body { 
   padding-top: 50px; 

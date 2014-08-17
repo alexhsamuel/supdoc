@@ -129,8 +129,6 @@ App.controller(
         return null
     }
 
-    $scope.defined = defined
-
   })
 
 App.controller(
@@ -284,18 +282,6 @@ App.directive(
   }])
       
 App.directive(
-  'identifier',
-  function () {
-    return {
-      restrict: 'E',
-      transclude: true,
-      replace: true,
-      scope: {},
-      template: '<span class="identifier" ng-transclude></span>'
-    }
-  })
-
-App.directive(
   'module',
   function () {
     return {
@@ -324,6 +310,32 @@ function navigateOnClick(scope, element, attrs) {
 }
 
 App.directive(
+  'obj',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      link: navigateOnClick,
+      template: '<a class="identifier" ng-transclude></a>'
+    }
+  })
+
+// FIXME: Remove?
+App.directive(
+  'identifier',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      link: navigateOnClick,
+      template: '<a class="identifier" ng-transclude></a>'
+    }
+  })
+
+// FIXME: Remove?
+App.directive(
   'class',
   function () {
     return {
@@ -335,6 +347,7 @@ App.directive(
     }
   })
 
+// FIXME: Remove?
 App.directive(
   'function',
   function () {

@@ -29,7 +29,7 @@
 
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Contents</h3>
+          <h3 class="panel-title">Attributes</h3>
           <label class="checkbox-inline" ng-show="obj.type == 'class'">
             <input type="checkbox" ng-model="inherited">Show Inherited
           </label>
@@ -37,14 +37,19 @@
         <div class="panel-body">
           <dl>
             <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames(undefined, undefined)" ng-controller="Attrs">
-              <function fullname="{{attr.qualname}}">{{attr.name || '???'}}</function>
-              <span class="parameters" ng-if="defined(attr.parameters)">(
+              <obj fullname="{{attr.qualname}}" class="{{attr.type)}}">
+                {{attr.name || attrname}}
+              </obj>
+              <span class="parameters" ng-if="attr.parameters">(
                 <span ng-repeat="p in attr.parameters">
                   <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
                 </span>
               )</span>
               <span ng-if="attr.attr_type && attr.attr_type != 'method'" class="label label-info {{attr.attr_type}}">
                 {{attr.attr_type}}
+              </span>
+              <span ng-if="attr.value">
+                = <span class="source literal">{{attr.value}}</span>
               </span>
               <!--span ng-if="attr.module != getObj(modname).module && inherited">
                 defined in {{attr.module}} as {{attr.qualname}}
