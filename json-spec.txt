@@ -1,0 +1,35 @@
+
+TOP_LEVEL = {
+    "modules": {
+      NAME: MODULE,
+      ...
+    }
+  }
+
+MODULE = {
+  "name": NAME,
+  "type": TYPE,
+  "path": PATH,
+  "doc": DOC,
+  "summary": SUMMARY,
+  "dict": {
+    NAME: OBJECT,
+    ...
+  },
+}
+
+A module or other object has these attributes:
+
+  "name" (string)
+
+  "type" (string)
+
+  "path" (string) (modules only) The on-disk path to the module.
+
+  "summary" (string)
+
+  "doc" (string)
+
+  "dict" (object) (optional) Attributes of the object.  Values are other
+  objects.
+
