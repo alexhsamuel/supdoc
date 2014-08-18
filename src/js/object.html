@@ -37,7 +37,7 @@
         <div class="panel-body">
           <dl>
             <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames(undefined, undefined)" ng-controller="Attrs">
-              <obj fullname="{{attr.qualname}}" class="{{attr.type)}}">
+              <obj fullname="{{attr.qualname}}" class="{{attr.type}}">
                 {{attr.name || attrname}}
               </obj>
               <span class="parameters" ng-if="attr.parameters">(
