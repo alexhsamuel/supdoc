@@ -24,6 +24,32 @@ from   .path import Path
 
 #-------------------------------------------------------------------------------
 
+UNINTERESTING_BASE_TYPES = {
+    object,
+    type,
+    }
+
+
+def is_value_type(obj):
+    """
+    Returns iff the value of obj should be included directly in docs.
+    """
+    NOT_VALUE_TYPES = (
+        type,
+        types.FunctionType,
+        types.ModuleType,
+        # FIXME: Others.
+        )
+    return not isinstance(obj, NOT_VALUE_TYPES)
+
+
+def has_attributes(obj):
+    """
+    Returns true if an object has attributes that should be included.
+    """
+    return isinstance(obj, (type, types.ModuleType))
+
+
 doc_warning = logging.warning
 doc_info    = logging.info
 
@@ -141,8 +167,6 @@ def _get_lines(obj):
         logging.debug("no source lines for: {!r}: {}".format(obj, exc))
         return None
     else:
-        # getsourcelines() stupidly returns a one-indexed line number.  Fix it.
-        start_num -= 1
         return [start_num, start_num + len(lines)]
 
 
@@ -157,6 +181,109 @@ def _get_module_path(module):
             path = inspect.getfile(module)
     return None if path is None else Path(path)
 
+
+def _inspect_obj_ref(obj):
+    if isinstance(obj, types.ModuleType):
+        name        = obj.__name__
+        modname     = name
+    else:
+        name        = obj.__qualname__
+        modname     = obj.__module__
+
+    return dict(
+        name        =name,
+        modname     =modname,
+        )
+
+
+def _resolve_attr(obj, attr_name):
+    """
+    Finds an attribute; returns it and the parent it came from.
+    """
+    # If there's an MRO, use it; otherwise, just this object.
+    mro = getattr(obj, "__mro__", (obj, ))
+
+    for src in mro:
+        try:
+            attr = src.__dict__[attr_name]
+        except KeyError:
+            pass
+        else:
+            return src, attr
+    raise AttributeError(attr_name)
+
+
+def _add_tags(doc, *tags):
+    if len(tags) > 0:
+        doc.setdefault("tags", []).extend(tags)
+
+
+def _inspect_attributes(obj, module):
+    """
+    Inspects the attributes of an object.
+    """
+    # Get all attributes.
+    attrs = ( 
+        (n, ) + _resolve_attr(obj, n) 
+        for n, _ in inspect.getmembers(obj) 
+        )
+
+    # Skip attributes inherited from very generic bases.
+    attrs = ( 
+        (n, s, a) for n, s, a in attrs if s not in UNINTERESTING_BASE_TYPES )
+
+    def inspect_attr(name, source, attr):
+        """
+        Returns documentation for an attribute of the class.
+        """
+        tags = []
+
+        # Look through to underlying function.
+        if isinstance(attr, (classmethod, staticmethod)):
+            tags.add(type(attr).__name__)
+            attr = attr.__func__
+
+        # Check that it matches the class we're inspecting.  Don't embed other
+        # module documentation, though.
+        # FIXME: Include inherited members?
+        if source == obj and not isinstance(attr, types.ModuleType):
+            # It's defined here.  Include full documentation.
+            doc = _inspect(attr, module)
+
+        else:
+            # Not originally member of this class, even though it appears here.
+            doc = _inspect_ref(attr)
+
+        _add_tags(doc, *tags)
+        return doc
+
+    return { n: inspect_attr(n, s, a) for n, s, a in attrs }
+
+
+def _inspect_obj(obj, module):
+    doc = _inspect_obj_ref(obj)
+
+    doc.update(
+        _get_doc(obj, (obj, module)),
+        type        =type(obj).__name__,
+        lines       =_get_lines(obj),
+        )
+        
+    if has_attributes(obj):
+        doc["dict"] = _inspect_attributes(obj, module)
+
+    if callable(obj) and not isinstance(obj, type):
+        signature = inspect.signature(obj)
+        doc["parameters"] = [
+            _inspect_parameter(p)
+            for n, p in signature.parameters.items()
+            ]
+
+    if is_value_type(obj):
+        doc["value"] = repr(obj)
+
+    return doc
+        
 
 def _inspect_module_ref(module):
     return dict(
@@ -209,25 +336,6 @@ def _inspect_class_ref(class_):
         module      =class_.__module__,
         )
 
-
-SKIP_ATTRIBUTES = {
-    "__bases__",
-    "__basicsize__",            # FIXME: elsewhere
-    "__dict__",
-    "__dictoffset__",
-    "__doc__",
-    "__flags__",                # FIXME: elsewhere
-    "__itemsize__",             # FIXME: elsewhere
-    "__module__",
-    "__mro__",
-    "__name__",
-    "__prepare__",
-    "__qualname__",
-    "__subclasshook__", 
-    "__text_signature__",       # FIXME: elsewhere
-    "__weakref__",
-    "__weakrefoffset__",
-    }
 
 def _inspect_class(class_, module):
     # Start with basic reference information.

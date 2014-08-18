@@ -22,6 +22,8 @@ Object attributes:
 
   name -- Fully qualified name, relative to module.
 
+  modname -- The module name.  For modules, the same as 'name'.
+
   summary -- Short summary.
 
   doc -- Full documentation.
@@ -43,7 +45,4 @@ For modules only:
   path -- On-disk path to the module.
 
   source -- Full source text of the module.
-
-  
-
 
