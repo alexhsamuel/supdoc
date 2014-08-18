@@ -18,18 +18,32 @@ MODULE = {
   },
 }
 
-A module or other object has these attributes:
+Object attributes:
 
-  "name" (string)
+  name -- Fully qualified name, relative to module.
 
-  "type" (string)
+  summary -- Short summary.
 
-  "path" (string) (modules only) The on-disk path to the module.
+  doc -- Full documentation.
 
-  "summary" (string)
+  dict -- Attributes.
 
-  "doc" (string)
+  value -- Literal representation of value.
 
-  "dict" (object) (optional) Attributes of the object.  Values are other
-  objects.
+  type -- Type.
+
+  parameters -- For callables: function parameters.
+
+  lines -- An array of two numbers giving the first and last line of the
+  definition of this object in the module source.
+
+
+For modules only:
+
+  path -- On-disk path to the module.
+
+  source -- Full source text of the module.
+
+  
+
 
