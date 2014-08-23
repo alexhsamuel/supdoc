@@ -13,7 +13,7 @@ App.config(
       })
       .state('module', {
         url: '/supdoc/:modname',
-        templateUrl: "/module.html",
+        templateUrl: "/object.html",
       })
       .state('object', {
         url: '/supdoc/:modname/:objname',
