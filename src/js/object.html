@@ -37,16 +37,15 @@
         <div class="panel-body">
           <dl>
             <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames(undefined, undefined)" ng-controller="Attrs">
-              <obj fullname="{{attr.name}}" class="{{attr.type}}">
-                {{attr.name || attrname}}
-              </obj>
+              <span class="identifier" style="color: #c8c8c8">{{attr.type}}</span>
+              <span ng-if="attr.modname" class="identifier module">{{attr.modname}}.</span><obj name="{{attr.name}}" modname="{{attr.modname}}" class="{{attr.type}}">{{attr.name || attrname}}</obj>
               <span class="parameters" ng-if="attr.parameters">(
                 <span ng-repeat="p in attr.parameters">
                   <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
                 </span>
               )</span>
-              <span ng-if="attr.attr_type && attr.attr_type != 'method'" class="label label-info {{attr.attr_type}}">
-                {{attr.attr_type}}
+              <span ng-repeat="tag in attr.tags" class="label label-info {{tag}}">
+                {{tag}}
               </span>
               <span ng-if="attr.value">
                 = <span class="source literal">{{attr.value}}</span>

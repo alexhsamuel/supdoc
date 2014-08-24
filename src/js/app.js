@@ -302,13 +302,14 @@ App.directive(
 function navigateOnClick(scope, element, attrs) {
   element.on('click', function () {
     // Use the 'module' attribute if present, otherwise this module.
-    var modname = attrs.module || scope.modname
+    var modname = attrs.modname || scope.modname
     // Use the 'fullname' attribute if present, otherwise the element text.
-    var fullname = attrs.fullname || element.text()
-    scope.navigateToObj(modname, fullname)
+    var name = attrs.name || element.text().trim()
+    scope.navigateToObj(modname, name)
   })
 }
 
+// FIXME: This is the one.  Get rid of the others.
 App.directive(
   'obj',
   function () {

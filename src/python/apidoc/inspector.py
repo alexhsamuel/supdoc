@@ -29,6 +29,13 @@ UNINTERESTING_BASE_TYPES = {
     type,
     }
 
+# Types that have docstrings.
+DOCSTRING_TYPES = (
+    type,
+    types.FunctionType,
+    types.ModuleType,
+    )
+
 
 def is_value_type(obj):
     """
@@ -58,7 +65,7 @@ def is_class_method(obj):
     return inspect.ismethod(obj) and isinstance(obj.__self__, type)
 
 
-def is_special_symbol(symbol):
+def is_internal_name(symbol):
     """
     Returns true if `symbol` is a Python special symbol.
 
@@ -67,11 +74,12 @@ def is_special_symbol(symbol):
     return symbol.startswith("__") and symbol.endswith("__")
 
 
-def is_in_module(obj, module):
+def is_in_module(obj, module, default=True):
     """
     Returns true if an object is defined in a module.
 
-    Uses the object's `__module__` attribute.  If not available, returns False.
+    Uses the object's `__module__` attribute.  Returns `default` if that's not
+    available.
     """
     obj = getattr(obj, "__func__", obj)
 
@@ -81,7 +89,7 @@ def is_in_module(obj, module):
         except AttributeError:
             return False
     else:
-        return False
+        return default
 
 
 #-------------------------------------------------------------------------------
@@ -148,16 +156,23 @@ def _format_identifier(name, contexts):
 #-------------------------------------------------------------------------------
 
 def _get_doc(obj, contexts):
-    doc = inspect.getdoc(obj)
-    if doc is None or doc.strip() == "":
-        return {}
+    # Use the docs only for types that carry docstrings, or for objects that
+    # carry __doc__ attributes explicitly.  We don't want to pick up a type's
+    # __doc__ for an instance of that type.
+    if (isinstance(obj, DOCSTRING_TYPES) 
+        or "__doc__" in getattr(obj, "__dict__", ())):
+        doc = inspect.getdoc(obj)
+        if doc is None or doc.strip() == "":
+            return {}
+        else:
+            summary, doc = parse.parse_doc(
+                doc, lambda n: _format_identifier(n, contexts))
+            return {
+                "summary": summary,
+                "doc": doc,
+            }
     else:
-        summary, doc = parse.parse_doc(
-            doc, lambda n: _format_identifier(n, contexts))
-        return {
-            "summary": summary,
-            "doc": doc,
-        }
+        return {}
 
 
 def _get_lines(obj):
@@ -182,6 +197,7 @@ def _get_module_path(module):
     return None if path is None else Path(path)
 
 
+# FIXME: Rename to _inspect_ref.
 def _inspect_obj_ref(obj):
     if isinstance(obj, types.ModuleType):
         name        = obj.__name__
@@ -193,6 +209,7 @@ def _inspect_obj_ref(obj):
     return dict(
         name        =name,
         modname     =modname,
+        type        =type(obj).__name__,
         )
 
 
@@ -231,6 +248,9 @@ def _inspect_attributes(obj, module):
     # Skip attributes inherited from very generic bases.
     attrs = ( 
         (n, s, a) for n, s, a in attrs if s not in UNINTERESTING_BASE_TYPES )
+    # Skip internal stuff.
+    attrs = ( (n, s, a) for n, s, a in attrs if not is_internal_name(n) )
+        
 
     def inspect_attr(name, source, attr):
         """
@@ -253,8 +273,10 @@ def _inspect_attributes(obj, module):
         else:
             # Not originally member of this class, even though it appears here.
             doc = _inspect_obj_ref(attr)
+            _add_tags(doc, "imported")
 
         _add_tags(doc, *tags)
+        logging.debug("inspect_attr({!r}) -> {!r}".format(name, doc))
         return doc
 
     return { n: inspect_attr(n, s, a) for n, s, a in attrs }
@@ -275,7 +297,6 @@ def _inspect_obj(obj, module):
 
     doc.update(
         _get_doc(obj, (obj, module)),
-        type        =type(obj).__name__,
         lines       =_get_lines(obj),
         )
         
@@ -293,7 +314,9 @@ def _inspect_obj(obj, module):
         doc["value"] = repr(obj)
 
     return doc
-        
+ 
+       
+# FIXME: Clean up.
 
 # def _inspect_module_ref(module):
 #     return dict(
@@ -310,7 +333,7 @@ def _inspect_obj(obj, module):
 #         dict        =dict( 
 #             (n, _inspect(o, module)) 
 #             for n, o in inspect.getmembers(module)
-#             if not is_special_symbol(n) 
+#             if not is_internal_name(n) 
 #             ),
 #         )
 #     result.update(_get_doc(module, (module, )))
@@ -395,7 +418,7 @@ def _inspect_obj(obj, module):
 #         # getmembers return bound names; try to get the unbound descriptor.
 #         n: inspect_attr(class_.__dict__.get(n, o))
 #         for n, o in inspect.getmembers(class_)
-#       # if not is_special_symbol(n)
+#       # if not is_internal_name(n)
 #         if not skip(n, o)
 #         }
 
@@ -458,7 +481,7 @@ def _inspect_obj(obj, module):
 done = set()
 
 def _inspect(obj, module):
-    if is_in_module(obj, module) or obj is module:
+    if is_in_module(obj, module, True) or obj is module:
         doc_info("inspecting {}".format(obj))
         # FIXME: Completely bogus.
         if id(obj) in done:

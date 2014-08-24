@@ -18,7 +18,7 @@ if __name__ == "__main__":
     elif len(args) == 3:
         _, modname, objname = args
     else:
-        print("usage: {} MODNAME [ OBJNAME ]".format(argv[0]), file=sys.stderr)
+        print("usage: {} MODNAME [ OBJNAME ]".format(args[0]), file=sys.stderr)
         sys.exit(2)
 
     doc = inspector.inspect_module(modname)
