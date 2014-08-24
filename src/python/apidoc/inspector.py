@@ -29,8 +29,24 @@ UNINTERESTING_BASE_TYPES = {
     type,
     }
 
+# Identifiers that are implementation details.
+INTERNAL_NAMES = {
+    "__builtins__",
+    "__cached__",
+    "__dict__",
+    "__doc__",
+    "__file__",
+    "__loader__",
+    "__module__",
+    "__name__",
+    "__package__",
+    "__spec__",
+    "__weakref__",
+    }
+
 # Types that have docstrings.
 DOCSTRING_TYPES = (
+    property,
     type,
     types.FunctionType,
     types.ModuleType,
@@ -42,6 +58,7 @@ def is_value_type(obj):
     Returns iff the value of obj should be included directly in docs.
     """
     NOT_VALUE_TYPES = (
+        property,
         type,
         types.FunctionType,
         types.ModuleType,
@@ -249,7 +266,7 @@ def _inspect_attributes(obj, module):
     attrs = ( 
         (n, s, a) for n, s, a in attrs if s not in UNINTERESTING_BASE_TYPES )
     # Skip internal stuff.
-    attrs = ( (n, s, a) for n, s, a in attrs if not is_internal_name(n) )
+    attrs = ( (n, s, a) for n, s, a in attrs if n not in INTERNAL_NAMES )
         
 
     def inspect_attr(name, source, attr):
@@ -266,14 +283,18 @@ def _inspect_attributes(obj, module):
         # Check that it matches the class we're inspecting.  Don't embed other
         # module documentation, though.
         # FIXME: Include inherited members?
-        if source == obj and not isinstance(attr, types.ModuleType):
-            # It's defined here.  Include full documentation.
-            doc = _inspect(attr, module)
-
-        else:
-            # Not originally member of this class, even though it appears here.
+        if isinstance(attr, types.ModuleType):
             doc = _inspect_obj_ref(attr)
             _add_tags(doc, "imported")
+
+        elif source != obj:
+            # Not originally member of this, even though it appears here.
+            doc = _inspect_obj_ref(attr)
+            _add_tags(doc, "inherited")
+
+        else:
+            # It's defined here.  Include full documentation.
+            doc = _inspect(attr, module)
 
         _add_tags(doc, *tags)
         logging.debug("inspect_attr({!r}) -> {!r}".format(name, doc))
@@ -309,6 +330,14 @@ def _inspect_obj(obj, module):
             _inspect_parameter(p)
             for n, p in signature.parameters.items()
             ]
+
+    if isinstance(obj, property):
+        if obj.fget is not None:
+            _add_tags(doc, "get")
+        if obj.fset is not None:
+            _add_tags(doc, "set")
+        if obj.fdel is not None:
+            _add_tags(doc, "del")
 
     if is_value_type(obj):
         doc["value"] = repr(obj)
@@ -490,7 +519,9 @@ def _inspect(obj, module):
         done.add(id(obj))
         return _inspect_obj(obj, module)
     else:
-        return _inspect_obj_ref(obj)
+        doc = _inspect_obj_ref(obj)
+        _add_tags(doc, "imported")
+        return doc
 
 
 def inspect_module(modname):
