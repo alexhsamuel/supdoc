@@ -51,6 +51,16 @@ ObjectModule.controller(
       return result
     }
 
+    /**
+     * Removes a prefix from a dotted identifier, if present.
+     */
+    $scope.removeNamePrefix = function (name, prefix) {
+      if (name.lastIndexOf(prefix + '.') === 0) 
+        return name.substring(prefix.length + 1)
+      else
+        return name
+    }
+
   })
 
 /**
