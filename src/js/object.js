@@ -28,21 +28,24 @@ ObjectModule.controller(
       return subnames
     }
 
+    function isInherited(obj) {
+      var tags = obj.tags || []
+      return tags.some(function (t) { return t == "inherited" })
+    }
+
     /**
      * Returns names of attributes from the object's 'dict'.
      *
-     * @param type
-     *   The type of objects to return, or undefined for all.
-     * @param is_import
-     *   Whether to return imported or defined objects, or undefined for both.
+     * @param isInherited
+     *   Whether to return inherited or not inherited objets, or undefined
+     *   for both.
      */
-    $scope.getAttrNames = function (type, is_import) {
+    $scope.getAttrNames = function (inherited) {
       var dict = $scope.obj ? $scope.obj.dict : {}
       var result = []
       for (var name in dict) {
         var obj = dict[name]
-        if (   (! defined(type) || obj.type == type)
-            && (! defined(is_import) || ! defined(obj.is_import) || obj.is_import == is_import))
+        if ((! defined(inherited) || (isInherited(obj) == inherited)))
           result.push(name)
       }
       
