@@ -28,6 +28,12 @@
     <div class="tab-pane fade in active" id="contents">
 
       <label class="checkbox-inline">
+        <input type="checkbox" ng-model="showImported">Show imported
+      </label>
+      <label class="checkbox-inline">
+        <input type="checkbox" ng-model="showInherited">Show inherited
+      </label>
+      <label class="checkbox-inline">
         <input type="checkbox" ng-model="showDocs">Show full docs
       </label>
 
@@ -37,11 +43,10 @@
         </div>
         <div class="panel-body">
           <dl>
-            <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames(false)" ng-controller="Attrs">
-              <span class="identifier" style="color: #c8c8c8" >{{attr.type}}</span>
+            <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames(false) | filter:showAttr" ng-controller="Attrs">
               <span ng-if="attr.name && (attrname != removeNamePrefix(attr.name, objname))" class="identifier">{{attrname}} =</span>
               <span ng-if="attr.modname && attr.modname != modname" class="identifier module">{{attr.modname}}.</span><!--
-              --><obj name="{{attr.name}}" modname="{{attr.modname}}" class="{{attr.type}}">{{attr.name ? removeNamePrefix(attr.name, objname) : attrname}}</obj>
+                                                                                                                        --><obj name="{{attr.name}}" modname="{{attr.modname}}" class="{{attr.type}}">{{attr.name ? removeNamePrefix(attr.name, objname) : attrname}}</obj>
               <span class="parameters" ng-if="attr.parameters">(
                 <span ng-repeat="p in attr.parameters">
                   <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
@@ -50,49 +55,19 @@
               <span ng-repeat="tag in attr.tags" class="label label-info {{tag}}">
                 {{tag}}
               </span>
-              <span ng-if="attr.value">
-                = <span class="source literal">{{attr.value}}</span>
-              </span>
-            </dt>
-            <dd class="dict-summary" ng-repeat-end ng-controller="Attrs">
-              <span class="doc"><span compile="attr.summary"></span></span>
-            </dd>
-            <div ng-if="showDocs" class="apidoc doc">
-              <div compile="obj.doc"></div>
-            </div>
-          </dl>
-        </div>
-
-        <!-- NOOOOOOO!  Don't cut and paste.  -->
-        <div class="panel-heading">
-          <h3 class="panel-title">Inherited Attributes</h3>
-        </div>
-        <div class="panel-body">
-          <dl>
-            <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames(true)" ng-controller="Attrs">
               <span class="identifier" style="color: #c8c8c8" >{{attr.type}}</span>
-              <span ng-if="attr.name && (attrname != removeNamePrefix(attr.name, objname))" class="identifier">{{attrname}} =</span>
-              <span ng-if="attr.modname && attr.modname != modname" class="identifier module">{{attr.modname}}.</span><!--
-              --><obj name="{{attr.name}}" modname="{{attr.modname}}" class="{{attr.type}}">{{attr.name ? removeNamePrefix(attr.name, objname) : attrname}}</obj>
-              <span class="parameters" ng-if="attr.parameters">(
-                <span ng-repeat="p in attr.parameters">
-                  <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
-                </span>
-              )</span>
-              <span ng-repeat="tag in attr.tags" class="label label-info {{tag}}">
-                {{tag}}
-              </span>
               <span ng-if="attr.value">
                 = <span class="source literal">{{attr.value}}</span>
               </span>
             </dt>
             <dd class="dict-summary" ng-repeat-end ng-controller="Attrs">
               <span class="doc"><span compile="attr.summary"></span></span>
+              <div ng-if="showDocs" class="apidoc doc">
+                <div compile="attr.doc"></div>
+              </div>
             </dd>
           </dl>
         </div>
-      </div>
-
     </div>
 
     <div class="tab-pane fade" id="details">

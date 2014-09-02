@@ -11,6 +11,10 @@ ObjectModule.controller(
   function ($scope, $sce) {
     $scope.id = 'ObjectController'
 
+    $scope.showImported = true
+    $scope.showInherited = true
+    $scope.showDocs = false
+
     /**
      * Returns the names of direct submodules.  
      */
@@ -62,6 +66,15 @@ ObjectModule.controller(
         return name.substring(prefix.length + 1)
       else
         return name
+    }
+
+    $scope.showAttr = function (name) {
+      var attr = $scope.obj.dict[name]
+      var tags = attr.tags || []
+      return (
+           (tags.indexOf("imported")  == -1 || $scope.showImported)
+        && (tags.indexOf("inherited") == -1 || $scope.showInherited)
+        )
     }
 
   })
