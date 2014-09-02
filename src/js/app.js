@@ -322,45 +322,6 @@ App.directive(
     }
   })
 
-// FIXME: Remove?
-App.directive(
-  'identifier',
-  function () {
-    return {
-      restrict: 'E',
-      transclude: true,
-      replace: true,
-      link: navigateOnClick,
-      template: '<a class="identifier" ng-transclude></a>'
-    }
-  })
-
-// FIXME: Remove?
-App.directive(
-  'class',
-  function () {
-    return {
-      restrict: 'E',
-      transclude: true,
-      replace: true,
-      link: navigateOnClick,
-      template: '<a class="identifier class" ng-transclude></span>'
-    }
-  })
-
-// FIXME: Remove?
-App.directive(
-  'function',
-  function () {
-    return {
-      restrict: 'E',
-      transclude: true,
-      replace: true,
-      link: navigateOnClick,
-      template: '<a class="identifier function" ng-transclude></span>'
-    }
-  })
-
 // Includes HTML + dynamic (live) AngularJS markup into the DOM.
 //
 // Usage:
