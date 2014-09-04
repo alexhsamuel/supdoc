@@ -2,7 +2,7 @@
   <br>
   <div class="panel panel-default">
     <div class="panel-heading">
-      <div class="module title">{{obj.name}}</div>
+      <div class="title">{{obj.name}}</div>
       <div class="subtitle">
         {{obj.type}}
       </div>
@@ -46,8 +46,8 @@
             <div ng-repeat="attrname in getAttrNames(false) | filter:showAttr" ng-controller="Attrs" class="attribute">
               <dt class="dict-summary" >
                 <span ng-if="attr.name && (attrname != removeNamePrefix(attr.name, objname))" class="identifier">{{attrname}} =</span>
-                <span ng-if="attr.modname && attr.modname != modname" class="identifier module">{{attr.modname}}.</span><!--
-                                                                                                                          --><obj name="{{attr.name}}" modname="{{attr.modname}}" class="{{attr.type}}">{{attr.name ? removeNamePrefix(attr.name, objname) : attrname}}</obj>
+                <span ng-if="attr.modname && attr.modname != modname" class="identifier import-module">{{attr.modname}}.</span><!--
+                                                                                                                          --><obj name="{{attr.name}}" modname="{{attr.modname}}">{{attr.name ? removeNamePrefix(attr.name, objname) : attrname}}</obj>
                 <span class="parameters" ng-if="attr.parameters">(
                   <span ng-repeat="p in attr.parameters">
                     <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
@@ -56,9 +56,9 @@
                 <span ng-repeat="tag in attr.tags" class="label label-info {{tag}}">
                   {{tag}}
                 </span>
-                <span class="identifier" style="color: #c8c8c8" >{{attr.type}}</span>
+                <span class="identifier type">{{attr.type}}</span>
                 <span ng-if="attr.value">
-                  = <span class="source literal">{{attr.value}}</span>
+                  = <span class="identifier value">{{attr.value}}</span>
                 </span>
               </dt>
               <dd class="dict-summary" ng-controller="Attrs">

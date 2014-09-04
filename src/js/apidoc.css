@@ -1,41 +1,59 @@
+body {
+  font-family: 'Fira Sans', sans-serif;
+}
+
+.navbar-inverse {
+  background-color: #8c4646;
+  background-image: none;
+}
+
+.navbar-inverse .navbar-brand {
+  color: white;
+}
+
 .source {
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 100%;
-  letter-spacing: -0.02em;
+  font-family: Cousine;
+  /* font-size: 90%; */
+  /* letter-spacing: -0.02em; */
+  line-height: 1.2;
+}
+
+dt .value {
+  color: #687d78;
+  font-weight: normal;
 }
 
 .identifier {
-  color: #1060e0;
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 100%;
-  letter-spacing: -0.02em;
+  color: #588c7e;
+  font-family: Cousine;
+  font-size: 90%;
+  /* letter-spacing: -0.02em; */
 }
 
-.module {
-  color: #305070;
-  letter-spacing: -0.5px;
+.type {
+  color: #d96459;
 }
 
-.class {
-  color: #106060;
+.label-info {
+  background-color: #f2ae72;
 }
 
-.function {
-  color: #501060;
+.import-module {
+  color: #8a9995;
 }
 
 .filename {
   color: #405070;
-  font-family: Consolas, "Liberation Mono", monospace;
+  font-family: Cousine;
   font-size: 90%;
-  letter-spacing: -1px;
+  /* letter-spacing: -0.02em; */
 }
 
 .subtitle {
   color: #a0a0a0;
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 80%;
-  letter-spacing: -0.02em;
+  font-family: Cousine;
+  font-size: 90%;
+  /* letter-spacing: -0.02em; */
   padding-bottom: 20px;
 }
 
@@ -57,19 +75,14 @@ h1.identifier {
 
 .parameters {
   color: black;
-  font-family: Consolas, "Liberation Mono", monospace;
+  font-family: Cousine;
   font-size: 90%;
   font-weight: normal;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 .parameter {
   font-style: italic;
-}
-
-.literal {
-  font-weight: normal;
-  color: #b0b0b0;
 }
 
 /* Padding for fixed navbar. */
@@ -98,6 +111,11 @@ dt.dict-summary {
 
 dd.dict-summary {
   margin-left: 1.5em;
+}
+
+a:hover {
+  background-color: #f2e394;
+  text-decoration: none;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -157,11 +175,12 @@ dd.dict-summary {
 }
 
 .attribute {
-  background-color: #f5f6f9;
+  /* background-color: #f9fafd; */
   margin: 4px 0;
   padding: 2px 12px;
-  border: 1px solid #f7f8fb;
-  border-radius: 6px;
+  border-bottom: 1px solid #f8f8f8;
+  /* border: 1px solid #fbfcff; */
+  /* border-radius: 6px; */
 }
 
 .animate-if {
