@@ -1,14 +1,14 @@
+/*
+  Colors
+  259eb2
+  70edff
+  eda300 ffaf00 
+  b28729
+  fffb00
+*/
+
 body {
   font-family: 'Fira Sans', sans-serif;
-}
-
-.navbar-inverse {
-  background-color: #8c4646;
-  background-image: none;
-}
-
-.navbar-inverse .navbar-brand {
-  color: white;
 }
 
 .source {
@@ -24,18 +24,19 @@ dt .value {
 }
 
 .identifier {
-  color: #588c7e;
+  color: #259eb2;
   font-family: Cousine;
   font-size: 90%;
   /* letter-spacing: -0.02em; */
 }
 
 .type {
-  color: #d96459;
+  color: #b28729;
 }
 
 .label-info {
-  background-color: #f2ae72;
+  color: #606030;
+  background-color: #fffb00;
 }
 
 .import-module {
@@ -152,6 +153,15 @@ a:hover {
 }
 
 /* These are to format the FQ name in the navbar.  */
+
+.navbar-inverse {
+  background-color: #ffaf00;
+  background-image: none;
+}
+
+.navbar-inverse .navbar-brand {
+  color: white;
+}
 
 .navbar-brand {
   padding-right: 0px;
