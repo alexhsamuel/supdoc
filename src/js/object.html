@@ -1,7 +1,7 @@
 <div class="container" ng-controller="ObjectController">
   <div class="header" ng-if="obj">
     <div class="subtitle">{{obj.type}}</div>
-    <div class="title">{{obj.name}}
+    <div class="title">{{obj.name || obj.modname}}
       <!-- FIXME: DRY -->
       <span class="parameters" ng-if="obj.parameters">(<span ng-repeat="p in obj.parameters"><span class="parameter">{{p.name}}</span><span ng-if="!$last">, </span></span>)</span>
     </div>
@@ -39,7 +39,7 @@
             <span ng-if="showOrigin(attr)">
               <obj name="{{attr.name}}" modname="{{attr.modname}}" class="attr-name">{{attrname}}</obj> 
               <br><span class="import-arrow">&#8594;</span>
-              <obj modname="{{attr.modname}}" name="">{{attr.modname}}</obj><span class="identifier">.</span><obj name="{{attr.name}}" modname="{{attr.modname}}">{{attr.name}}</obj>
+              <obj modname="{{attr.modname}}" name="">{{attr.modname}}</obj><span class="identifier"></span>
             </span>
             <!-- Not imported names, i.e. names not defined elsewhere.  -->
             <span ng-if="! showOrigin(attr)">

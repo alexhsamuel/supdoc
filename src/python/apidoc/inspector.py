@@ -211,16 +211,16 @@ def _get_module_path(module):
 
 def _inspect_ref(obj, module):
     if isinstance(obj, types.ModuleType):
-        name        = obj.__name__
-        modname     = name
+        modname = obj.__name__
+        name    = None
     else:
-        name        = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
-        modname     = getattr(obj, "__module__", None)
+        modname = getattr(obj, "__module__", None)
+        name    = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
 
     return dict(
-        name        =name,
-        modname     =modname,
-        type        =type(obj).__name__,
+        modname =modname,
+        name    =name,
+        type    =type(obj).__name__,
         )
 
 
