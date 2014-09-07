@@ -209,8 +209,7 @@ def _get_module_path(module):
     return None if path is None else Path(path)
 
 
-# FIXME: Rename to _inspect_ref.
-def _inspect_obj_ref(obj, module):
+def _inspect_ref(obj, module):
     if isinstance(obj, types.ModuleType):
         name        = obj.__name__
         modname     = name
@@ -283,12 +282,12 @@ def _inspect_attributes(obj, module):
         # module documentation, though.
         # FIXME: Include inherited members?
         if isinstance(attr, types.ModuleType):
-            doc = _inspect_obj_ref(attr, module)
+            doc = _inspect_ref(attr, module)
             _add_tags(doc, "imported")
 
         elif source != obj:
             # Not originally member of this, even though it appears here.
-            doc = _inspect_obj_ref(attr, module)
+            doc = _inspect_ref(attr, module)
             _add_tags(doc, "inherited")
 
         else:
@@ -320,7 +319,7 @@ def _inspect_obj(obj, module):
       The containing module.  For subobjects, only referneces will be included
       for those defined in other modules.
     """
-    doc = _inspect_obj_ref(obj, module)
+    doc = _inspect_ref(obj, module)
 
     doc.update(
         _get_doc(obj, (obj, module)),
@@ -368,7 +367,7 @@ def _inspect(obj, module):
         done.add(id(obj))
         return _inspect_obj(obj, module)
     else:
-        doc = _inspect_obj_ref(obj, module)
+        doc = _inspect_ref(obj, module)
         _add_tags(doc, "imported")
         return doc
 
