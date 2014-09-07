@@ -304,12 +304,14 @@ function navigateOnClick(scope, element, attrs) {
     // Use the 'module' attribute if present, otherwise this module.
     var modname = attrs.modname || scope.modname
     // Use the 'fullname' attribute if present, otherwise the element text.
-    var name = attrs.name || element.text().trim()
+    console.log('attrs.name = [' + attrs.name + ']')
+    var name = defined(attrs.name) ? attrs.name : element.text().trim()
     scope.navigateToObj(modname, name)
   })
 }
 
 // FIXME: This is the one.  Get rid of the others.
+// FIXME: Should we have a different one for modules?
 App.directive(
   'obj',
   function () {

@@ -32,10 +32,13 @@ ObjectModule.controller(
       return subnames
     }
 
-    function isInherited(obj) {
+    function hasTag(obj, tag) {
       var tags = obj.tags || []
-      return tags.some(function (t) { return t == "inherited" })
+      return tags.some(function (t) { return t == tag })
     }
+
+    function isInherited(obj) { return hasTag(obj, 'inherited'); }
+    function isImported(obj) { return hasTag(obj, 'imported'); }
 
     /**
      * Returns names of attributes from the object's 'dict'.
@@ -54,7 +57,7 @@ ObjectModule.controller(
       }
       
       // FIXME: Handle special names?  Handle underscores?
-      result.sort()
+      // result.sort()
       return result
     }
 
@@ -62,18 +65,22 @@ ObjectModule.controller(
      * Removes a prefix from a dotted identifier, if present.
      */
     $scope.removeNamePrefix = function (name, prefix) {
+      console.log('removeNamePrefix(' + name + ', ' + prefix + ')')
       if (name.lastIndexOf(prefix + '.') === 0) 
         return name.substring(prefix.length + 1)
       else
         return name
     }
 
+    /* FIXME: attr.name && (attrname != removeNamePrefix(attr.name, objname)) */
+    $scope.showOrigin = function (obj) { return isImported(obj); }
+
     $scope.showAttr = function (name) {
       var attr = $scope.obj.dict[name]
       var tags = attr.tags || []
       return (
-           (tags.indexOf("imported")  == -1 || $scope.showImported)
-        && (tags.indexOf("inherited") == -1 || $scope.showInherited)
+           (tags.indexOf('imported')  == -1 || $scope.showImported)
+        && (tags.indexOf('inherited') == -1 || $scope.showInherited)
         )
     }
 

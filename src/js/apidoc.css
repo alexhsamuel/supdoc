@@ -9,6 +9,7 @@
 
 body {
   font-family: 'Fira Sans', sans-serif;
+  padding-top: 74px;  /* 50px for navbar-fixed + extra */
 }
 
 .source {
@@ -27,16 +28,40 @@ dt .value {
   color: #259eb2;
   font-family: Cousine;
   font-size: 90%;
+  padding: 2px 0;
   /* letter-spacing: -0.02em; */
+}
+
+a:link {
+  color: #259eb2;
+}
+
+a.identifier:visited {
+  color: #259eb2;
+}
+
+a.identifier:hover {
+  /* background-color: #f2e394; */
+  /* text-decoration: none; */
+  color: #259eb2;
+}
+
+.import-arrow {
+  padding: 0 8px 0 16px;
+  font-weight: bold;
 }
 
 .type {
   color: #b28729;
+  float: right;
 }
 
 .label-info {
   color: #606030;
   background-color: #fffb00;
+  /* margin: 0 4px; */
+  float: right;
+  clear: right;
 }
 
 .import-module {
@@ -48,19 +73,6 @@ dt .value {
   font-family: Cousine;
   font-size: 90%;
   /* letter-spacing: -0.02em; */
-}
-
-.subtitle {
-  color: #a0a0a0;
-  font-family: Cousine;
-  font-size: 90%;
-  /* letter-spacing: -0.02em; */
-  padding-bottom: 20px;
-}
-
-.supertitle {
-  color: #c8c8c8;
-  padding-bottom: 8px;
 }
 
 h1.identifier {
@@ -77,18 +89,17 @@ h1.identifier {
 .parameters {
   color: black;
   font-family: Cousine;
-  font-size: 90%;
   font-weight: normal;
   letter-spacing: -0.01em;
+  white-space-collapse: true;
+  margin-left: -0.5em;
+}
+
+.attribute .parameters {
+  /* font-size: 90%; */
 }
 
 .parameter {
-  font-style: italic;
-}
-
-/* Padding for fixed navbar. */
-body { 
-  padding-top: 50px; 
 }
 
 td.dict-summary {
@@ -96,10 +107,6 @@ td.dict-summary {
   padding-bottom: 0;
   padding-left: 1em;
   padding-right: 0;
-}
-
-td.import:before {
-  content: "→";
 }
 
 dl {
@@ -114,9 +121,40 @@ dd.dict-summary {
   margin-left: 1.5em;
 }
 
-a:hover {
-  background-color: #f2e394;
-  text-decoration: none;
+.summary {
+  font-style: italic;
+}
+
+/*------------------------------------------------------------------------------
+  object header
+------------------------------------------------------------------------------*/
+
+.header {
+  margin-top: 32px;
+  margin-bottom: 40px;
+}
+
+.header .title {
+  font-family: Cousine;
+  letter-spacing: -0.03em;
+  padding-bottom: 20px;
+}
+
+.header .subtitle {
+  font-family: Cousine;
+  float: right;
+  color: #b28729;
+}
+
+.header .doc {
+  /* padding: 16px 12px 16px 12px; */
+  /* background-color: #dcfbff; */
+}
+
+.header .doc .summary {
+  font-size: 130%;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -154,6 +192,10 @@ a:hover {
 
 /* These are to format the FQ name in the navbar.  */
 
+.navbar-fixed-top {
+  border: none;
+}
+
 .navbar-inverse {
   background-color: #ffaf00;
   background-image: none;
@@ -185,12 +227,24 @@ a:hover {
 }
 
 .attribute {
-  /* background-color: #f9fafd; */
-  margin: 4px 0;
-  padding: 2px 12px;
-  border-bottom: 1px solid #f8f8f8;
-  /* border: 1px solid #fbfcff; */
-  /* border-radius: 6px; */
+  /* background-color: #f6fcff; */
+  /* border: 2px solid #f6fcff; */
+  background-color: #f6f8f8;
+  border: 2px solid #f6f8f8;
+  border-radius: 4px;
+  margin: 8px 0;
+  padding: 4px 20px 8px 12px;
+}
+
+.attr-name {
+  /* display: inline-block; */
+  /* clear: left; */
+  /* min-width: 15%; */
+}
+
+.attribute .doc {
+  margin-top: 8px;
+  font-size: 85%;
 }
 
 .animate-if {

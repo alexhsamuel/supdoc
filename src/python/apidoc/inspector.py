@@ -123,9 +123,13 @@ def _format_identifier(name, contexts):
     for context in contexts:
         # If the context is callable, check its parameters.
         if callable(context):
-            sig = inspect.signature(context)
-            if name in sig.parameters:
-                return parse.PARAMETER(name)
+            try:
+                sig = inspect.signature(context)
+            except ValueError:
+                pass
+            else:
+                if name in sig.parameters:
+                    return parse.PARAMETER(name)
 
         # Look up the name in the context, if any.
         try:
@@ -327,11 +331,16 @@ def _inspect_obj(obj, module):
         doc["dict"] = _inspect_attributes(obj, module)
 
     if callable(obj) and not isinstance(obj, type):
-        signature = inspect.signature(obj)
-        doc["parameters"] = [
-            _inspect_parameter(p)
-            for n, p in signature.parameters.items()
-            ]
+        try:
+            signature = inspect.signature(obj)
+        except ValueError:
+            parameters = [{"name": "?"}]
+        else:
+            parameters = [
+                _inspect_parameter(p)
+                for n, p in signature.parameters.items()
+                ]
+        doc["parameters"] = parameters
 
     if isinstance(obj, property):
         if obj.fget is not None:
