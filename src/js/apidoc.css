@@ -230,14 +230,26 @@ dd.dict-summary {
   padding-right: 8px;
 }
 
+h3.attributes {
+  color: white;
+  background-color: #259eb2;
+  border: 2px solid #259eb2;
+  border-radius: 0 4px 4px 0;  
+  padding: 12px 12px;
+  font-size: 20px;
+}
+
+div.attributes {
+  border-left: 4px solid #259eb2;
+  border-radius: 4px 0 0 0;
+}
+
 .attribute {
-  /* background-color: #f6fcff; */
-  /* border: 2px solid #f6fcff; */
   background-color: #f6f8f8;
   border: 2px solid #f6f8f8;
   border-radius: 4px;
-  margin: 8px 0;
-  padding: 4px 20px 8px 12px;
+  margin: 8px 0 8px 12px;
+  padding: 16px 20px 8px 16px;
 }
 
 .attr-name {
