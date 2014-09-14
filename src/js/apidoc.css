@@ -50,8 +50,12 @@ a.identifier:hover {
   color: #259eb2;
 }
 
-.import-arrow {
-  padding: 0 8px 0 16px;
+.import {
+  font-size: 12px;
+}
+
+.import .arrow {
+  padding: 0 8px 0 0;
   font-weight: bold;
 }
 
@@ -237,6 +241,14 @@ h3.attributes {
   border-radius: 0 4px 4px 0;  
   padding: 12px 12px;
   font-size: 20px;
+}
+
+h3.attributes .check-boxes {
+  float: right;
+}
+
+h3.attributes .check-boxes .btn {
+  background-image: none;
 }
 
 div.attributes {

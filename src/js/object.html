@@ -18,19 +18,38 @@
     in module <span class="identifier">{{modname}}</span>.
   </div>
 
-  <div style="float: right; margin-top: 20px;"> <!-- FIXME: Boo. -->
+  <div style="float: right; color: white; margin: 20px;"> <!-- FIXME: Boo. -->
     <label class="checkbox-inline">
-      <input type="checkbox" ng-model="showImported">Show imported
+      <input type="checkbox" ng-model="showImported"> Imported
     </label>
     <label class="checkbox-inline">
-      <input type="checkbox" ng-model="showInherited">Show inherited
+      <input type="checkbox" ng-model="showInherited"> Inherited
     </label>
     <label class="checkbox-inline">
-      <input type="checkbox" ng-model="showDocs">Show full docs
+      <input type="checkbox" ng-model="showDocs"> Full Docs
     </label>
   </div>
+
   <div class="attributes">
-    <h3 class="attributes">Attributes</h3>
+    <h3 class="attributes">
+      Attributes
+      <!--
+          FIXME: This doesn't work because Bootstrap check-boxes don't
+          work with ng-model.
+
+      <div class="check-boxes btn-group" data-toggle="buttons">
+        <label class="btn btn-primary">
+          <input type="checkbox" ng-model="showImported"> Imports
+        </label>
+        <label class="btn btn-primary">
+          <input type="checkbox" ng-model="showInherited"> Inherited
+        </label>
+        <label class="btn btn-primary">
+          <input type="checkbox" ng-model="showDocs"> Full Docs
+        </label>
+      </div>
+      -->
+    </h3>
     <dl>
       <div ng-repeat="attrname in getAttrNames(false) | filter:showAttr" ng-controller="Attrs" class="attribute">
         <dt class="dict-summary" >
@@ -38,8 +57,6 @@
           <!-- Imported names, i.e. names defined elsewhere.  -->
           <span ng-if="showOrigin(attr)">
             <obj name="{{attr.name}}" modname="{{attr.modname}}" class="attr-name">{{attrname}}</obj> 
-            <br><span class="import-arrow">&#8594;</span>
-            <obj modname="{{attr.modname}}" name="">{{attr.modname}}</obj><span class="identifier"></span>
           </span>
           <!-- Not imported names, i.e. names not defined elsewhere.  -->
           <span ng-if="! showOrigin(attr)">
@@ -54,6 +71,10 @@
           </span>
         </dt>
         <dd class="dict-summary" ng-controller="Attrs">
+          <span ng-if="showOrigin(attr)" class="import">
+            <span class="arrow">&#8594;</span> imported from 
+            <obj modname="{{attr.modname}}" name="">{{attr.modname}}</obj><span class="identifier"></span>
+          </span>
           <span class="summary"><span compile="attr.summary"></span></span>
           <div ng-if="showDocs" class="apidoc doc animate-if">
             <div compile="attr.doc"></div>
