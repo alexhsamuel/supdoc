@@ -194,6 +194,9 @@ def _get_lines(obj):
         # logging.debug("no source lines for: {!r}: {}".format(obj, exc))
         return None
     else:
+        # FIXME: Not sure why this is necessary.
+        if not isinstance(obj, types.ModuleType):
+            start_num -= 1
         return [start_num, start_num + len(lines)]
 
 
