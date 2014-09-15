@@ -76,7 +76,7 @@
             <obj modname="{{attr.modname}}" name="">{{attr.modname}}</obj><span class="identifier"></span>
           </span>
           <span class="summary"><span compile="attr.summary"></span></span>
-          <div ng-if="showDocs" class="apidoc doc animate-if">
+          <div ng-if="showDocs && attr.doc" class="apidoc doc animate-if">
             <div compile="attr.doc"></div>
           </div>
         </dd>
