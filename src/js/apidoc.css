@@ -18,7 +18,24 @@ body {
   /* letter-spacing: -0.02em; */
 }
 
-.source {
+h3.source {
+  color: white;
+  background-color: #25b247;
+  border: 2px solid #25b247;
+  border-radius: 0 4px 0 0;  
+  padding: 12px 12px;
+  font-size: 20px;
+  margin-bottom: 0;
+}
+
+div.source {
+  border-left: 4px solid #25b247;
+  border-radius: 4px 0 0 0;
+}
+
+.source pre {
+  border: none;
+  padding: 20px;
   font-family: Cousine;
   line-height: 1.2;
 }
