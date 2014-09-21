@@ -1,5 +1,6 @@
 Doc support
 * Inherited tag.
+* Label items in __all__.
 
 Markup
 * Javadoc.
@@ -17,6 +18,8 @@ UI
 * Select inherited contents or not.
 * Show object name in breadcrumbs.
 * Make check state persistent across navigation.
+* Attribute sort order strategies: declaration, alphabetical, by type.
+- Keyboard shortcuts for check state.
 - Breadcrumb formatting.
 - Move imports to a tab?
 - Show submodules. (?)
