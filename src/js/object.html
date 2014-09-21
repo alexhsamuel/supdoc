@@ -54,6 +54,11 @@
       <div ng-repeat="attrname in getAttrNames(false) | filter:showAttr" ng-controller="Attrs" class="attribute">
         <dt class="dict-summary" >
           <span class="identifier type">{{attr.type}}</span>
+          <div class="labels">
+            <span ng-repeat="tag in attr.tags" class="label label-info {{tag}}">
+              {{tag}}
+            </span>
+          </div>
           <!-- Imported names, i.e. names defined elsewhere.  -->
           <span ng-if="showOrigin(attr)">
             <obj name="{{attr.name}}" modname="{{attr.modname}}" class="attr-name">{{attrname}}</obj> 
@@ -63,9 +68,6 @@
             <obj name="{{attr.name}}" class="attr-name">{{attrname}}</obj>
           </span>
           <span class="parameters" ng-if="attr.parameters">(<span ng-repeat="p in attr.parameters"><span class="parameter">{{p.name}}</span><span ng-if="!$last">, </span></span>)</span>
-          <span ng-repeat="tag in attr.tags" class="label label-info {{tag}}">
-            {{tag}}
-          </span>
           <span ng-if="attr.value">
             = <span class="identifier value">{{attr.value}}</span>
           </span>
