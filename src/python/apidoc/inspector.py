@@ -32,6 +32,7 @@ UNINTERESTING_BASE_TYPES = {
 
 # Identifiers that are implementation details.
 INTERNAL_NAMES = {
+    "__all__",  # FIXME: Indicate this somehow.
     "__builtins__",
     "__cached__",
     "__dict__",
