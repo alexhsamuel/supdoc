@@ -11,8 +11,9 @@ ObjectModule.controller(
   function ($scope, $sce) {
     $scope.id = 'ObjectController'
 
-    $scope.showImported = true
-    $scope.showInherited = true
+    $scope.showPrivate = false
+    $scope.showImported = false
+    $scope.showInherited = false
     $scope.showDocs = false
 
     /**
@@ -79,7 +80,8 @@ ObjectModule.controller(
       var attr = $scope.obj.dict[name]
       var tags = attr.tags || []
       return (
-           (tags.indexOf('imported')  == -1 || $scope.showImported)
+           (tags.indexOf('private')   == -1 || $scope.showPrivate)
+        && (tags.indexOf('imported')  == -1 || $scope.showImported)
         && (tags.indexOf('inherited') == -1 || $scope.showInherited)
         )
     }

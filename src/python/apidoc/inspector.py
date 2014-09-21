@@ -45,6 +45,28 @@ INTERNAL_NAMES = {
     "__weakref__",
     }
 
+# FIXME: Look up the rest.
+SPECIAL_NAMES = {
+    "__cmp__"       : "comparison",
+    "__delattr__"   : "delete attribute",
+    "__delitem__"   : "delete item",
+    "__eq__"        : "equality",
+    "__ge__"        : "greater than or equal",
+    "__getattr__"   : "get attribute",
+    "__getitem__"   : "get item",
+    "__gt__"        : "greater than",
+    "__hash__"      : "hash code",
+    "__init__"      : "constructor",
+    "__le__"        : "less than or equal",
+    "__lt__"        : "less-than",
+    "__ne__"        : "inequality",
+    "__new__"       : "allocator",
+    "__repr__"      : "representation",
+    "__setattr__"   : "set attribute",
+    "__setitem__"   : "set item",
+    "__str__"       : "string",
+    }
+
 # Types that have docstrings.
 DOCSTRING_TYPES = (
     property,
@@ -81,15 +103,6 @@ doc_info    = logging.info
 
 def is_class_method(obj):
     return inspect.ismethod(obj) and isinstance(obj.__self__, type)
-
-
-def is_internal_name(symbol):
-    """
-    Returns true if `symbol` is a Python special symbol.
-
-    Special symbols begin and end with double underscores.
-    """
-    return symbol.startswith("__") and symbol.endswith("__")
 
 
 def is_in_module(obj, module, default=True):
@@ -269,6 +282,7 @@ def _inspect_attributes(obj, module):
     # Skip internal stuff.
     attrs = ( (n, s, a) for n, s, a in attrs if n not in INTERNAL_NAMES )
         
+    private_prefix = "_" + obj.__name__ + "__"
 
     def inspect_attr(name, source, attr):
         """
@@ -286,22 +300,32 @@ def _inspect_attributes(obj, module):
         # FIXME: Include inherited members?
         if isinstance(attr, types.ModuleType):
             doc = _inspect_ref(attr, module)
-            _add_tags(doc, "imported")
+            tags.append("imported")
 
         elif source != obj:
             # Not originally member of this, even though it appears here.
             doc = _inspect_ref(attr, module)
-            _add_tags(doc, "inherited")
+            tags.append("inherited")
 
         else:
             # It's defined here.  Include full documentation.
             doc = _inspect(attr, module)
 
+        try:
+            tags.append(SPECIAL_NAMES[name])
+        except KeyError:
+            pass
+
+        if name.startswith(private_prefix):
+            tags.append("private")
+            # Undo the name mangling.
+            name = name[len(private_prefix) - 2 :]
+
         _add_tags(doc, *tags)
         logging.debug("inspect_attr({!r}) -> {!r}".format(name, doc))
-        return doc
+        return name, doc
 
-    return { n: inspect_attr(n, s, a) for n, s, a in attrs }
+    return dict( inspect_attr(n, s, a) for n, s, a in attrs )
 
 
 def _inspect_parameter(parameter):
