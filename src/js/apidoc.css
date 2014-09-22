@@ -94,11 +94,15 @@ div.labels {
 .label-info {
   /* color: #606030; */
   /* background-color: #fffb00; */
-  padding-top: 5px;
+  padding-top: 3px;
+  padding-bottom: 1px;
   color: white;
   background-color: #b28729;
   margin: 0 2px;
-  float: right;
+}
+
+div.labels .label-info:last-child {
+  margin-right: 0;
 }
 
 .import-module {
