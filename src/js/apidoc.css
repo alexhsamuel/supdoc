@@ -63,13 +63,10 @@ a.identifier:visited {
 }
 
 a.identifier:hover {
-  /* background-color: #f2e394; */
-  /* color: #259eb2; */
   color: #1f8596;
   text-decoration: none; 
-  border: 1px solid #1f8596;
-  padding: 2px 5px;
-  margin: -6px;
+  border-bottom: 2px dotted #1f8596;
+  padding: 2px 0 0 0;
 }
 
 .import {
