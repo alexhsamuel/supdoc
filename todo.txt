@@ -1,6 +1,7 @@
 Doc support
 * Inherited tag.
 * Label items in __all__.
+- Aliases (e.g. asyncore.poll3).
 
 Markup
 * Javadoc.
@@ -30,6 +31,8 @@ UI
 - Make module list collapsible.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
 - Use Ace for code.
+- Pretty-print values.
+- Fold up large values.
 
 Integeration
 - Dynamic inspection + server.
