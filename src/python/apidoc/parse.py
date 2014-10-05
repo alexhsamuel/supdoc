@@ -8,6 +8,7 @@ much information as possible.
 
 #-------------------------------------------------------------------------------
 
+import html
 import re
 import sys
 
@@ -69,6 +70,7 @@ MODULE          = htmlgen._make_element("module")
 CLASS           = htmlgen._make_element("class")
 FUNCTION        = htmlgen._make_element("function")
 PARAMETER       = htmlgen._make_element("parameter")
+IDENTIFIER      = htmlgen._make_element("identifier")
 
 def default_format_identifier(name):
     return str(IDENTIFIER(name))
@@ -77,7 +79,7 @@ def default_format_identifier(name):
 # FIXME: Split this up.  Identifier handling elsewhere.
 def parse_doc(doc, format_identifier=default_format_identifier):
     # Split into paragraphs.
-    lines = ( l.expandtabs().rstrip() for l in doc.splitlines() )
+    lines = ( l.expandtabs().rstrip() for l in doc )
     pars = join_pars(lines)
 
     pars = list(pars)
@@ -118,10 +120,27 @@ def parse_doc(doc, format_identifier=default_format_identifier):
     return summary, doc
 
 
-if __name__ == "__main__":
-    summary, doc = parse_doc(sys.stdin)
+def main(argv):
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "input", metavar="FILE", default="-",
+        help="input file; - for stdin")
+    args = parser.parse_args(argv[1 :])
+
+    if args.input == "-":
+        file = sys.stdin
+    else:
+        file = open(args.input)
+    with file:
+        summary, doc = parse_doc(file)
     print("summary: " + summary)
-    print
+    print()
     print(doc)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
 
 
