@@ -1,102 +1,111 @@
 <div class="container" ng-controller="ObjectController">
-  <br>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <div class="module title">{{obj.name}}</div>
-      <div class="subtitle">
-        {{obj.type}} {{obj.qualname}} in module <module>{{modname}}</module>
-      </div>
+  <div class="header" ng-if="obj">
+    <div class="type">{{obj.type}}</div>
+    <div class="title">{{obj.name || obj.modname}}<!-- FIXME: DRY --><span class="parameters" ng-if="obj.parameters">(<span ng-repeat="p in obj.parameters"><span class="parameter">{{p.name}}</span><span ng-if="!$last">, </span></span>)</span>
     </div>
-    <div class="panel-body" ng-show="obj.summary || obj.doc">
-      <p class="lead">
-        {{obj.summary}}
-      </p>
-      <div class="apidoc">
-        <div compile="obj.doc"></div>
-      </div>
+    <div ng-if="obj.name" class="module">in <obj modname="{{obj.modname}}" name="">{{obj.modname}}</obj></div>
+    <div class="doc" ng-show="obj.summary || obj.doc">
+      <div class="summary">{{obj.summary}}</div>
+      <div class="" compile="obj.doc"></div>
     </div>
   </div>
 
-  <ul class="nav nav-tabs">
-    <li><a class="active" href="#contents" data-toggle="tab">Contents</a></li>
-    <li><a class="" href="#details" data-toggle="tab">Details</a></li>
-    <li><a class="" href="#source" data-toggle="tab" ng-click="loadSource()">Source</a></li>
-  </ul>
-  <br>
+  <!-- Show this instead if the object name is invalid.  -->
+  <div class="alert alert-danger" role="alert" ng-if="! obj">
+    <span class="glyphicon glyphicon-remove"></span>
+    No object named <span class="identifier">{{objname}}</span>
+    in module <span class="identifier">{{modname}}</span>.
+  </div>
 
-  <div class="tab-content">
-    <div class="tab-pane fade in active" id="contents">
+  <div style="float: right; color: white; margin: 20px;"> <!-- FIXME: Boo. -->
+    <label class="checkbox-inline">
+      <input type="checkbox" ng-model="showPrivate"> Private
+    </label>
+    <label class="checkbox-inline">
+      <input type="checkbox" ng-model="showImported"> Imported
+    </label>
+    <label class="checkbox-inline">
+      <input type="checkbox" ng-model="showInherited"> Inherited
+    </label>
+    <label class="checkbox-inline">
+      <input type="checkbox" ng-model="showDocs"> Full Docs
+    </label>
+  </div>
 
-      <div class="panel-group" id="contents-group">
+  <div class="attributes">
+    <h3 class="attributes">
+      Attributes
+      <!--
+          FIXME: This doesn't work because Bootstrap check-boxes don't
+          work with ng-model.
 
-        <label class="checkbox-inline" ng-show="obj.type == 'class'">
-          <input type="checkbox" ng-model="inherited">Show Inherited
+      <div class="check-boxes btn-group" data-toggle="buttons">
+        <label class="btn btn-primary">
+          <input type="checkbox" ng-model="showImported"> Imports
         </label>
-
-        <bs-panel title="Classes" ng-if="getAttrNames('class', false).length > 0">
-          <dl>
-            <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames('class', false)" ng-controller="Attrs">
-              <class fullname="{{attr.qualname}}">{{attrname}}</class>
-            </dt>
-            <dd class="dict-summary" ng-repeat-end>
-              <span>{{attr.summary}}</span>
-            </dd>
-          </dl>
-        </bs-panel>
-
-        <bs-panel title="Functions" ng-if="getAttrNames('function', false).length > 0">
-          <dl>
-            <dt class="dict-summary" ng-repeat-start="attrname in getAttrNames('function', false)" ng-controller="Attrs">
-              <function fullname="{{attr.qualname}}">{{attr.name}}</function>
-              <span class="parameters">(
-                <span ng-repeat="p in attr.parameters">
-                  <span class="parameter">{{p.name}}</span><span ng-if="!$last">,</span>
-                </span>
-              )</span>
-              <span ng-if="attr.attr_type && attr.attr_type != 'method'" class="label label-info">
-                {{attr.attr_type}}
-              </span>
-              <!--span ng-if="attr.module != getObj(modname).module && inherited">
-                defined in {{attr.module}} as {{attr.qualname}}
-              </span-->
-            </dt>
-            <dd class="dict-summary" ng-repeat-end ng-controller="Attrs">
-              <span class="doc"><span compile="attr.summary"></span></span>
-            </dd>
-          </dl>
-        </bs-panel>
-
-        <bs-panel title="Values" ng-if="getAttrNames('value').length > 0">
-          <div ng-repeat="attrname in getAttrNames('value')" ng-controller="Attrs">
-            <!-- FIXME: What if value_type isn't a class? -->
-            <identifier>{{attrname}}</identifier> = 
-            <span class="source">{{attr.value}}</span> 
-            of type <class>{{attr.value_type.name}}</class>
+        <label class="btn btn-primary">
+          <input type="checkbox" ng-model="showInherited"> Inherited
+        </label>
+        <label class="btn btn-primary">
+          <input type="checkbox" ng-model="showDocs"> Full Docs
+        </label>
+      </div>
+      -->
+    </h3>
+    <dl>
+      <div ng-repeat="attrname in getAttrNames(false) | filter:showAttr" ng-controller="Attrs" class="attribute">
+        <dt class="dict-summary" >
+          <span class="identifier type">{{attr.type}}</span>
+          <div class="labels">
+            <span ng-repeat="tag in attr.tags" class="label label-info {{tag}}">
+              {{tag}}
+            </span></div>
+          <!-- Imported names, i.e. names defined elsewhere.  -->
+          <span ng-if="showOrigin(attr)">
+            <obj name="{{attr.name}}" modname="{{attr.modname}}" class="attr-name">{{attrname}}</obj> 
+          </span>
+          <!-- Not imported names, i.e. names not defined elsewhere.  -->
+          <span ng-if="! showOrigin(attr)">
+            <obj name="{{attr.name}}" class="attr-name">{{attrname}}</obj>
+          </span>
+          <span class="parameters" ng-if="attr.parameters">(<span ng-repeat="p in attr.parameters"><span class="parameter">{{p.name}}</span><span ng-if="!$last">, </span></span>)</span>
+          <span ng-if="attr.value">
+            = <span class="identifier value">{{attr.value}}</span>
+          </span>
+        </dt>
+        <dd class="dict-summary" ng-controller="Attrs">
+          <span ng-if="showOrigin(attr)" class="import">
+            <span class="arrow">&#8594;</span> imported from 
+            <obj modname="{{attr.modname}}" name="">{{attr.modname}}</obj><span class="identifier"></span>
+          </span>
+          <span class="summary"><span compile="attr.summary"></span></span>
+          <div ng-if="showDocs && attr.doc" class="apidoc doc animate-if">
+            <div compile="attr.doc"></div>
           </div>
-        </bs-panel>
-
+        </dd>
       </div>
+    </dl>
+  </div>
 
+  <!-- FIXME: Reinstate details?
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Details</h3>
     </div>
-
-    <div class="tab-pane fade" id="details">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Details</h3>
-        </div>
-        <div class="panel-body">
-          <dl class="dl-horizontal">
-            <dt>from</dt>
-            <dd><span class="filename">{{obj.path}}</span></dd>
-          </dl>
-        </div>
-      </div>
+    <div class="panel-body">
+      <dl class="dl-horizontal">
+        <dt>from</dt>
+        <dd><span class="filename">{{obj.path}}</span></dd>
+      </dl>
     </div>
+  </div>
+  -->
 
-    <div class="tab-pane fade" id="source">
-      <pre><small>{{joinLines(source.slice(obj.lines[0], obj.lines[1]))}}</small></pre>
-    </div>
-
+  <div class="source" ng-init="loadSource()">
+    <h3 class="source">
+      Source
+    </h3>
+    <pre>{{joinLines(source.slice(obj.lines[0], obj.lines[1]))}}</pre>
   </div>
 
 </div>

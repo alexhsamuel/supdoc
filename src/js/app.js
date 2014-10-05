@@ -1,6 +1,6 @@
 "use strict"
 
-var App = angular.module('App', ['ui.router', 'ObjectModule'])
+var App = angular.module('App', ['ui.router', 'ObjectModule', 'ngAnimate'])
 
 App.config(
   function ($locationProvider, $stateProvider, $urlRouterProvider) {
@@ -13,7 +13,7 @@ App.config(
       })
       .state('module', {
         url: '/supdoc/:modname',
-        templateUrl: "/module.html",
+        templateUrl: "/object.html",
       })
       .state('object', {
         url: '/supdoc/:modname/:objname',
@@ -282,18 +282,6 @@ App.directive(
   }])
       
 App.directive(
-  'identifier',
-  function () {
-    return {
-      restrict: 'E',
-      transclude: true,
-      replace: true,
-      scope: {},
-      template: '<span class="identifier" ng-transclude></span>'
-    }
-  })
-
-App.directive(
   'module',
   function () {
     return {
@@ -314,34 +302,25 @@ App.directive(
 function navigateOnClick(scope, element, attrs) {
   element.on('click', function () {
     // Use the 'module' attribute if present, otherwise this module.
-    var modname = attrs.module || scope.modname
+    var modname = attrs.modname || scope.modname
     // Use the 'fullname' attribute if present, otherwise the element text.
-    var fullname = attrs.fullname || element.text()
-    scope.navigateToObj(modname, fullname)
+    console.log('attrs.name = [' + attrs.name + ']')
+    var name = defined(attrs.name) ? attrs.name : element.text().trim()
+    scope.navigateToObj(modname, name)
   })
 }
 
+// FIXME: This is the one.  Get rid of the others.
+// FIXME: Should we have a different one for modules?
 App.directive(
-  'class',
+  'obj',
   function () {
     return {
       restrict: 'E',
       transclude: true,
       replace: true,
       link: navigateOnClick,
-      template: '<a class="identifier class" ng-transclude></span>'
-    }
-  })
-
-App.directive(
-  'function',
-  function () {
-    return {
-      restrict: 'E',
-      transclude: true,
-      replace: true,
-      link: navigateOnClick,
-      template: '<a class="identifier function" ng-transclude></span>'
+      template: '<a class="identifier" ng-transclude></a>'
     }
   })
 

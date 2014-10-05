@@ -111,6 +111,7 @@ if __name__ == "__main__":
     module_names.extend( str(n) for n in modules.find_std_modules() )
     logging.info("serving standard library modules")
 
+    socketserver.TCPServer.allow_reuse_address = True
     server = socketserver.TCPServer(("", port), Handler)
     print("serving from port {}".format(port))
     server.serve_forever()

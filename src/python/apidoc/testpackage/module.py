@@ -1,3 +1,18 @@
+"""
+The main test module.
+
+This module doesn't contain useable code.  It collects together a sampling of
+different object types to test the usability of supdoc in various circumstances.
+
+@note
+  Do not import in real code.
+"""
+
+import os
+import sys
+
+import numpy as np
+
 from   . import lib
 from   .lib import LibClass, lib_function, LIB_CONSTANT
 from   .lib import LibClass as RenamedLibClass
@@ -221,3 +236,16 @@ class Class(BaseClass, RenamedLibClass):
 
 
 
+#-------------------------------------------------------------------------------
+
+def function0(x, y, *, z=10, **kw_args):
+    """
+    A nice, ordinary function.
+
+    It takes a keyword-only argument, and some other arbitrary keyword
+    arguments as well.
+    """
+    pass
+
+
+# Last Line!

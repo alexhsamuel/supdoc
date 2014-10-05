@@ -1,42 +1,116 @@
-.source {
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 100%;
-  letter-spacing: -0.02em;
+/*
+  Colors
+  259eb2
+  70edff
+  eda300 ffaf00 
+  b28729
+  fffb00
+*/
+
+body {
+  font-family: 'Fira Sans', sans-serif;
+  padding-top: 74px;  /* 50px for navbar-fixed + extra */
+}
+
+.code {
+  font-family: Cousine;
+  /* font-size: 95%; */
+  /* letter-spacing: -0.02em; */
+}
+
+h3.source {
+  color: white;
+  background-color: #25b247;
+  border: 2px solid #25b247;
+  border-radius: 0 4px 0 0;  
+  padding: 12px 12px;
+  font-size: 20px;
+  margin-bottom: 0;
+}
+
+div.source {
+  border-left: 4px solid #25b247;
+  border-radius: 4px 0 0 0;
+}
+
+.source pre {
+  border: none;
+  padding: 20px;
+  font-family: Cousine;
+  line-height: 1.2;
+}
+
+dt .value {
+  color: #687d78;
+  font-weight: normal;
 }
 
 .identifier {
-  color: #1060e0;
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 100%;
-  letter-spacing: -0.02em;
+  /* color: #259eb2; */
+  /* color: #218fa2; */
+  color: #1f8596;
+  font-family: Cousine;
+  font-size: 95%;
+  padding: 2px 0;
 }
 
-.module {
-  color: #305070;
-  letter-spacing: -0.5px;
+a:link {
+  color: #259eb2;
 }
 
-.class {
-  color: #106060;
+a.identifier:visited {
+  color: #259eb2;
 }
 
-.function {
-  color: #501060;
+a.identifier:hover {
+  color: #1f8596;
+  text-decoration: none; 
+  border-bottom: 2px dotted #1f8596;
+  padding: 2px 0 0 0;
+}
+
+.import {
+  font-size: 12px;
+}
+
+.import .arrow {
+  padding: 0 8px 0 0;
+  font-weight: bold;
+}
+
+.type {
+  color: #b28729;
+  float: right;
+}
+
+div.labels {
+  float: right;
+  clear: both;
+}
+
+.label-info {
+  /* color: #606030; */
+  /* background-color: #fffb00; */
+  padding-top: 3px;
+  padding-bottom: 1px;
+  color: white;
+  background-color: #b28729;
+  margin: 0 2px;
+}
+
+div.labels .label-info:last-child {
+  margin-right: 0;
+}
+
+.import-module {
+  color: #8a9995;
 }
 
 .filename {
   color: #405070;
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 90%;
-  letter-spacing: -1px;
-}
-
-.subtitle {
-  color: #a0a0a0;
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 80%;
-  letter-spacing: -0.02em;
-  padding-bottom: 20px;
+  font-family: Cousine;
+  font-size: 95%;
+  /* letter-spacing: -0.02em; */
 }
 
 h1.identifier {
@@ -45,26 +119,24 @@ h1.identifier {
 
 .title {
   font-size: 2.6em;
-  margin-top: 30px;
+  margin-top: 12px;
   margin-bottom: 10px;
   line-height: 0.75;
 }
 
 .parameters {
   color: black;
-  font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 90%;
+  font-family: Cousine;
   font-weight: normal;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
+  white-space-collapse: true;
+}
+
+.attribute .parameters {
+  /* font-size: 95%; */
 }
 
 .parameter {
-  font-style: italic;
-}
-
-/* Padding for fixed navbar. */
-body { 
-  padding-top: 50px; 
 }
 
 td.dict-summary {
@@ -72,10 +144,6 @@ td.dict-summary {
   padding-bottom: 0;
   padding-left: 1em;
   padding-right: 0;
-}
-
-td.import:before {
-  content: "→";
 }
 
 dl {
@@ -88,6 +156,52 @@ dt.dict-summary {
 
 dd.dict-summary {
   margin-left: 1.5em;
+}
+
+.summary {
+  font-style: italic;
+}
+
+/*------------------------------------------------------------------------------
+  object header
+------------------------------------------------------------------------------*/
+
+.header {
+  margin-top: 32px;
+  margin-bottom: 40px;
+}
+
+.header .title {
+  font-family: Cousine;
+  letter-spacing: -0.03em;
+  padding-bottom: 20px;
+}
+
+.header .type {
+  font-family: Cousine;
+  float: right;
+  clear: right;
+  color: #b28729;
+}
+
+.header .module {
+}
+
+.header .doc {
+  /* padding: 16px 12px 16px 12px; */
+  /* background-color: #dcfbff; */
+}
+
+.header .doc .summary {
+  font-size: 130%;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.doc h2 {
+  font-size: 115%;
+  font-weight: bold;
+  letter-spacing: 0.05em;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -125,6 +239,19 @@ dd.dict-summary {
 
 /* These are to format the FQ name in the navbar.  */
 
+.navbar-fixed-top {
+  border: none;
+}
+
+.navbar-inverse {
+  background-color: #ffaf00;
+  background-image: none;
+}
+
+.navbar-inverse .navbar-brand {
+  color: white;
+}
+
 .navbar-brand {
   padding-right: 0px;
 }
@@ -146,11 +273,70 @@ dd.dict-summary {
   padding-right: 8px;
 }
 
-/*----------------------------------------------------------------------------*/
-
-.summary {
-  color: #306050;
+h3.attributes {
+  color: white;
+  background-color: #259eb2;
+  border: 2px solid #259eb2;
+  border-radius: 0 4px 4px 0;  
+  padding: 12px 12px;
+  font-size: 20px;
 }
+
+h3.attributes .check-boxes {
+  float: right;
+}
+
+h3.attributes .check-boxes .btn {
+  background-image: none;
+}
+
+div.attributes {
+  border-left: 4px solid #259eb2;
+  border-radius: 4px 0 0 0;
+}
+
+.attribute {
+  background-color: #f6f8f8;
+  border: 2px solid #f6f8f8;
+  border-radius: 4px;
+  margin: 8px 0 8px 12px;
+  padding: 16px 20px 8px 16px;
+}
+
+.attribute:hover {
+  background-color: #edfcff;
+}
+
+.attr-name {
+  /* display: inline-block; */
+  /* clear: left; */
+  /* min-width: 15%; */
+}
+
+.attribute .doc {
+  margin-top: 8px;
+  font-size: 85%;
+}
+
+.animate-if {
+}
+
+.animate-if.ng-enter, .animate-if.ng-leave {
+  -webkit-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+  transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+}
+
+.animate-if.ng-enter,
+.animate-if.ng-leave.ng-leave-active {
+  opacity:0;
+}
+
+.animate-if.ng-leave,
+.animate-if.ng-enter.ng-enter-active {
+  opacity:1;
+}
+
+/*----------------------------------------------------------------------------*/
 
 .apidoc h1 {
   font-size: 140%;

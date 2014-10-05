@@ -1,13 +1,13 @@
 Doc support
-* properties
-* other values than types, functions
+* Inherited tag.
+* Label items in __all__.
+- Aliases (e.g. asyncore.poll3).
 
 Markup
 * Javadoc.
 * Distinguish packages from modules.
 * Mark built-in / frozen / extension modules.
 * Mark modules part of Python library.
-* Mark protected, private contents.
 - Link Python library modules to docs.
 
 UI
@@ -18,23 +18,25 @@ UI
 * Label inherited contents and where they're inherited from
 * Select inherited contents or not.
 * Show object name in breadcrumbs.
-- Fix tabs.
+* Make check state persistent across navigation.
+* Attribute sort order strategies: declaration, alphabetical, by type.
+- Keyboard shortcuts for check state.
+- Breadcrumb formatting.
 - Move imports to a tab?
-- Show submodules in a better way.
+- Show submodules. (?)
 - Details?
-- Style navigatable links.  Change pointer?
 - Add non-module paths to breadcrumbs.
 - Fix/test inherited attributes.
 - Make module list hierarchical.
 - Make module list collapsible.
 - Create a (push, slide) side menu for modules ("off-canvas sidebar").
-- Add values / other accordion section.
 - Use Ace for code.
-- Make accordian state persistent across navigation.
+- Pretty-print values.
+- Fold up large values.
 
 Integeration
-- Load modules separately.
 - Dynamic inspection + server.
+- Dynamic reload.
 
 Internals
 * Rename package apidoc -> supdoc.
@@ -69,6 +71,11 @@ Done
 * Name.  supdoc!
 * github
 * Resurrect source.
+* properties
+* other values than types, functions
+- Style navigatable links.  Change pointer?
+- Load modules separately.
+* Mark protected, private contents.
 
 ================================================================================
 Some markup seen in the wild:
