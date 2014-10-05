@@ -14,7 +14,7 @@ body {
 
 .code {
   font-family: Cousine;
-  /* font-size: 90%; */
+  /* font-size: 95%; */
   /* letter-spacing: -0.02em; */
 }
 
@@ -50,7 +50,7 @@ dt .value {
   /* color: #218fa2; */
   color: #1f8596;
   font-family: Cousine;
-  font-size: 90%;
+  font-size: 95%;
   padding: 2px 0;
 }
 
@@ -109,7 +109,7 @@ div.labels .label-info:last-child {
 .filename {
   color: #405070;
   font-family: Cousine;
-  font-size: 90%;
+  font-size: 95%;
   /* letter-spacing: -0.02em; */
 }
 
@@ -133,7 +133,7 @@ h1.identifier {
 }
 
 .attribute .parameters {
-  /* font-size: 90%; */
+  /* font-size: 95%; */
 }
 
 .parameter {
@@ -177,10 +177,14 @@ dd.dict-summary {
   padding-bottom: 20px;
 }
 
-.header .subtitle {
+.header .type {
   font-family: Cousine;
   float: right;
+  clear: right;
   color: #b28729;
+}
+
+.header .module {
 }
 
 .header .doc {

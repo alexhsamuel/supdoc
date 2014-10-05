@@ -1,8 +1,9 @@
 <div class="container" ng-controller="ObjectController">
   <div class="header" ng-if="obj">
-    <div class="subtitle">{{obj.type}}</div>
+    <div class="type">{{obj.type}}</div>
     <div class="title">{{obj.name || obj.modname}}<!-- FIXME: DRY --><span class="parameters" ng-if="obj.parameters">(<span ng-repeat="p in obj.parameters"><span class="parameter">{{p.name}}</span><span ng-if="!$last">, </span></span>)</span>
     </div>
+    <div ng-if="obj.name" class="module">in <obj modname="{{obj.modname}}" name="">{{obj.modname}}</obj></div>
     <div class="doc" ng-show="obj.summary || obj.doc">
       <div class="summary">{{obj.summary}}</div>
       <div class="" compile="obj.doc"></div>
