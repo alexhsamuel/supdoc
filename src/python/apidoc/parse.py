@@ -11,8 +11,9 @@ much information as possible.
 import html
 import re
 import sys
+import xml.dom
 
-from   . import htmlgen, base
+from   . import base
 from   .htmlgen import *
 
 #-------------------------------------------------------------------------------
@@ -64,17 +65,22 @@ def get_common_indent(lines):
 
 #-------------------------------------------------------------------------------
 
-OBJ             = htmlgen._make_element("obj")
-DOCTEST         = htmlgen._make_element("doctest")
-PARAMETER       = htmlgen._make_element("parameter")
-IDENTIFIER      = htmlgen._make_element("identifier")
+DOCTEST         = make_element("DOCTEST")
+IDENTIFIER      = make_element("IDENTIFIER")
+OBJ             = make_element("OBJ")
+PARAMETER       = make_element("PARAMETER")
 
 def default_format_identifier(name):
-    return str(IDENTIFIER(name))
+    return IDENTIFIER(name)
 
+
+#-------------------------------------------------------------------------------
 
 # FIXME: Split this up.  Identifier handling elsewhere.
 def parse_doc(doc, format_identifier=default_format_identifier):
+    if isinstance(doc, str):
+        doc = doc.splitlines()
+
     # Split into paragraphs.
     lines = ( l.expandtabs().rstrip() for l in doc )
     pars = join_pars(lines)
@@ -91,12 +97,14 @@ def parse_doc(doc, format_identifier=default_format_identifier):
     # involves parsing docs in a second pass, once the entire symbol table has
     # been discovered.
     def fix_identifiers(par):
-        def id(match):
-            name = match.group(1)
+        def to_id(name):
             if name.endswith("()"):
                 name = name[: -2]
-            return str(format_identifier(name))
-        return re.sub(r"`([^`]*)`", id, par)
+            return format_identifier(name)
+
+        parts = re.split(r"`([^`]*)`", par)
+        parts = [ make_text(p) if i % 2 == 0 else to_id(p) for i, p in enumerate(parts) ]
+        return parts
 
     def to_html(indent, par):
         if len(par) == 2 and len(par[1]) > 1 and all( c == "=" for c in par[1] ):
@@ -104,14 +112,13 @@ def parse_doc(doc, format_identifier=default_format_identifier):
         elif len(par) == 2 and len(par[1]) > 1 and all( c == "-" for c in par[1] ):
             return H2(par[0])
         elif indent > 0 and par[0].startswith(">>>"):
-            return DOCTEST(*par)
+            return DOCTEST(*( l + "\n" for l in par ))
         else:
-            return P(fix_identifiers(" ".join(par)))
+            return P(*fix_identifiers(" ".join(par)))
     
-    summary = fix_identifiers(summary)
-
+    summary = SPAN(*fix_identifiers(summary)).toxml()
     doc = "".join( 
-        to_html(i, p).format(indent="", terminator="\n") 
+        to_html(i, p).toxml()
         for i, p in pars 
     )
     return summary, doc
@@ -130,9 +137,12 @@ def main(argv):
         file = sys.stdin
     else:
         file = open(args.input)
+    lines = list(file)
+    print("".join(lines))
+    print()
     with file:
-        summary, doc = parse_doc(file)
-    print("summary: " + summary)
+        summary, doc = parse_doc(lines)
+    print("summary: " + summary.toxml())
     print()
     print(doc)
 

@@ -5,7 +5,7 @@
     </div>
     <div ng-if="obj.name" class="module">in <obj modname="{{obj.modname}}" name="">{{obj.modname}}</obj></div>
     <div class="doc" ng-show="obj.summary || obj.doc">
-      <div class="summary">{{obj.summary}}</div>
+      <div class="summary" compile="obj.summary"></div>
       <div class="" compile="obj.doc"></div>
     </div>
   </div>
