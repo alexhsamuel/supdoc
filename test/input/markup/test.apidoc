@@ -1,12 +1,14 @@
     Python API documentation extraction and browsing.
 
+    Introduction
+    ============
+
     This package extracts information about objects in Python source code, such
     as classes and functions.  This information is represented as a JSON
     document, which can be served to a web API for browsing.
 
     Finding modules
     ---------------
-
     Use `apidoc.modules` to obtain information about modules in a package
     hierarchy.  
 

@@ -11,7 +11,7 @@ much information as possible.
 import html
 import re
 import sys
-import xml.dom
+from   xml.dom import minidom  # FIXME
 
 from   . import base
 from   .htmlgen import *
@@ -70,58 +70,103 @@ IDENTIFIER      = make_element("IDENTIFIER")
 OBJ             = make_element("OBJ")
 PARAMETER       = make_element("PARAMETER")
 
-def default_format_identifier(name):
-    return IDENTIFIER(name)
-
-
 #-------------------------------------------------------------------------------
 
-# FIXME: Split this up.  Identifier handling elsewhere.
-def parse_doc(doc, format_identifier=default_format_identifier):
-    if isinstance(doc, str):
-        doc = doc.splitlines()
+def replace_children(node, fn, filter=lambda n: True):
+    """
+    Replaces child nodes recursively.
 
+    @param node
+      The node whose children to replace.
+    @param fn
+      The replacement function.  Takes a node, and returns `None`, a single node, or a 
+      sequence of nodes.
+    @param filter
+      A filter function.  Takes a node and returns true if it should be replaced.
+    """
+    for child in tuple(node.childNodes):
+        replace_children(child, fn, filter)
+        if filter(child):
+            replacement = fn(child)
+            if replacement is None:
+                node.removeChild(child)
+            elif isinstance(replacement, minidom.Node):
+                node.replaceChild(child, replacement)
+            else:
+                for r in replacement:
+                    node.insertBefore(r, child)
+                node.removeChild(child)
+
+
+def find_identifiers(node):
+    """
+    Finds identifiers recursively and puts them into `IDENTIFIER` elements.
+
+    Looks for identifiers indicated in back quotes.
+    """
+    def to_id(name):
+        if name.endswith("()"):
+            name = name[: -2]
+        return IDENTIFIER(name)
+
+    def replacement(node):
+        return [
+            to_id(p[1 : -1]) if p.startswith("`") and p.endswith("`")
+            else make_text(p)
+            for p in re.split(r"(`[^`]*`)", node.data)
+            ]
+
+    replace_children(node, replacement, lambda n: isinstance(n, minidom.Text))
+
+
+def parse_doc(source):
     # Split into paragraphs.
-    lines = ( l.expandtabs().rstrip() for l in doc )
+    lines = ( l.expandtabs().rstrip() for l in source.splitlines() )
     pars = join_pars(lines)
 
-    pars = list(pars)
-    summary = " ".join( l.strip() for l in pars.pop(0) )
+    # The first paragraph is the summary.
+    summary = next(pars)
+    summary = SPAN(" ".join( l.lstrip() for l in summary ))
 
     # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ]
     min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
-    pars = [ (i - min_indent, p) for i, p in pars ]
+    pars = ( (i - min_indent, p) for i, p in pars )
 
-    # FIXME: Replace this with real identifier resolution.  That probably
-    # involves parsing docs in a second pass, once the entire symbol table has
-    # been discovered.
-    def fix_identifiers(par):
-        def to_id(name):
-            if name.endswith("()"):
-                name = name[: -2]
-            return format_identifier(name)
+    def generate():
+        for indent, par in pars:
+            # Look for underlined headers.
+            if len(par) >= 2:
+                line0, line1, *rest = par
+                if len(line0) > 1 and len(line1) == len(line0):
+                    if all( c == "=" for c in line1 ):
+                        yield H1(line0)
+                        par = rest
+                    elif all( c == "-" for c in line1 ):
+                        yield H2(line0)
+                        par = rest
 
-        parts = re.split(r"`([^`]*)`", par)
-        parts = [ make_text(p) if i % 2 == 0 else to_id(p) for i, p in enumerate(parts) ]
-        return parts
+            # Look for doctests.
+            # FIXME: Look for more indentation than the previous par.
+            if indent > 0 and len(par) >= 1 and par[0].startswith(">>>"):
+                yield DOCTEST("\n".join(par))
+                continue
 
-    def to_html(indent, par):
-        if len(par) == 2 and len(par[1]) > 1 and all( c == "=" for c in par[1] ):
-            return H1(par[0])
-        elif len(par) == 2 and len(par[1]) > 1 and all( c == "-" for c in par[1] ):
-            return H2(par[0])
-        elif indent > 0 and par[0].startswith(">>>"):
-            return DOCTEST(*( l + "\n" for l in par ))
-        else:
-            return P(*fix_identifiers(" ".join(par)))
+            if len(par) > 0:
+                yield P(" ".join(par))
+
+    body = DIV(*generate())
+    find_identifiers(body)
+
+    return summary, body
     
-    summary = SPAN(*fix_identifiers(summary)).toxml()
-    doc = "".join( 
-        to_html(i, p).toxml()
-        for i, p in pars 
-    )
-    return summary, doc
+
+
+def open_arg(name):
+    if name == "-":
+        return sys.stdin
+    else:
+        return open(name)
 
 
 def main(argv):
@@ -133,18 +178,13 @@ def main(argv):
         help="input file; - for stdin")
     args = parser.parse_args(argv[1 :])
 
-    if args.input == "-":
-        file = sys.stdin
-    else:
-        file = open(args.input)
-    lines = list(file)
-    print("".join(lines))
+    with open_arg(args.input) as file:
+        source = file.read()
+    print(source)
     print()
-    with file:
-        summary, doc = parse_doc(lines)
-    print("summary: " + summary.toxml())
-    print()
-    print(doc)
+    summary, doc = parse_doc(source)
+    print(summary.toprettyxml(" "))
+    print(doc.toprettyxml(" "))
 
 
 if __name__ == "__main__":
