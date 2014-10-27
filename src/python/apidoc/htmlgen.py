@@ -26,7 +26,7 @@ def make_element(tag):
 
     make_element.__name__ = tag
     return make_element
-        
+
 
 def make_text(text):
     element = minidom.Text()
