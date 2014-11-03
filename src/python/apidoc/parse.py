@@ -69,6 +69,7 @@ DOCTEST         = make_element("DOCTEST")
 IDENTIFIER      = make_element("IDENTIFIER")
 OBJ             = make_element("OBJ")
 PARAMETER       = make_element("PARAMETER")
+JAVADOC         = make_element("JAVADOC")
 
 #-------------------------------------------------------------------------------
 
@@ -98,6 +99,9 @@ def replace_children(node, fn, filter=lambda n: True):
                 node.removeChild(child)
 
 
+is_text_node = lambda n: isinstance(n, minidom.Text)
+
+
 def find_identifiers(node):
     """
     Finds identifiers recursively and puts them into `IDENTIFIER` elements.
@@ -116,7 +120,51 @@ def find_identifiers(node):
             for p in re.split(r"(`[^`]*`)", node.data)
             ]
 
-    replace_children(node, replacement, lambda n: isinstance(n, minidom.Text))
+    replace_children(node, replacement, is_text_node)
+
+
+JAVADOC_ARG_TAGS = frozenset({
+    "param",
+    "type",
+    })
+
+
+def find_javadoc(lines):
+    """
+    Finds and separates Javadoc-style tags.
+    """
+    javadoc = []
+
+    def filter():
+        tag = None
+        for line in lines:
+            l = line.strip()
+            first, rest = l.split(None, 1)
+            if first.startswith("@") and len(first) > 1:
+                if tag is not None:
+                    # Done with the previous tag.
+                    javadoc.append((tag, arg, " ".join(text)))
+                tag = first[1 :]
+                # Some tags take an argument.
+                if tag in JAVADOC_ARG_TAGS and len(rest) > 0:
+                    words = rest.split(None, 1)
+                    if len(words) == 1:
+                        arg, = words
+                        rest = ""
+                    else:
+                        arg, rest = words
+                else:
+                    arg = None
+                text = [rest] if len(rest) > 0 else []
+                indent = get_indent(line)
+            elif tag is not None and get_indent(line) >= indent:
+                text.append(l)
+            else:
+                yield line
+        if tag is not None:
+            javadoc.append((tag, arg, " ".join(text)))
+    
+    return list(filter()), javadoc
 
 
 def parse_doc(source):
@@ -132,6 +180,10 @@ def parse_doc(source):
     pars = [ get_common_indent(p) for p in pars ]
     min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
     pars = ( (i - min_indent, p) for i, p in pars )
+
+    indents, pars, javadoc = zip(*[ (i, ) + find_javadoc(p) for i, p in pars ])
+    pars = zip(indents, pars)
+    javadoc = sum(javadoc, [])
 
     def generate():
         for indent, par in pars:
@@ -153,9 +205,15 @@ def parse_doc(source):
                 continue
 
             if len(par) > 0:
-                yield P(" ".join(par))
+                yield P(" ".join( p.strip() for p in par ))
 
     body = DIV(*generate())
+    for tag, arg, text in javadoc:
+        element = JAVADOC(text, tag=tag)
+        if arg is not None:
+            element.setAttribute("argument", arg)
+        body.appendChild(element)
+
     find_identifiers(body)
 
     return summary, body

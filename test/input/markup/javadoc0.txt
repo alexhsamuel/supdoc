@@ -1,0 +1,9 @@
+Replaces child nodes recursively.
+
+    @param node
+      The node whose children to replace.
+    @param fn
+      The replacement function.  Takes a node, and returns `None`, a single node, or a 
+      sequence of nodes.
+    @param filter
+      A filter function.  Takes a node and returns true if it should be replaced.
