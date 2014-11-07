@@ -318,6 +318,19 @@ div.attributes {
   font-size: 85%;
 }
 
+.javadoc dt::before {
+  content: "\2022";
+  padding-right: 0.5em;
+}
+
+.javadoc dt {
+  font-weight: normal;
+}
+
+.javadoc dd {
+  margin-left: 1em;
+}
+
 .animate-if {
 }
 

@@ -191,11 +191,12 @@ def _get_doc(obj, contexts):
         if doc is None or doc.strip() == "":
             return {}
         else:
-            summary, doc = parse.parse_doc(
-                doc, lambda n: _format_identifier(n, contexts))
+            # summary, doc = parse.parse_doc(
+            #     doc, lambda n: _format_identifier(n, contexts))
+            summary, doc = parse.parse_doc(doc)
             return {
-                "summary": summary,
-                "doc": doc,
+                "summary": summary.toxml(),
+                "doc": doc.toxml(),
             }
     else:
         return {}

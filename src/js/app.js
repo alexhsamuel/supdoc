@@ -324,6 +324,23 @@ App.directive(
     }
   })
 
+// Javadoc-style @ tag.
+App.directive(
+  'tag',
+  function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      replace: true,
+      scope: {
+        tag: '@',
+        argument: '@'
+      },
+      template: '<span><dt>{{tag}} <a class="identifier">{{argument}}</a></dt><dd ng-transclude></dd></span>'
+    }
+  })
+
+
 // Includes HTML + dynamic (live) AngularJS markup into the DOM.
 //
 // Usage:

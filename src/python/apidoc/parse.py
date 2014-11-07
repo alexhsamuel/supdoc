@@ -69,7 +69,7 @@ DOCTEST         = make_element("DOCTEST")
 IDENTIFIER      = make_element("IDENTIFIER")
 OBJ             = make_element("OBJ")
 PARAMETER       = make_element("PARAMETER")
-JAVADOC         = make_element("JAVADOC")
+TAG             = make_element("TAG")
 
 #-------------------------------------------------------------------------------
 
@@ -139,7 +139,10 @@ def find_javadoc(lines):
         tag = None
         for line in lines:
             l = line.strip()
-            first, rest = l.split(None, 1)
+            try:
+                first, rest = l.split(None, 1)
+            except ValueError:
+                first, rest = l, ""
             if first.startswith("@") and len(first) > 1:
                 if tag is not None:
                     # Done with the previous tag.
@@ -181,7 +184,8 @@ def parse_doc(source):
     min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
     pars = ( (i - min_indent, p) for i, p in pars )
 
-    indents, pars, javadoc = zip(*[ (i, ) + find_javadoc(p) for i, p in pars ])
+    p = [ (i, ) + find_javadoc(p) for i, p in pars ]
+    indents, pars, javadoc = zip(*p) if len(p) > 0 else ([], [], [])
     pars = zip(indents, pars)
     javadoc = sum(javadoc, [])
 
@@ -208,16 +212,20 @@ def parse_doc(source):
                 yield P(" ".join( p.strip() for p in par ))
 
     body = DIV(*generate())
-    for tag, arg, text in javadoc:
-        element = JAVADOC(text, tag=tag)
-        if arg is not None:
-            element.setAttribute("argument", arg)
-        body.appendChild(element)
+
+    # Attach Javadoc-style tags.
+    if len(javadoc) > 0:
+        container = DL(class_="javadoc")
+        for tag, arg, text in javadoc:
+            element = TAG(text, tag=tag)
+            if arg is not None:
+                element.setAttribute("argument", arg)
+            container.appendChild(element)
+        body.appendChild(container)
 
     find_identifiers(body)
 
     return summary, body
-    
 
 
 def open_arg(name):

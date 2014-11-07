@@ -21,6 +21,8 @@ def make_element(tag):
             assert isinstance(child, minidom.Node)
             element.appendChild(child)
         for name, value in attrs.items():
+            if name == "class_":
+                name = "class"
             element.setAttribute(name, value)
         return element
 
@@ -37,7 +39,10 @@ def make_text(text):
 _ELEMENT_NAMES = (
     "A",
     "BODY",
+    "DD",
     "DIV",
+    "DL",
+    "DT",
     "EM",
     "HEAD",
     "HTML",
