@@ -111,13 +111,13 @@ def find_identifiers(node):
     def to_id(name):
         if name.endswith("()"):
             name = name[: -2]
-        return IDENTIFIER(name)
+        return OBJ(name)
 
     def replacement(node):
         return [
-            to_id(p[1 : -1]) if p.startswith("`") and p.endswith("`")
+            to_id(p.strip("`")) if p.startswith("`") and p.endswith("`")
             else make_text(p)
-            for p in re.split(r"(`[^`]*`)", node.data)
+            for p in re.split(r"(``?[^`]*``?)", node.data)
             ]
 
     replace_children(node, replacement, is_text_node)
