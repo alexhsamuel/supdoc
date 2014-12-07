@@ -56,6 +56,7 @@ _ELEMENT_NAMES = (
     "SPAN",
     "STYLE",
     "TITLE",
+    "TT",
     "UL",
     ) + tuple( "H{}".format(i) for i in range(1, 10) )
 

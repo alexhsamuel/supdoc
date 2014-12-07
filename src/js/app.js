@@ -336,7 +336,7 @@ App.directive(
         tag: '@',
         argument: '@'
       },
-      template: '<span><dt>{{tag}} <a class="identifier">{{argument}}</a></dt><dd ng-transclude></dd></span>'
+      template: '<span><dt><span class="identifier">{{tag}}</span> <a class="identifier">{{argument}}</a></dt><dd ng-transclude></dd></span>'
     }
   })
 

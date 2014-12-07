@@ -184,13 +184,20 @@ def parse_doc(source):
     min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
     pars = ( (i - min_indent, p) for i, p in pars )
 
-    p = [ (i, ) + find_javadoc(p) for i, p in pars ]
-    indents, pars, javadoc = zip(*p) if len(p) > 0 else ([], [], [])
-    pars = zip(indents, pars)
-    javadoc = sum(javadoc, [])
+    # FIXME
+    if False:
+        p = [ (i, ) + find_javadoc(p) for i, p in pars ]
+        indents, pars, javadoc = zip(*p) if len(p) > 0 else ([], [], [])
+        pars = zip(indents, pars)
+        javadoc = sum(javadoc, [])
+    else:
+        javadoc = []
 
-    def generate():
-        for indent, par in pars:
+    def generate(pars):
+        pars = base.QIter(pars)
+        while True:
+            indent, par = next(pars)
+
             # Look for underlined headers.
             if len(par) >= 2:
                 line0, line1, *rest = par
@@ -211,7 +218,34 @@ def parse_doc(source):
             if len(par) > 0:
                 yield P(" ".join( p.strip() for p in par ))
 
-    body = DIV(*generate())
+            print("PAR ENDS WITH", par[-1].rstrip()[-1])
+            if par[-1].rstrip().endswith(":"):
+                text = []
+                for i, p in pars:
+                    print("SUBPAR", i, indent)
+                    if i > indent:
+                        text.extend(p)
+                    else:
+                        pars.push((i, p))
+                        break
+                print("TEXT IS", text)
+                if len(text) > 0:
+                    # FIXME: Use a better tag for this.
+                    print("TT DONE!", text)
+                    yield TT("\n".join(text))
+
+    # body = DIV(*generate(pars))
+    pp = tuple(generate(pars))
+    print("-" * 80)
+    print(summary.toxml())
+    print("PP:")
+    for p in pp:
+        print(p.toxml())
+    body = DIV(*pp)
+    print("-" * 80)
+    print(body.toxml())
+    print("-" * 80)
+    print(); print()
 
     # Attach Javadoc-style tags.
     if len(javadoc) > 0:
