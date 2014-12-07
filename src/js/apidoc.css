@@ -18,6 +18,359 @@ body {
   /* letter-spacing: -0.02em; */
 }
 
+pre.code {
+  white-space: pre;
+  background-color: #f0f0f0;
+  padding: 1em;
+  spacing: 0 1em;
+  border: none;
+}
+
+h3.source {
+  color: white;
+  background-color: #25b247;
+  border: 2px solid #25b247;
+  border-radius: 0 4px 0 0;  
+  padding: 12px 12px;
+  font-size: 20px;
+  margin-bottom: 0;
+}
+
+div.source {
+  border-left: 4px solid #25b247;
+  border-radius: 4px 0 0 0;
+}
+
+.source pre {
+  border: none;
+  padding: 20px;
+  font-family: Cousine;
+  line-height: 1.2;
+}
+
+dt .value {
+  color: #687d78;
+  font-weight: normal;
+}
+
+.identifier {
+  /* color: #259eb2; */
+  /* color: #218fa2; */
+  color: #1f8596;
+  font-family: Cousine;
+  font-size: 95%;
+  padding: 2px 0;
+}
+
+a:link {
+  color: #259eb2;
+}
+
+a.identifier:visited {
+  color: #259eb2;
+}
+
+a.identifier:hover {
+  color: #1f8596;
+  text-decoration: none; 
+  border-bottom: 2px dotted #1f8596;
+  padding: 2px 0 0 0;
+}
+
+.import {
+  font-size: 12px;
+}
+
+.import .arrow {
+  padding: 0 8px 0 0;
+  font-weight: bold;
+}
+
+.type {
+  color: #b28729;
+  float: right;
+}
+
+div.labels {
+  float: right;
+  clear: both;
+}
+
+.label-info {
+  /* color: #606030; */
+  /* background-color: #fffb00; */
+  padding-top: 3px;
+  padding-bottom: 1px;
+  color: white;
+  background-color: #b28729;
+  margin: 0 2px;
+}
+
+div.labels .label-info:last-child {
+  margin-right: 0;
+}
+
+.import-module {
+  color: #8a9995;
+}
+
+.filename {
+  color: #405070;
+  font-family: Cousine;
+  font-size: 95%;
+  /* letter-spacing: -0.02em; */
+}
+
+h1.identifier {
+  font-size: 2.6em;
+}
+
+.title {
+  font-size: 2.6em;
+  margin-top: 12px;
+  margin-bottom: 10px;
+  line-height: 0.75;
+}
+
+.parameters {
+  color: black;
+  font-family: Cousine;
+  font-weight: normal;
+  letter-spacing: -0.01em;
+  white-space-collapse: true;
+}
+
+.attribute .parameters {
+  /* font-size: 95%; */
+}
+
+.parameter {
+}
+
+td.dict-summary {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 1em;
+  padding-right: 0;
+}
+
+dl {
+  margin-bottom: 4px;
+}
+
+dt.dict-summary {
+  clear: left;
+}
+
+dd.dict-summary {
+  margin-left: 1.5em;
+}
+
+.summary {
+  font-style: italic;
+}
+
+/*------------------------------------------------------------------------------
+  object header
+------------------------------------------------------------------------------*/
+
+.header {
+  margin-top: 32px;
+  margin-bottom: 40px;
+}
+
+.header .title {
+  font-family: Cousine;
+  letter-spacing: -0.03em;
+  padding-bottom: 20px;
+}
+
+.header .type {
+  font-family: Cousine;
+  float: right;
+  clear: right;
+  color: #b28729;
+}
+
+.header .module {
+}
+
+.header .doc {
+  /* padding: 16px 12px 16px 12px; */
+  /* background-color: #dcfbff; */
+}
+
+.header .doc .summary {
+  font-size: 130%;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.doc h2 {
+  font-size: 115%;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+/*----------------------------------------------------------------------------*/
+/* http://stackoverflow.com/questions/18325779/bootstrap-3-collapse-show-state-with-chevron-icon */
+
+.panel-heading .accordion-toggle:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\e114\00a0";    /* adjust as needed, taken from bootstrap.css */
+    float: left;        /* adjust as needed */
+    color: grey;         /* adjust as needed */
+}
+.panel-heading .accordion-toggle.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e080\00a0";    /* adjust as needed, taken from bootstrap.css */
+}
+
+/*----------------------------------------------------------------------------*/
+
+.animate-show {
+  -webkit-transition:all linear 0.5s;
+  transition:all linear 0.5s;
+}
+ 
+.animate-show.ng-hide-add,
+.animate-show.ng-hide-remove {
+  display:block!important;
+}
+ 
+.animate-show.ng-hide {
+  line-height:0;
+  opacity:0;
+  padding:0 10px;
+}
+
+/* These are to format the FQ name in the navbar.  */
+
+.navbar-fixed-top {
+  border: none;
+}
+
+.navbar-inverse {
+  background-color: #ffaf00;
+  background-image: none;
+}
+
+.navbar-inverse .navbar-brand {
+  color: white;
+}
+
+.navbar-brand {
+  padding-right: 0px;
+}
+
+.nav-moduleName>li>a {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.nav-moduleName>li>a:before {
+  content: "\2022";
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.nav-moduleName.first>li>a:before {
+  content: "";
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+h3.attributes {
+  color: white;
+  background-color: #259eb2;
+  border: 2px solid #259eb2;
+  border-radius: 0 4px 4px 0;  
+  padding: 12px 12px;
+  font-size: 20px;
+}
+
+h3.attributes .check-boxes {
+  float: right;
+}
+
+h3.attributes .check-boxes .btn {
+  background-image: none;
+}
+
+div.attributes {
+  border-left: 4px solid #259eb2;
+  border-radius: 4px 0 0 0;
+}
+
+.attribute {
+  background-color: #f6f8f8;
+  border: 2px solid #f6f8f8;
+  border-radius: 4px;
+  margin: 8px 0 8px 12px;
+  padding: 16px 20px 8px 16px;
+}
+
+.attribute:hover {
+  background-color: #edfcff;
+}
+
+.attr-name {
+  /* display: inline-block; */
+  /* clear: left; */
+  /* min-width: 15%; */
+}
+
+.attribute .doc {
+  margin-top: 8px;
+  font-size: 85%;
+}
+
+.javadoc dt::before {
+  content: "\2022";
+  padding-right: 0.5em;
+}
+
+.javadoc dt {
+  font-weight: normal;
+}
+
+.javadoc dd {
+  margin-left: 1em;
+}
+
+.animate-if {
+}
+
+.animate-if.ng-enter, .animate-if.ng-leave {
+  -webkit-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+  transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+}
+
+.animate-if.ng-enter,
+.animate-if.ng-leave.ng-leave-active {
+  opacity:0;
+}
+
+.animate-if.ng-leave,
+.animate-if.ng-enter.ng-enter-active {
+  opacity:1;
+}
+
+/*----------------------------------------------------------------------------*/
+
+.apidoc h1 {
+  font-size: 140%;
+  font-weight: normal;
+  margin-top: 28px;
+}
+
+.apidoc h2 {
+  font-size: 120%;
+  font-weight: normal;
+  margin-top: 24px;
+}
+
 h3.source {
   color: white;
   background-color: #25b247;

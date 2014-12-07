@@ -218,7 +218,6 @@ def parse_doc(source):
             if len(par) > 0:
                 yield P(" ".join( p.strip() for p in par ))
 
-            print("PAR ENDS WITH", par[-1].rstrip()[-1])
             if par[-1].rstrip().endswith(":"):
                 text = []
                 for i, p in pars:
@@ -228,11 +227,9 @@ def parse_doc(source):
                     else:
                         pars.push((i, p))
                         break
-                print("TEXT IS", text)
                 if len(text) > 0:
                     # FIXME: Use a better tag for this.
-                    print("TT DONE!", text)
-                    yield TT("\n".join(text))
+                    yield PRE("\n".join(text), class_="code")
 
     # body = DIV(*generate(pars))
     pp = tuple(generate(pars))
@@ -268,6 +265,8 @@ def open_arg(name):
     else:
         return open(name)
 
+
+#-------------------------------------------------------------------------------
 
 def main(argv):
     import argparse
