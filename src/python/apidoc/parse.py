@@ -80,10 +80,11 @@ def replace_children(node, fn, filter=lambda n: True):
     @param node
       The node whose children to replace.
     @param fn
-      The replacement function.  Takes a node, and returns `None`, a single node, or a 
-      sequence of nodes.
+      The replacement function.  Takes a node, and returns `None`, a single 
+      node, or a sequence of nodes.
     @param filter
-      A filter function.  Takes a node and returns true if it should be replaced.
+      A filter function.  Takes a node and returns true if it should be 
+      replaced.
     """
     for child in tuple(node.childNodes):
         replace_children(child, fn, filter)
@@ -231,18 +232,7 @@ def parse_doc(source):
                     # FIXME: Use a better tag for this.
                     yield PRE("\n".join(text), class_="code")
 
-    # body = DIV(*generate(pars))
-    pp = tuple(generate(pars))
-    print("-" * 80)
-    print(summary.toxml())
-    print("PP:")
-    for p in pp:
-        print(p.toxml())
-    body = DIV(*pp)
-    print("-" * 80)
-    print(body.toxml())
-    print("-" * 80)
-    print(); print()
+    body = DIV(*generate(pars))
 
     # Attach Javadoc-style tags.
     if len(javadoc) > 0:
