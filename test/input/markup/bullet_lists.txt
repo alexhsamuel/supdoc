@@ -1,0 +1,105 @@
+Here is the first bullet list.
+
+  - Item 0.
+
+  - Item 1.
+
+  - Item 2.
+
+Here is the second bullet list.  This contains multiline items, which are
+indentent.
+
+  - Item 0.  
+
+  - Item 1.  This is a very long item.  It extends past the first line and into
+    the second line.
+
+  - Item 2.  This is another long item.  It, too, extends past the first line 
+    and into the second line.  Unlike the previous item, it goes on and on and
+    event makes it to the third line.
+
+Here is the third bullet list.  This contains multiline items, which are
+not indentent.
+
+  - Item 0.  
+
+  - Item 1.  This is a very long item.  It extends past the first line and into
+  the second line.
+
+  - Item 2.  This is another long item.  It, too, extends past the first line 
+  and into the second line.  Unlike the previous item, it goes on and on and
+  event makes it to the third line.
+
+Here is the fourth bullet list.  It's like the second but the items are not
+indented.
+
+- Item 0.  
+
+- Item 1.  This is a very long item.  It extends past the first line and into
+  the second line.
+
+- Item 2.  This is another long item.  It, too, extends past the first line 
+  and into the second line.  Unlike the previous item, it goes on and on and
+  event makes it to the third line.
+
+Here is the fifth bullet list.  It's like the third but the items are a whole
+are not indented.
+
+- Item 0.  
+
+- Item 1.  This is a very long item.  It extends past the first line and into
+the second line.
+
+- Item 2.  This is another long item.  It, too, extends past the first line 
+and into the second line.  Unlike the previous item, it goes on and on and
+event makes it to the third line.
+
+Here is the sixth bullet list.  It's like the second but without newlines.
+  - Item 0.  
+  - Item 1.  This is a very long item.  It extends past the first line and into
+    the second line.
+  - Item 2.  This is another long item.  It, too, extends past the first line 
+    and into the second line.  Unlike the previous item, it goes on and on and
+    event makes it to the third line.
+Here is the seventh bullet list.  It's like the sixth but not subsequent lines
+not indented.
+  - Item 0.  
+  - Item 1.  This is a very long item.  It extends past the first line and into
+  the second line.
+  - Item 2.  This is another long item.  It, too, extends past the first line 
+  and into the second line.  Unlike the previous item, it goes on and on and
+  event makes it to the third line.
+
+  Is this part of item2?  Not sure.  Probably not.
+Here is the eight.  It's like the sixth but no overall indentation.
+- Item 0.  
+- Item 1.  This is a very long item.  It extends past the first line and into
+  the second line.
+- Item 2.  This is another long item.  It, too, extends past the first line 
+  and into the second line.  Unlike the previous item, it goes on and on and
+  event makes it to the third line.
+And finally, the ninth, which removes the item indentation.
+- Item 0.  
+- Item 1.  This is a very long item.  It extends past the first line and into
+the second line.
+- Item 2.  This is another long item.  It, too, extends past the first line 
+and into the second line.  Unlike the previous item, it goes on and on and
+event makes it to the third line.
+In this case I have no idea how to tell that the last item is finished.
+
+This line is definitely not in a bullet list.
+
+Here is a nested bullet list.
+
+- Level 0 item 0
+- Level 0 item 1 blahblahblahblah blahblahblahblah blahblahblahblah 
+  blahblahblahblah blahblahblahblah
+  - Level 1 item 0
+  - Level 1 item 1 blahblahblahblah blahblahblahblah blahblahblahblah
+  blahblahblahblah blahblahblahblah
+  - Level 1 item 2
+- Level 0 item 2
+- Level 0 item 3
+  - Level 1b item 0
+    - Level 2 item 0
+  - Level 1b item 1
