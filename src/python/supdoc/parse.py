@@ -114,6 +114,12 @@ def format_block(block, indent=0):
 
 
 def walk(block, fn, pre=False):
+    """
+    Applies `fn` to a block and its children.
+
+    @param pre
+      If true, applies pre-order, else post-order.
+    """
     if pre:
         fn(block)
     for obj in block.content:
@@ -144,16 +150,34 @@ def split_indent(block):
 
 
 def split_paragraphs(block):
-    par = []
-    pars = [par]
-    for obj in block:
-        if isinstance(obj, Text) and obj.empty:
-            # New paragraph.
-            par = []
-            pars.append(par)
-        else:
-            par.append(obj)
-    block.content = [ Block(tag='P', content=p) for p in pars if len(p) > 0 ]
+    """
+    Combines text in block contents into paragraphs.
+    """
+    # Break block contents into paragraphs by blank lines.
+    def gen():
+        par = []
+        for obj in block:
+            if isinstance(obj, Text) and obj.empty:
+                # New paragraph.
+                yield par
+                par = []
+            else:
+                par.append(obj)
+        yield par
+
+    # Combine paragraphs.  
+    def finish():
+        for par in gen():
+            if len(par) == 0:
+                continue
+            elif any( isinstance(o, Text) for o in par ):
+                # Paragraph contains text.  Use a P element.
+                yield Block(par, tag='P')
+            else:
+                # Doesn't contain text; don't wrap it.
+                yield from par
+
+    block[:] = finish()
 
 
 def get_bullet(obj):
@@ -176,6 +200,9 @@ def get_bullet(obj):
 
 
 def split_bullet_list(block):
+    """
+    Finds and assembles bullet lists in block contents.
+    """
     # Look for bullet lists that satisfy:
     # - Each bullet is the same.
     # - The indentation of each bullet matches the first.
