@@ -53,7 +53,10 @@ class Block:
         self.classes = set(classes)
         self.attrs = dict(attrs)
 
-        self.indent = min(inot_none( o.indent for o in self ))
+        self.indent = (
+            0 if len(self.content) == 0 
+            else min(inot_none( o.indent for o in self ))
+            )
 
 
     def __len__(self):
@@ -133,20 +136,26 @@ def walk(block, fn, pre=False):
 
 def split_indent(block):
     def gen():
-        split = []
+        base_indent = block.indent
+        div = None
+
         for obj in block:
-            if len(split) == 0:
-                split.append(obj)
-                indent = obj.indent
-            elif obj.indent in (None, indent):
-                split.append(obj)
+            if obj.indent == base_indent:
+                if div is not None:
+                    # No longer indented.  End this DIV.
+                    yield div
+                    div = None
+                yield obj
             else:
-                yield split
-                split = [obj]
-        if len(split) > 0:
-            yield split
+                if div is None:
+                    # Start a new DIV.
+                    div = Block(tag='DIV')
+                div.append(obj)
+
+        if div is not None:
+            yield div
                 
-    block[:] = ( s[0] if len(s) == 1 else Block(s) for s in gen() )
+    block[:] = gen()
 
 
 def split_paragraphs(block):
@@ -180,6 +189,52 @@ def split_paragraphs(block):
     block[:] = finish()
 
 
+def split_doctest(block):
+    if (isinstance(block, Block) 
+        and len(block) > 0 
+        and isinstance(block[0], Text)
+        and block[0].text.startswith('>>> ')):
+        block.tag = 'DOCTEST'
+
+
+def split_blocks(block):
+    base_indent = block.indent
+
+    def gen(objs):
+        block = None
+        for obj in objs:
+            if isinstance(obj, Text) and obj.empty:
+                # Blank line.
+                if block is None:
+                    # Ignore it.
+                    continue
+                elif block.indent == base_indent:
+                    # End the paragraph.
+                    yield block
+                    block = None
+                    continue
+
+            if (block is not None 
+                and ((obj.indent == base_indent) 
+                     ^ (block.indent == base_indent))):
+                yield block
+                block = None
+
+            if block is None:
+                block = Block(tag='P' if obj.indent == base_indent else 'DIV')
+            block.append(obj)
+
+        if block is not None:
+            yield block
+
+    block[:] = gen(block)
+
+
+def split(block):
+    split_doctest(block)
+    split_blocks(block)
+
+
 def get_bullet(obj):
     """
     If `obj` is a `Text` and starts with a bullet, separates it.
@@ -202,13 +257,13 @@ def get_bullet(obj):
 def split_bullet_list(block):
     """
     Finds and assembles bullet lists in block contents.
-    """
-    # Look for bullet lists that satisfy:
-    # - Each bullet is the same.
-    # - The indentation of each bullet matches the first.
-    # - Continuation lines are indented at least as much.
-    # - If continuation lines are not indented, they end at blanks.
 
+    Look for bullet lists that satisfy:
+    - Each bullet is the same.
+    - The indentation of each bullet matches the first.
+    - Continuation lines are indented at least as much.
+    - If continuation lines are not indented, they end at blanks.
+    """
     def gen():
         ul = None
         at_blank = False
@@ -261,7 +316,7 @@ def split_bullet_list(block):
 #-------------------------------------------------------------------------------
 
 def get():
-    with open("/Users/samuel/dev/supdoc/test/input/markup/bullet_lists.txt") as file:
+    with open("/Users/samuel/dev/supdoc/test/input/markup/doctest0.txt") as file:
         return Block(content=[ Text(l) for l in file.read().splitlines() ])
 
 
