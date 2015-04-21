@@ -10,6 +10,9 @@ import types
 
 #-------------------------------------------------------------------------------
 
+# Maximum length of an object repr to store.
+MAX_REPR_LENGTH = 65536
+
 # Identifiers that are implementation details.
 INTERNAL_NAMES = {
     "__all__",  # FIXME: Indicate this somehow.
@@ -209,9 +212,11 @@ def _inspect(obj, inspect_path):
         jso["type"] = _make_ref(type_path)
     jso["type_name"] = type(obj).__name__
     try:
-        jso["repr"] = repr(obj)
+        obj_repr = repr(obj)
     except Exception:
         log.warning("failed to get repr: {}".format(traceback.format_exc()))
+    else:
+        jso["repr"] = obj_repr[: MAX_REPR_LENGTH]
 
     try:
         name = obj.__name__
