@@ -58,31 +58,44 @@ DOCSTRING_TYPES = (
 
 #-------------------------------------------------------------------------------
 
-Path = collections.namedtuple("Path", ("module", "qualname"))
+class Path(collections.namedtuple("Path", ("module", "qualname"))):
 
-def _get_path(obj):
-    """
-    Returns the path reported by an object.
-    """
-    if isinstance(obj, types.ModuleType):
+    @classmethod
+    def of(class_, obj):
+        """
+        Returns the path reported by an object.
+        """
+        if isinstance(obj, types.ModuleType):
+            try:
+                name = obj.__name__
+            except AttributeError:
+                return None
+            else:
+                if name is not None:
+                    return class_(name, None)
+
         try:
-            name = obj.__name__
+            module = obj.__module__
+            qualname = obj.__qualname__
         except AttributeError:
             pass
         else:
-            if name is not None:
-                return Path(name, None)
+            if module is not None:
+                return class_(module, qualname)
 
-    try:
-        module = obj.__module__
-        qualname = obj.__qualname__
-    except AttributeError:
-        pass
-    else:
-        if module is not None:
-            return Path(module, qualname)
+        return None
 
-    return None
+
+    def mangle(self):
+        if self.qualname is None:
+            raise ValueError("no qualname")
+        parts = self.qualname.split(".")
+        if len(parts) < 2 or not parts[-1].startswith("__"):
+            raise ValueError("not a private name")
+        else:
+            mangled = ".".join(parts[: -1]) + "._" + parts[-2] + parts[-1]
+            return self.__class__(self.module, mangled)
+
 
 
 def import_(name):
@@ -110,13 +123,19 @@ def look_up(name, obj):
     return result
 
 
-def import_path(path):
+def resolve(path):
     module = import_(path.module)
     return module if path.qualname is None else look_up(path.qualname, module)
 
 
+_ref_modules = set()
+_orphans = {}
+
+
 def _make_ref(path):
     assert path is not None
+
+    _ref_modules.add(path.module)
 
     ref = "#/modules/" + path.module
     if path.qualname is not None:
@@ -124,23 +143,68 @@ def _make_ref(path):
     return {"$ref": ref}
 
 
+# FIXME: Not used.
+def is_imposter(obj):
+    """
+    Returns true if `obj` has a path that doesn't resolve back to it.
+    """
+    path = Path.of(obj)
+    if path is None:
+        # Doesn't carry its own path.
+        return False
+    try:
+        resolved_obj = resolve(path)
+    except AttributeError:
+        # Doesn't resolve to anything.
+        return True
+    # Does the path resolve back to the object?
+    return resolved_obj is not obj
+
+
+def is_mangled(obj):
+    """
+    Returns true if `obj` has a mangled private name.
+    """
+    # Check by constructing the mangled path, resolving that, and comparing.
+    path = Path.of(obj)
+    if path is None:
+        # Doesn't carry its own path.
+        return False
+    try:
+        mangled_path = path.mangle()
+    except ValueError:
+        # Doesn't have a private name.
+        return False
+    try:
+        resolved_obj = resolve(mangled_path)
+    except AttributeError:
+        # Nothing at the mangled path.
+        return False
+    else:
+        # Does the mangled path resolve back to the object?
+        return resolved_obj is obj
+
+
 def _inspect(obj, inspect_path):
     logging.info("_inspect({!r}, {!r})".format(obj, inspect_path))
-    path = _get_path(obj)
+
+    mangled = is_mangled(obj)
+    imposter = not mangled and is_imposter(obj)
+
+    path = Path.of(obj)
+    if mangled:
+        path = path.mangle()
+
     if path is not None and (inspect_path is None or path != inspect_path):
         # Defined elsewhere.  Produce a ref.
         return _make_ref(path)
     
-    if path is not None:
-        # Look up the object's name, and make sure it resolves to the object.
-        named_obj = import_path(path)
-        if named_obj is not obj:
-            logging.warning(
-                "{} is not at {}; instead {}".format(obj, path, named_obj))
-
     jso = {}
 
-    type_path = _get_path(type(obj))
+    if mangled:
+        jso["mangled"] = True
+
+    type_path = Path.of(type(obj))
     if type_path is not None:
         jso["type"] = _make_ref(type_path)
     jso["type_name"] = type(obj).__name__
@@ -246,11 +310,20 @@ def _inspect_parameter(param):
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    import csv, builtins, supdoc.test
-    modules = [supdoc.test]
 
-    jso = {"modules": [ _inspect(m, _get_path(m)) for m in modules ]}
-    json.dump(jso, sys.stdout, indent=1, sort_keys=True)
+    modules_jso = {}
+
+    def inspect_module(module):
+        obj = import_(module)
+        modules_jso[module] = _inspect(obj, Path(module, None))
+
+    for module in "supdoc.test", :
+        inspect_module(module)
+    while _ref_modules != set(modules_jso):
+        for module in _ref_modules - set(modules_jso):
+            inspect_module(module)
+        
+    json.dump({"modules": modules_jso}, sys.stdout, indent=1, sort_keys=True)
 
     # FIXME: Track all the ids we've inspected, and if an orphan object
     # (it's path doesn't resolve to it) matches one, fix it up afterward.

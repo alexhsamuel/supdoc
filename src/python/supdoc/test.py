@@ -23,6 +23,11 @@ class C:
         pass
 
 
+    def __private_method(self):
+        "This is C.__private_method()."
+        pass
+
+
     def __get_x(self):
         "This is the property C.x."
         return self.__x
