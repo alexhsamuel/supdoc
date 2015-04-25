@@ -1,3 +1,17 @@
+from   contextlib import closing
+import json
+
+#-------------------------------------------------------------------------------
+
+def func(x, y, z=10, *, w=None, **kw_args):
+    """
+    func().
+    """
+    return x + y + z + sum(args)
+
+
+#-------------------------------------------------------------------------------
+
 class C:
     "This is class C."
 
@@ -35,6 +49,10 @@ class C:
 
     def __set_x(self, x):
         self.__x = x
+
+
+    def __del_x(self):
+        self.__x = None
 
 
     x = property(__get_x, __set_x)
