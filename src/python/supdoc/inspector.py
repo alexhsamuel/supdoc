@@ -1,10 +1,13 @@
+import builtins
 import collections
 from   contextlib import suppress
 import importlib
 import inspect
 import json
 import logging
+import os
 import sys
+import sysconfig
 import traceback
 import types
 
@@ -286,7 +289,8 @@ def _inspect(obj, inspect_path):
         try:
             sig = inspect.signature(obj)
         except ValueError:
-            logging.debug("can't get signature for {!r}".format(obj))
+            # Doesn't work for extension functions.
+            pass
         else:
             jso["signature"] = [
                 _inspect_parameter(p) for p in sig.parameters.values() ]
@@ -313,14 +317,61 @@ def _inspect_parameter(param):
 
 #-------------------------------------------------------------------------------
 
+_STDLIB_PATH = os.path.normpath(sysconfig.get_path("stdlib"))
+
+def is_builtin(module_obj):
+    """
+    @return
+      True if `module_obj` is a builtin module.
+    """
+    if module_obj in {builtins, }:
+        return True
+
+    try:
+        path = module_obj.__file__
+    except AttributeError:
+        logging.warning("no __file__ for {!r}".format(module_obj))
+        return False
+    else:
+        path = os.path.normpath(module_obj.__file__)
+        return path.startswith(_STDLIB_PATH)
+
+
 def main():
-    logging.getLogger().setLevel(logging.INFO)
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--log-level", metavar="LEVEL", default=None,
+        help="log at LEVEL")
+    parser.add_argument(
+        "--builtins", dest="builtins", default=True, action="store_true",
+        help="include builtin modules (default)")
+    parser.add_argument(
+        "--no-builtins", dest="builtins", default=True, action="store_false",
+        help="don't include builtin modules")
+    parser.add_argument(
+        "modules", nargs="*", metavar="MODULE",
+        help="packages and modules to inspect")
+    args = parser.parse_args()
+
+    if args.log_level is not None:
+        try:
+            level = getattr(logging, args.log_level.upper())
+        except AttributeError:
+            parser.error("invalid log level: {}".format(args.log_level))
+        else:
+            logging.getLogger().setLevel(level)
 
     modules_jso = {}
 
     def inspect_module(module):
         obj = import_(module)
-        modules_jso[module] = _inspect(obj, Path(module, None))
+        if args.builtins or not is_builtin(obj):
+            logging.debug("inspecting module {}".format(module))
+            modules_jso[module] = _inspect(obj, Path(module, None))
+        else:
+            logging.debug("skipping builtin module {}".format(module))
+            modules_jso[module] = None
 
     for module in "supdoc.test", :
         inspect_module(module)
