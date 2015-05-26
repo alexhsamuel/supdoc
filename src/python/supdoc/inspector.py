@@ -295,6 +295,11 @@ def _inspect(obj, inspect_path):
             jso["signature"] = [
                 _inspect_parameter(p) for p in sig.parameters.values() ]
 
+    # If this is a classmethod or staticmethod wrapper, inspect the underlying
+    # function.
+    if isinstance(obj, (classmethod, staticmethod)):
+        jso["func"] = _inspect(obj.__func__, inspect_path)
+
     return jso
 
 
