@@ -297,8 +297,18 @@ def _inspect(obj, inspect_path):
 
     # If this is a classmethod or staticmethod wrapper, inspect the underlying
     # function.
-    if isinstance(obj, (classmethod, staticmethod)):
-        jso["func"] = _inspect(obj.__func__, inspect_path)
+    try:
+        func = obj.__func__
+    except AttributeError:
+        pass
+    else:
+        jso["func"] = _inspect(func, inspect_path)
+
+    # If this is a property, inspect the underlying accessors.
+    if isinstance(obj, property):
+        jso["get"] = None if obj.fget is None else _inspect(obj.fget, inspect_path)
+        jso["set"] = None if obj.fset is None else _inspect(obj.fset, inspect_path)
+        jso["del"] = None if obj.fdel is None else _inspect(obj.fdel, inspect_path)
 
     return jso
 

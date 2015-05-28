@@ -57,6 +57,11 @@ class C:
 
     x = property(__get_x, __set_x)
 
+    @property
+    def constant(self):
+        return 42
+    
+
     C_CLASS_ATTR = 42
 
 
