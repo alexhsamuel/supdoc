@@ -160,7 +160,7 @@ def is_imposter(obj):
         return False
     try:
         resolved_obj = resolve(path)
-    except AttributeError:
+    except (ImportError, AttributeError):
         # Doesn't resolve to anything.
         return True
     # Does the path resolve back to the object?
@@ -183,7 +183,7 @@ def is_mangled(obj):
         return False
     try:
         resolved_obj = resolve(mangled_path)
-    except AttributeError:
+    except (ImportError, AttributeError):
         # Nothing at the mangled path.
         return False
     else:
@@ -380,7 +380,13 @@ def main():
     modules_jso = {}
 
     def inspect_module(module):
-        obj = import_(module)
+        try:
+            obj = import_(module)
+        except ImportError:
+            logging.debug("skipping unimportable module {}".format(module))
+            modules_jso[module] = None
+            return
+
         if args.builtins or not is_builtin(obj):
             logging.debug("inspecting module {}".format(module))
             modules_jso[module] = _inspect(obj, Path(module, None))
@@ -388,12 +394,14 @@ def main():
             logging.debug("skipping builtin module {}".format(module))
             modules_jso[module] = None
 
-    for module in "supdoc.test", :
+    # Inspect all the requested modules.
+    for module in args.modules:
         inspect_module(module)
-    while _ref_modules != set(modules_jso):
+    # Inspect all directly- and indirectly-referenced modules.
+    while len(_ref_modules - set(modules_jso)) > 0:
         for module in _ref_modules - set(modules_jso):
             inspect_module(module)
-        
+
     json.dump({"modules": modules_jso}, sys.stdout, indent=1, sort_keys=True)
 
     # FIXME: Track all the ids we've inspected, and if an orphan object
