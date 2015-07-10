@@ -3,17 +3,45 @@ import json
 
 #-------------------------------------------------------------------------------
 
-def func(x, y, z=10, *, w=None, **kw_args):
+def toplevel_function(x, y, z=10, *, w=None, **kw_args):
     """
-    func().
+    Computes a very important quantity.
+
+    This is a top-level function.  It adds 'x' and 'y' and 'z', and adds
+    the sum of any additional keyword arguments' values.  'w' is ignored.
+
+       >>> func(3, 4, 5, w=6, q=10)
+       22
+   
     """
-    return x + y + z + sum(args)
+    return x + y + z + sum(kw_args.values())
 
 
 #-------------------------------------------------------------------------------
 
 class C:
-    "This is class C."
+    """
+    Main test class.
+
+    `C` is a top-level class in module `test`.  It serves mainly as a container
+    for test methods, which are normal methods, classmethods, staticmethods,
+    properties, and so forth.
+
+    Use it like this::
+
+      c = C()
+      c.method()
+
+    This is the second paragraph of the docstring.  The quick brown fox jumped
+    over the lazy dogs.
+
+      >>> C.staticmethod()
+      >>> C.classmethod()
+      >>> c = C()
+      >>> c.method()
+      >>> c.x
+
+    """
 
     def __init__(self, x, y=10):
         "This is C.__init__()."
