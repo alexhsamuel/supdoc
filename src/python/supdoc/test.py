@@ -13,6 +13,26 @@ def toplevel_function(x, y, z=10, *, w=None, **kw_args):
        >>> func(3, 4, 5, w=6, q=10)
        22
    
+    Markdown is *absolutely*, _positively_ supported.  Here's an example.
+
+      The quick brown fox
+        jumped
+          over
+            the lazy dogs.
+
+    ## First topic
+
+    Let's talk about something.
+
+    ## Second topic
+
+    Now let's talk about something else.  How about some fruit?  For example,
+
+    - pineapples
+    - grapefruits
+    - mangosteins
+    - kiwis
+
     """
     return x + y + z + sum(kw_args.values())
 
