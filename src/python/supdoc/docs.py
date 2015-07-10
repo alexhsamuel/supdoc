@@ -118,7 +118,6 @@ def parse_doc(source):
         javadoc = []
 
     body = []
-    doctests = []
 
     def generate(pars):
         pars = base.QIter(pars)
@@ -137,7 +136,7 @@ def parse_doc(source):
             # Look for doctests.
             # FIXME: Look for more indentation than the previous par.
             if indent > 0 and len(par) >= 1 and par[0].startswith(">>>"):
-                doctests.append("\n".join(par))
+                body.append('<pre class="doctest">' + "\n".join(par) + '</pre>')
                 continue
 
             if len(par) > 0:
@@ -172,7 +171,6 @@ def parse_doc(source):
     result = dict(
         summary =summary, 
         body    =body, 
-        doctests=doctests, 
     )
     if len(javadoc) > 0:
         result["javadoc"] = javadoc
