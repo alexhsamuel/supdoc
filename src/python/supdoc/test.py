@@ -10,28 +10,35 @@ def toplevel_function(x, y, z=10, *, w=None, **kw_args):
     This is a top-level function.  It adds 'x' and 'y' and 'z', and adds
     the sum of any additional keyword arguments' values.  'w' is ignored.
 
-       >>> func(3, 4, 5, w=6, q=10)
-       22
+        >>> func(3, 4, 5, w=6, q=10)
+        22
    
-    Markdown is *absolutely*, _positively_ supported.  Here's an example.
+    Markdown is **absolutely**, _positively_ supported.  Here's an example.
 
-      The quick brown fox
-        jumped
-          over
-            the lazy dogs.
+    ```
+    The quick brown fox
+      jumped
+        over
+          the lazy dogs.
+    ```
 
     ## First topic
 
     Let's talk about something.
 
+        10 PRINT "Hello!"
+        20 GOTO 10
+
+    That's a bit of BASIC.
+
     ## Second topic
 
     Now let's talk about something else.  How about some fruit?  For example,
 
-    - pineapples
-    - grapefruits
-    - mangosteins
-    - kiwis
+      - pineapples
+      - grapefruits
+      - mangosteins
+      - kiwis
 
     """
     return x + y + z + sum(kw_args.values())

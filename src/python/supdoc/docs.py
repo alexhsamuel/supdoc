@@ -1,5 +1,9 @@
 import re
 
+import logging
+import markdown
+import xml.etree.ElementTree as ET
+
 from   . import base
 
 #-------------------------------------------------------------------------------
@@ -32,14 +36,30 @@ def join_pars(lines):
         yield par
 
 
-def get_common_indent(lines):
+def get_common_indent(lines, ignore_first=False):
     """
     Extracts the common indentation for lines.
 
+    Lines that are empty or contain only whitespace are not used for determining
+    common indentation.
+
+    @param ignore_first
+      If true, ignore the indentation of the first line when determining the
+      common indentation.  This is useful for Python multiline strings, where
+      the first line is often indented differently.
     @return
-      The common indentation size, and the lines with that indentaiton removed.
+      The common indentation size, and the lines with that indentation removed.
     """
-    indent = min( get_indent(l) for l in lines )
+    if ignore_first and len(lines) > 1:
+        i, rest = get_common_indent(lines[1 :])
+        lines = (lines[0][min(i, get_indent(lines[0])) :], ) + rest
+        return i, lines
+
+    indent = ( get_indent(l) for l in lines if l.strip() != "" )
+    try:
+        indent = min(indent)
+    except ValueError:
+        indent = 0
     return indent, tuple( l[indent :] for l in lines )
 
 
@@ -94,6 +114,21 @@ def find_javadoc(lines):
 
 #-------------------------------------------------------------------------------
 
+DOUBLE_BACKTICK_REGEX = re.compile(r"``(.*?)``")
+SINGLE_BACKTICK_REGEX = re.compile(r"`(.*?)`")
+
+def parse_formatting(text):
+    # Look for ``-delimited strings.
+    text = DOUBLE_BACKTICK_REGEX.sub(r'<span class="code">\1</span>', text)
+    # Look for `-delimited strings.
+    text = SINGLE_BACKTICK_REGEX.sub(r'<span class="code">\1</span>', text)
+
+    text = markdown.markdown(text, output_format="html5")
+
+    return text
+
+
+
 def parse_doc(source):
     # Split into paragraphs.
     lines = ( l.expandtabs().rstrip() for l in source.splitlines() )
@@ -108,7 +143,7 @@ def parse_doc(source):
         summary = " ".join( l.lstrip() for l in summary )
 
     # Remove common indentation.
-    pars = [ get_common_indent(p) for p in pars ]
+    pars = [ get_common_indent(p) for p in pars ] 
     min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
     pars = ( (i - min_indent, p) for i, p in pars )
 
@@ -126,25 +161,17 @@ def parse_doc(source):
     def generate(pars):
         pars = base.QIter(pars)
         for indent, par in pars:
-            # Look for underlined headers.
-            if len(par) >= 2:
-                line0, line1, *rest = par
-                if len(line0) > 1 and len(line1) == len(line0):
-                    if all( c == "=" for c in line1 ):
-                        body.append("<h1>" + line0 + "</h1>")
-                        par = rest
-                    elif all( c == "-" for c in line1 ):
-                        body.append("<h2>" + line0 + "</h2>")
-                        par = rest
-
             # Look for doctests.
             # FIXME: Look for more indentation than the previous par.
-            if indent > 0 and len(par) >= 1 and par[0].startswith(">>>"):
+            if len(par) >= 1 and par[0].startswith(">>>"):
                 body.append('<pre class="doctest">' + "\n".join(par) + '</pre>')
                 continue
 
             if len(par) > 0:
-                body.append("<p>" + " ".join( p.strip() for p in par ) + "</p>")
+                _, lines = get_common_indent(par)
+                text = " ".join(lines)
+                text = parse_formatting(text)
+                body.append(text)
 
             if len(par) > 0 and par[-1].rstrip().endswith(":"):
                 text = []
@@ -179,7 +206,59 @@ def parse_doc(source):
     if len(javadoc) > 0:
         result["javadoc"] = javadoc
     return result
-    
+
+
+def markdown_to_et(text):
+    """
+    Parses as Markdown to `ElementTree`.
+    """
+    # Process as Markdown.
+    html = markdown.markdown(text, output_format="html5")
+
+    # Parse it back.  
+    # FIXME: Teach markup to emit ElementTree directly?
+    # The parser expects a single element, so wrap it.
+    try:
+        et = ET.fromstring('<html>' + html + '</html>')
+    except ET.ParseError as exc:
+        # FIXME: If the source includes invalid HTML, such as unclosed tags,
+        # so will the output, will will lead to parse errors.  For now, just
+        # report these and produce an error..
+        logging.error("-" * 80 + "\n" + html + "\n" + str(exc) + "\n\n")
+        return ET.fromstring('<strong>Error parsing Markdown output.</strong>')
+
+    return et
+
+
+def parse_docstring(docstring):
+    """
+    Parses a docstring.
+
+    FIXME
+    """
+    # Remove common indentation.
+    _, lines = get_common_indent(docstring.splitlines(), ignore_first=True)
+    docstring = "\n".join(lines)
+
+    # Replace 'doc' with the de-indented version, since that's nicer.
+    result = {"doc": docstring}
+
+    et = markdown_to_et(docstring)
+
+    tostring = lambda e: ET.tostring(e, method="html", encoding="unicode")
+    content = lambda e: (e.text or "") + "".join( tostring(c) for c in e )
+
+    # If the first element is a paragraph, use that as the summary.
+    if len(et) > 0 and et[0].tag.lower() == 'p':
+        summary = et[0]
+        et.remove(summary)
+        # Get the summary contents, without the enclosing <p> element.
+        result["summary"] = content(summary)
+
+    # Reassemble the HTML source.
+    result["body"] = [ tostring(e) for e in et ]
+
+    return result
 
 
 def enrich(jso, modules={}):
@@ -189,7 +268,7 @@ def enrich(jso, modules={}):
     except KeyError:
         pass
     else:
-        docs.update(parse_doc(doc))
+        docs.update(parse_docstring(doc))
 
     # FIXME
     for val in jso.get("dict", {}).values():
