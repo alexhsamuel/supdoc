@@ -65,6 +65,18 @@ DOCSTRING_TYPES = (
 #-------------------------------------------------------------------------------
 
 class Path(collections.namedtuple("Path", ("module", "qualname"))):
+    """
+    A fully-qualified lookup path to an object.
+
+    Represents the path to find an object, first by importing a module and then
+    by successively using `getattr` to obtain subobjects.  `qualname` is the
+    dot-delimited path of names for `getattr`.
+
+    @ivar module
+      The full module name.
+    @ivar qualname
+      The qualname.
+    """
 
     @classmethod
     def of(class_, obj):
@@ -192,6 +204,27 @@ def is_mangled(obj):
 
 
 def _inspect(obj, inspect_path):
+    """
+    Main inspection function.
+
+    Inspects `obj` to determine its type, signature, documentation, and other
+    relevant details.  Captures characteristics visible to Python, not
+    specified in documentation.
+
+    If `obj` has a path and it does not match `inspect_path`, returns a 
+    `$ref` JSO object instead of inspecting.
+
+    @param obj
+      The object to inspect.
+    @param inspect_path
+      The qualname of the object.  This is the path by which the object has
+      been reached, by module import followed by successive `getattr`.  It
+      may not be the same as the name by which the object knows itself.
+    @type inspect_path
+      `Path`.
+    @return
+      JSO extracted from the object.
+    """
     logging.info("_inspect({!r}, {!r})".format(obj, inspect_path))
 
     mangled = is_mangled(obj)
@@ -336,6 +369,8 @@ _STDLIB_PATH = os.path.normpath(sysconfig.get_path("stdlib"))
 
 def is_builtin(module_obj):
     """
+    @type module_obj
+      `module`.
     @return
       True if `module_obj` is a builtin module.
     """
@@ -402,6 +437,9 @@ def main():
         for module in _ref_modules - set(modules_jso):
             inspect_module(module)
 
+    from . import docs
+    docs.enrich_modules(modules_jso)
+        
     json.dump({"modules": modules_jso}, sys.stdout, indent=1, sort_keys=True)
 
     # FIXME: Track all the ids we've inspected, and if an orphan object
