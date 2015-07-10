@@ -295,10 +295,13 @@ def _inspect(obj, inspect_path):
         names = sorted( n for n in dict if n not in INTERNAL_NAMES )
         for attr_name in names:
             attr_value = dict[attr_name]
-            attr_path = Path(
-                inspect_path.module, 
-                attr_name if inspect_path.qualname is None 
-                    else inspect_path.qualname + '.' + attr_name)
+            if inspect_path is None:
+                attr_path = None
+            else:
+                attr_path = Path(
+                    inspect_path.module, 
+                    attr_name if inspect_path.qualname is None 
+                        else inspect_path.qualname + '.' + attr_name)
             dict_jso[attr_name] = _inspect(attr_value, attr_path)
         jso["dict"] = dict_jso
 

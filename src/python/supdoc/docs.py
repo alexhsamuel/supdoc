@@ -100,8 +100,12 @@ def parse_doc(source):
     pars = join_pars(lines)
 
     # The first paragraph is the summary.
-    summary = next(pars)
-    summary = " ".join( l.lstrip() for l in summary )
+    try:
+        summary = next(pars)
+    except StopIteration:
+        summary = None
+    else:
+        summary = " ".join( l.lstrip() for l in summary )
 
     # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ]
