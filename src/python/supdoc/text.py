@@ -1,8 +1,13 @@
 import argparse
+from   contextlib import suppress
+from   enum import Enum
 import json
+import shutil
 import sys
 
 import html2text
+
+from   . import ansi
 
 #-------------------------------------------------------------------------------
 
@@ -12,6 +17,15 @@ def look_up(docs, module, name):
     for part in parts:
         obj = obj["dict"][part]
     return obj
+
+
+def is_last(iterable):
+    for item in iterable:
+        with suppress(NameError):
+            yield False, next_item
+        next_item = item
+    with suppress(NameError):
+        yield True, next_item
 
 
 #-------------------------------------------------------------------------------
@@ -58,6 +72,33 @@ def signature_from_jso(jso):
     return Signature(parameters)
                 
 
+def format_parameters(parameters):
+    star = False
+    for param in parameters.values():
+        prefix = ""
+        if param.kind is Parameter.KEYWORD_ONLY and not star:
+            yield "*"
+            star = True
+        elif param.kind is Parameter.VAR_POSITIONAL:
+            prefix = "*"
+            star = True
+        elif param.kind is Parameter.VAR_KEYWORD:
+            prefix = "**"
+            star = True
+        result = prefix + ansi.fg(param.name, ansi.GREEN, False)
+        if param.annotation is not Parameter.empty:
+            result += ":" + repr(param.annotation)
+        if param.default is not Parameter.empty:
+            result += "=" + repr(param.default)
+        yield result
+
+
+width = shutil.get_terminal_size().columns
+
+def format_html(html):
+    return html2text.html2text(html, bodywidth=width)
+
+
 #-------------------------------------------------------------------------------
 
 def main():
@@ -90,20 +131,25 @@ def main():
         # None.
         return
 
+    print(ansi.bold(obj_docs["name"]), end="")
+
     try:
         signature = obj_docs["signature"]
     except KeyError:
-        print(obj_docs["name"])
+        print()
     else:
         signature = signature_from_jso(signature)
-        print(obj_docs["name"] + str(signature))
+        print("(")
+        for last, line in is_last(format_parameters(signature.parameters)):
+            print("  " + line + ("" if last else ","))
+        print(")")
         
-    summary = html2text.html2text(docs.get("summary", "")).strip()
+    summary = format_html(docs.get("summary", "")).strip()
     print(summary)
     print("=" * len(summary))
 
     for d in docs.get("body", []):
-        print(html2text.html2text(d), end="")
+        print(format_html(d), end="")
 
 
 if __name__ == "__main__":
