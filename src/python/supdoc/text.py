@@ -43,7 +43,7 @@ class ReprObj:
 
 from  inspect import Signature, Parameter
 
-# FIXME: Change the signature JSO to encode a params array and return 
+# FIXME: Change the signature JSO to encode a params array and return
 # annotation.
 
 def parameter_from_jso(jso):
@@ -70,7 +70,7 @@ def signature_from_jso(jso):
     # FIXME: return annotation.
     parameters = [ parameter_from_jso(o) for o in jso ]
     return Signature(parameters)
-                
+
 
 def format_parameters(parameters):
     star = False
@@ -114,45 +114,46 @@ def main():
         help="object name")
     args = parser.parse_args()
 
+    # Read the docs file.
     with open(args.path) as file:
         all_docs = json.load(file)
+    # Find the requested object.
     obj_docs = look_up(all_docs, args.module, args.name)
-
-    # json.dump(
-    #     { n: v for n, v in obj_docs.items() if n not in {"docs", } },
-    #     sys.stdout,
-    #     indent=1, sort_keys=True)
-    # print()
-    # print()
-
+    # Get its docs.
+    docs = obj_docs.get("docs", {})
     try:
         docs = obj_docs["docs"]
     except KeyError:
         # None.
-        return
-
-    print(ansi.bold(obj_docs["name"]), end="")
-
-    try:
-        signature = obj_docs["signature"]
-    except KeyError:
-        print()
+        pass
     else:
-        signature = signature_from_jso(signature)
-        print("(")
-        for last, line in is_last(format_parameters(signature.parameters)):
-            print("  " + line + ("" if last else ","))
-        print(")")
-        
-    summary = format_html(docs.get("summary", "")).strip()
-    print(summary)
-    print("=" * len(summary))
+        # Show the name.
+        print(ansi.bold(obj_docs["name"]), end="")
+        # Show its callable signature, if it has one.
+        try:
+            signature = obj_docs["signature"]
+        except KeyError:
+            print()
+        else:
+            signature = signature_from_jso(signature)
+            print("(")
+            for last, line in is_last(format_parameters(signature.parameters)):
+                print("  " + line + ("" if last else ","))
+            print(")")
 
-    for d in docs.get("body", []):
-        print(format_html(d), end="")
+        # Show the doc summary.
+        summary = format_html(docs.get("summary", "")).strip()
+        print(summary)
+        print("=" * len(summary))
+        # Show paragraphs of doc body.
+        for d in docs.get("body", []):
+            print(format_html(d), end="")
+        print()
+
+    # Summarize contents.
+    for name in sorted(obj_docs.get("dict", {})):
+        print("-" + name)
 
 
 if __name__ == "__main__":
     main()
-
-
