@@ -11,11 +11,29 @@ from   . import ansi
 
 #-------------------------------------------------------------------------------
 
-def look_up(docs, module, name):
-    obj = docs["modules"][module]
-    parts = () if name == "" else name.split(".")
-    for part in parts:
-        obj = obj["dict"][part]
+def look_up(docs, module, name=None):
+    """
+    Looks up a module or object in docs.
+
+    @param module
+      The fully qualified module name.
+    @param name
+      The fully qualified name of the object in the module, or `None` for 
+      the module itself.
+    """
+    modules = docs["modules"]
+    try:
+        obj = modules[module]
+    except KeyError:
+        raise LookupError("no such module: {}".format(module)) from None
+    if name is not None:
+        parts = name.split(".")
+        for i in range(len(parts)):
+            try:
+                obj = obj["dict"][parts[i]]
+            except KeyError:
+                missing_name = ".".join(parts[: i + 1])
+                raise LookupError("no such name: {}".format(missing_name))
     return obj
 
 
@@ -110,28 +128,26 @@ def main():
         "module", metavar="MODULE",
         help="full module name")
     parser.add_argument(
-        "name", metavar="NAME", default="", nargs="?",
+        "name", metavar="NAME", default=None, nargs="?",
         help="object name")
     args = parser.parse_args()
 
     # Read the docs file.
     with open(args.path) as file:
         all_docs = json.load(file)
+
     # Find the requested object.
-    obj_docs = look_up(all_docs, args.module, args.name)
-    # Get its docs.
-    docs = obj_docs.get("docs", {})
     try:
-        docs = obj_docs["docs"]
-    except KeyError:
+        docs = look_up(all_docs, args.module, args.name)
+    except LookupError:
         # None.
         pass
     else:
         # Show the name.
-        print(ansi.bold(obj_docs["name"]), end="")
+        print(ansi.bold(docs["name"]), end="")
         # Show its callable signature, if it has one.
         try:
-            signature = obj_docs["signature"]
+            signature = docs["signature"]
         except KeyError:
             print()
         else:
@@ -151,7 +167,7 @@ def main():
         print()
 
     # Summarize contents.
-    for name in sorted(obj_docs.get("dict", {})):
+    for name in sorted(docs.get("dict", {})):
         print("-" + name)
 
 
