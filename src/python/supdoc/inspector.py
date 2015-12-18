@@ -395,7 +395,8 @@ def is_builtin(module_obj):
 
 
 def inspect_module(module, *, builtins=False):
-    obj = import_(module)
+    try:
+        obj = import_(module)
     except ImportError:
         logging.debug("skipping unimportable module {}".format(module))
         return None
