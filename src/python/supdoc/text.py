@@ -7,7 +7,7 @@ import sys
 
 import html2text
 
-from   . import ansi
+from   pln.terminal import ansi
 
 #-------------------------------------------------------------------------------
 
@@ -103,7 +103,7 @@ def format_parameters(parameters):
         elif param.kind is Parameter.VAR_KEYWORD:
             prefix = "**"
             star = True
-        result = prefix + ansi.fg(param.name, ansi.GREEN, False)
+        result = prefix + ansi.fg("dark_green")(param.name)
         if param.annotation is not Parameter.empty:
             result += ":" + repr(param.annotation)
         if param.default is not Parameter.empty:
