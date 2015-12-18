@@ -395,8 +395,7 @@ def is_builtin(module_obj):
 
 
 def inspect_module(module, *, builtins=False):
-    try:
-        obj = import_(module)
+    obj = import_(module)
     except ImportError:
         logging.debug("skipping unimportable module {}".format(module))
         return None
@@ -417,7 +416,10 @@ def inspect_modules(modules, *, refs=True, builtins=False):
 
     # Inspect all the requested modules.
     for module in modules:
-        module_docs[module] = inspect(module)
+        docs = inspect(module)
+        # FIXME
+        if docs is not None:
+            module_docs[module] = docs
     # Inspect all directly- and indirectly-referenced modules.
     if refs:
         while len(_ref_modules - set(module_docs)) > 0:
