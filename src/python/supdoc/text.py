@@ -122,8 +122,8 @@ def format_html(html):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "path", metavar="FILE",
-        help="file to read")
+        "--path", metavar="FILE", default=None,
+        help="read JSON docs from FILE")
     parser.add_argument(
         "module", metavar="MODULE",
         help="full module name")
@@ -132,16 +132,21 @@ def main():
         help="object name")
     args = parser.parse_args()
 
-    # Read the docs file.
-    with open(args.path) as file:
-        all_docs = json.load(file)
+    if args.path is None:
+        from . import inspector
+        all_docs = inspector.inspect_modules([args.module])
+    else:
+        # Read the docs file.
+        with open(args.path) as file:
+            all_docs = json.load(file)
 
     # Find the requested object.
     try:
         docs = look_up(all_docs, args.module, args.name)
-    except LookupError:
-        # None.
-        pass
+    except LookupError as error:
+        # FIXME
+        print(error, file=sys.stderr)
+        raise SystemExit(1)
     else:
         # Show the name.
         print(ansi.bold(docs["name"]), end="")
@@ -166,9 +171,12 @@ def main():
             print(format_html(d), end="")
         print()
 
-    # Summarize contents.
-    for name in sorted(docs.get("dict", {})):
-        print("-" + name)
+        # Summarize contents.
+        dict = docs.get("dict", {})
+        if len(dict) > 0:
+            print("dict:")
+            for name in sorted(dict):
+                print("- " + name)
 
 
 if __name__ == "__main__":
