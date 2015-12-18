@@ -146,6 +146,10 @@ def resolve(path):
     return module if path.qualname is None else look_up(path.qualname, module)
 
 
+# FIXME: Global state.  Possible resolutions:
+#  - Pass this stuff around (awkward).
+#  - Go fully global: keep a cache of inspected modules.
+#  - Encapsulate in a class.
 _ref_modules = set()
 _orphans = {}
 
@@ -390,6 +394,42 @@ def is_builtin(module_obj):
         return path.startswith(_STDLIB_PATH)
 
 
+def inspect_module(module, *, builtins=False):
+    try:
+        obj = import_(module)
+    except ImportError:
+        logging.debug("skipping unimportable module {}".format(module))
+        return None
+
+    if builtins or not is_builtin(obj):
+        logging.debug("inspecting module {}".format(module))
+        return _inspect(obj, Path(module, None))
+    else:
+        logging.debug("skipping builtin module {}".format(module))
+        return None
+
+
+def inspect_modules(modules, *, refs=True, builtins=False):
+    # FIXME: Global state.
+    _ref_modules.clear()
+    module_docs = {}
+    inspect = lambda m: inspect_module(m, builtins=builtins)
+
+    # Inspect all the requested modules.
+    for module in modules:
+        module_docs[module] = inspect(module)
+    # Inspect all directly- and indirectly-referenced modules.
+    if refs:
+        while len(_ref_modules - set(module_docs)) > 0:
+            for module in _ref_modules - set(module_docs):
+                module_docs[module] = inspect(module)
+
+    from . import docs
+    docs.enrich_modules(module_docs)
+        
+    return {"modules": module_docs}
+
+
 def main():
     from argparse import ArgumentParser
     parser = ArgumentParser()
@@ -398,10 +438,16 @@ def main():
         help="log at LEVEL")
     parser.add_argument(
         "--builtins", dest="builtins", default=True, action="store_true",
-        help="include builtin modules (default)")
+        help="inspect builtin modules (default)")
     parser.add_argument(
         "--no-builtins", dest="builtins", default=True, action="store_false",
-        help="don't include builtin modules")
+        help="don't inspect builtin modules")
+    parser.add_argument(
+        "--referencess", dest="refs", default=True, action="store_true",
+        help="inspect referenced modules")
+    parser.add_argument(
+        "--no-references", dest="refs", default=True, action="store_false",
+        help="don't inspect referenced modules")
     parser.add_argument(
         "modules", nargs="*", metavar="MODULE",
         help="packages and modules to inspect")
@@ -415,35 +461,8 @@ def main():
         else:
             logging.getLogger().setLevel(level)
 
-    modules_jso = {}
-
-    def inspect_module(module):
-        try:
-            obj = import_(module)
-        except ImportError:
-            logging.debug("skipping unimportable module {}".format(module))
-            modules_jso[module] = None
-            return
-
-        if args.builtins or not is_builtin(obj):
-            logging.debug("inspecting module {}".format(module))
-            modules_jso[module] = _inspect(obj, Path(module, None))
-        else:
-            logging.debug("skipping builtin module {}".format(module))
-            modules_jso[module] = None
-
-    # Inspect all the requested modules.
-    for module in args.modules:
-        inspect_module(module)
-    # Inspect all directly- and indirectly-referenced modules.
-    while len(_ref_modules - set(modules_jso)) > 0:
-        for module in _ref_modules - set(modules_jso):
-            inspect_module(module)
-
-    from . import docs
-    docs.enrich_modules(modules_jso)
-        
-    json.dump({"modules": modules_jso}, sys.stdout, indent=1, sort_keys=True)
+    docs = inspect_modules(args.modules, builtins=args.builtins, refs=args.refs)
+    json.dump(docs, sys.stdout, indent=1, sort_keys=True)
 
     # FIXME: Track all the ids we've inspected, and if an orphan object
     # (its path doesn't resolve to it) matches one, fix it up afterward.
