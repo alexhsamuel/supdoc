@@ -446,7 +446,7 @@ def main():
     json.dump({"modules": modules_jso}, sys.stdout, indent=1, sort_keys=True)
 
     # FIXME: Track all the ids we've inspected, and if an orphan object
-    # (it's path doesn't resolve to it) matches one, fix it up afterward.
+    # (its path doesn't resolve to it) matches one, fix it up afterward.
 
 
 if __name__ == "__main__":
