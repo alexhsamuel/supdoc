@@ -232,7 +232,7 @@ def _inspect(obj, inspect_path):
     logging.info("_inspect({!r}, {!r})".format(obj, inspect_path))
 
     mangled = is_mangled(obj)
-    imposter = not mangled and is_imposter(obj)
+    # imposter = not mangled and is_imposter(obj)
 
     path = Path.of(obj)
     if mangled:
