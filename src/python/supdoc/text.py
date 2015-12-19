@@ -119,7 +119,7 @@ def format_html(html):
 
 #-------------------------------------------------------------------------------
 
-def main():
+def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--path", metavar="FILE", default=None,
@@ -180,4 +180,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _main()
