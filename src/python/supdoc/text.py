@@ -7,6 +7,7 @@ import sys
 
 import html2text
 
+import pln.json
 from   pln.terminal import ansi
 
 #-------------------------------------------------------------------------------
@@ -119,8 +120,43 @@ def format_html(html):
 
 #-------------------------------------------------------------------------------
 
+def print_docs(docs):
+    # Show the name.
+    print(ansi.bold(docs["name"]), end="")
+    # Show its callable signature, if it has one.
+    try:
+        signature = docs["signature"]
+    except KeyError:
+        print()
+    else:
+        signature = signature_from_jso(signature)
+        print("(")
+        for last, line in is_last(format_parameters(signature.parameters)):
+            print("  " + line + ("" if last else ","))
+        print(")")
+
+    # Show the doc summary.
+    summary = format_html(docs.get("summary", "")).strip()
+    print(summary)
+    print("=" * len(summary))
+    # Show paragraphs of doc body.
+    for d in docs.get("body", []):
+        print(format_html(d), end="")
+    print()
+
+    # Summarize contents.
+    dict = docs.get("dict", {})
+    if len(dict) > 0:
+        print("dict:")
+        for name in sorted(dict):
+            print("- " + name)
+
+
 def _main():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--json", default=False, action="store_true",
+        help="dump JSON docs")
     parser.add_argument(
         "--path", metavar="FILE", default=None,
         help="read JSON docs from FILE")
@@ -147,36 +183,11 @@ def _main():
         # FIXME
         print(error, file=sys.stderr)
         raise SystemExit(1)
+
+    if args.json:
+        pln.json.pprint(docs)
     else:
-        # Show the name.
-        print(ansi.bold(docs["name"]), end="")
-        # Show its callable signature, if it has one.
-        try:
-            signature = docs["signature"]
-        except KeyError:
-            print()
-        else:
-            signature = signature_from_jso(signature)
-            print("(")
-            for last, line in is_last(format_parameters(signature.parameters)):
-                print("  " + line + ("" if last else ","))
-            print(")")
-
-        # Show the doc summary.
-        summary = format_html(docs.get("summary", "")).strip()
-        print(summary)
-        print("=" * len(summary))
-        # Show paragraphs of doc body.
-        for d in docs.get("body", []):
-            print(format_html(d), end="")
-        print()
-
-        # Summarize contents.
-        dict = docs.get("dict", {})
-        if len(dict) > 0:
-            print("dict:")
-            for name in sorted(dict):
-                print("- " + name)
+        print_docs(docs)
 
 
 if __name__ == "__main__":
