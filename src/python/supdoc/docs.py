@@ -4,6 +4,8 @@ import logging
 import markdown
 import xml.etree.ElementTree as ET
 
+import pln.itr
+
 from   . import base
 
 #-------------------------------------------------------------------------------
@@ -63,6 +65,10 @@ def get_common_indent(lines, ignore_first=False):
     return indent, tuple( l[indent :] for l in lines )
 
 
+def markup_error(description):
+    logging.warning(description)
+
+
 #-------------------------------------------------------------------------------
 
 JAVADOC_ARG_TAGS = frozenset({
@@ -94,7 +100,11 @@ def find_javadoc(lines):
         if first.startswith("@") and len(first) > 1:
             if tag is not None:
                 # Done with the previous tag.
-                javadoc.append((tag, arg, " ".join(text)))
+                javadoc.append(dict(
+                    tag =tag, 
+                    arg =arg, 
+                    text=" ".join(text)
+                ))
             tag = first[1 :]
             # Some tags take an argument.
             if tag in JAVADOC_ARG_TAGS and len(rest) > 0:
@@ -113,7 +123,11 @@ def find_javadoc(lines):
         else:
             doc_lines.append(line)
     if tag is not None:
-        javadoc.append((tag, arg, " ".join(text)))
+        javadoc.append(dict(
+            tag =tag, 
+            arg =arg, 
+            text=" ".join(text)
+        ))
     
     return doc_lines, javadoc
 
@@ -155,25 +169,23 @@ def parse_doc(source):
 
     # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ] 
-    min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
+    min_indent = min(( i for i, _ in pars ), default=0)
     pars = [ (i - min_indent, p) for i, p in pars ]
 
-    body = []
-
     def generate(pars):
-        pars = base.QIter(pars)
+        pars = pln.itr.PeekIter(pars)
         for indent, par in pars:
             # Look for doctests.
             # FIXME: Look for more indentation than the previous par.
             if len(par) >= 1 and par[0].startswith(">>>"):
-                body.append('<pre class="doctest">' + "\n".join(par) + '</pre>')
+                yield '<pre class="doctest">' + "\n".join(par) + '</pre>'
                 continue
 
             if len(par) > 0:
                 _, lines = get_common_indent(par)
                 text = " ".join(lines)
                 text = parse_formatting(text)
-                body.append(text)
+                yield text
 
             if len(par) > 0 and par[-1].rstrip().endswith(":"):
                 text = []
@@ -185,19 +197,9 @@ def parse_doc(source):
                         break
                 if len(text) > 0:
                     # FIXME: Use a better tag for this.
-                    body.append('<pre class="code">' + "\n".join(text) + "</pre>")
+                    yield '<pre class="code">' + "\n".join(text) + "</pre>"
 
-    generate(pars)
-
-    # # Attach Javadoc-style tags.
-    # if len(javadoc) > 0:
-    #     container = DL(class_="javadoc")
-    #     for tag, arg, text in javadoc:
-    #         element = TAG(text, tag=tag)
-    #         if arg is not None:
-    #             element.setAttribute("argument", arg)
-    #         container.appendChild(element)
-    #     body.appendChild(container)
+    body = list(generate(pars))
 
     # find_identifiers(body)
 
@@ -208,6 +210,28 @@ def parse_doc(source):
     if len(javadoc) > 0:
         result["javadoc"] = javadoc
     return result
+
+
+def attach_epydoc_to_signature(doc):
+    try:
+        signature   = doc["signature"]
+        javadoc     = doc["docs"]["javadoc"]
+    except KeyError:
+        return
+
+    signature = { s["name"] : s for s in signature }
+
+    for entry in javadoc:
+        tag = entry["tag"]
+        if tag in {"param", "type"}:
+            name = entry["arg"]
+            try:
+                param = signature[name]
+            except KeyError:
+                markup_error(
+                    "no matching parameter for @{} {}".format(tag, name))
+            else:
+                param["doc" if tag == "param" else "doc_type"] = entry["text"]
 
 
 #-------------------------------------------------------------------------------
@@ -276,6 +300,7 @@ def enrich(jso, modules={}):
     else:
         # docs.update(parse_doc_markdown(doc))
         docs.update(parse_doc(doc))
+        attach_epydoc_to_signature(jso)
 
     # FIXME
     for val in jso.get("dict", {}).values():

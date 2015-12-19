@@ -17,14 +17,19 @@ def look_up(docs, module, name=None):
     Looks up a module or object in docs.
 
     Finds `module`, then recursively finds `name` by traversing the module's
-    and then objects' dictionaries.  If `name` is `None`, returns the object
-    itself.
+    and then objects' dictionaries.  
+
+    If `name` is `None`, returns the object itself.
 
     @param module
       The fully qualified module name.
+    @type module
+      `str`
     @param name
       The fully qualified name of the object in the module, or `None` for 
       the module itself.
+    @type name
+      `str` or `None`
     """
     modules = docs["modules"]
     try:
@@ -125,28 +130,46 @@ def format_html(html):
 #-------------------------------------------------------------------------------
 
 def print_docs(docs):
+    section_header = lambda s: ansi.underline(s) + ":"
+
+    signature = docs.get("signature", None)
+    docstring = docs.get("docs", None)
+
     # Show the name.
     print(ansi.bold(docs["name"]), end="")
     # Show its callable signature, if it has one.
-    try:
-        signature = docs["signature"]
-    except KeyError:
-        print()
-    else:
-        signature = signature_from_jso(signature)
+    if signature is not None:
+        sig = signature_from_jso(signature)
         print("(")
-        for last, line in is_last(format_parameters(signature.parameters)):
+        for last, line in is_last(format_parameters(sig.parameters)):
             print("  " + line + ("" if last else ","))
         print(")")
+    print()
 
     # Show the doc summary.
-    summary = format_html(docs.get("summary", "")).strip()
-    print(summary)
-    print("=" * len(summary))
-    # Show paragraphs of doc body.
-    for d in docs.get("body", []):
-        print(format_html(d), end="")
-    print()
+    if docstring is not None:
+        summary = format_html(docstring.get("summary", "")).strip()
+        print(ansi.bold(summary))
+        # Show paragraphs of doc body.
+        for d in docstring.get("body", []):
+            print(format_html(d), end="")
+        print()
+
+    # Summarize parameters.
+    if signature is not None and len(signature) > 0:
+        print(section_header("Parameters"))
+        for param in signature:
+            print("- " + ansi.fg("dark_green")(param["name"]))
+            doc_type = param.get("doc_type")
+            if doc_type is not None:
+                print("  type: " + doc_type)
+            default = param.get("default")
+            if default is not None:
+                print("  default: " + default["repr"])
+            doc = param.get("doc")
+            if doc is not None:
+                print("  " + ansi.fg("dark_gray")(doc))
+        print()
 
     # Summarize contents.
     dict = docs.get("dict", {})
