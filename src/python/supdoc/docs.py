@@ -74,42 +74,48 @@ JAVADOC_ARG_TAGS = frozenset({
 def find_javadoc(lines):
     """
     Finds and separates Javadoc-style tags.
+
+    @param lines
+      Iterable of docstring lines.
+    @return
+      `doc_lines, javadoc`, where `doc_lines` is a sequence of the filtered
+      non-Javadoc lines, and `javadoc` is a sequence of extracted Javadoc tags.
     """
+    doc_lines = []
     javadoc = []
 
-    def filter():
-        tag = None
-        for line in lines:
-            l = line.strip()
-            try:
-                first, rest = l.split(None, 1)
-            except ValueError:
-                first, rest = l, ""
-            if first.startswith("@") and len(first) > 1:
-                if tag is not None:
-                    # Done with the previous tag.
-                    javadoc.append((tag, arg, " ".join(text)))
-                tag = first[1 :]
-                # Some tags take an argument.
-                if tag in JAVADOC_ARG_TAGS and len(rest) > 0:
-                    words = rest.split(None, 1)
-                    if len(words) == 1:
-                        arg, = words
-                        rest = ""
-                    else:
-                        arg, rest = words
+    tag = None
+    for line in lines:
+        l = line.strip()
+        try:
+            first, rest = l.split(None, 1)
+        except ValueError:
+            first, rest = l, ""
+        if first.startswith("@") and len(first) > 1:
+            if tag is not None:
+                # Done with the previous tag.
+                javadoc.append((tag, arg, " ".join(text)))
+            tag = first[1 :]
+            # Some tags take an argument.
+            if tag in JAVADOC_ARG_TAGS and len(rest) > 0:
+                words = rest.split(None, 1)
+                if len(words) == 1:
+                    arg, = words
+                    rest = ""
                 else:
-                    arg = None
-                text = [rest] if len(rest) > 0 else []
-                indent = get_indent(line)
-            elif tag is not None and get_indent(line) >= indent:
-                text.append(l)
+                    arg, rest = words
             else:
-                yield line
-        if tag is not None:
-            javadoc.append((tag, arg, " ".join(text)))
+                arg = None
+            text = [rest] if len(rest) > 0 else []
+            indent = get_indent(line)
+        elif tag is not None and get_indent(line) >= indent:
+            text.append(l)
+        else:
+            doc_lines.append(line)
+    if tag is not None:
+        javadoc.append((tag, arg, " ".join(text)))
     
-    return list(filter()), javadoc
+    return doc_lines, javadoc
 
 
 #-------------------------------------------------------------------------------
@@ -130,8 +136,13 @@ def parse_formatting(text):
 
 
 def parse_doc(source):
-    # Split into paragraphs.
+    # Split into lines.
     lines = ( l.expandtabs().rstrip() for l in source.splitlines() )
+
+    # Filter and parse Javadoc tags.
+    lines, javadoc = find_javadoc(lines)
+
+    # Combine lines into paragraphs.
     pars = join_pars(lines)
 
     # The first paragraph is the summary.
@@ -145,16 +156,7 @@ def parse_doc(source):
     # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ] 
     min_indent = 0 if len(pars) == 0 else min( i for i, _ in pars )
-    pars = ( (i - min_indent, p) for i, p in pars )
-
-    # FIXME
-    if True:
-        p = [ (i, ) + find_javadoc(p) for i, p in pars ]
-        indents, pars, javadoc = zip(*p) if len(p) > 0 else ([], [], [])
-        pars = zip(indents, pars)
-        javadoc = sum(javadoc, [])
-    else:
-        javadoc = []
+    pars = [ (i - min_indent, p) for i, p in pars ]
 
     body = []
 
