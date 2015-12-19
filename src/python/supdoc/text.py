@@ -16,6 +16,10 @@ def look_up(docs, module, name=None):
     """
     Looks up a module or object in docs.
 
+    Finds `module`, then recursively finds `name` by traversing the module's
+    and then objects' dictionaries.  If `name` is `None`, returns the object
+    itself.
+
     @param module
       The fully qualified module name.
     @param name

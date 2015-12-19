@@ -163,7 +163,7 @@ def split_paragraphs(block):
     Combines text in block contents into paragraphs.
     """
     # Break block contents into paragraphs by blank lines.
-    def gen():
+    def gen(block):
         par = []
         for obj in block:
             if isinstance(obj, Text) and obj.empty:
@@ -175,8 +175,8 @@ def split_paragraphs(block):
         yield par
 
     # Combine paragraphs.  
-    def finish():
-        for par in gen():
+    def finish(pars):
+        for par in pars:
             if len(par) == 0:
                 continue
             elif any( isinstance(o, Text) for o in par ):
@@ -186,7 +186,7 @@ def split_paragraphs(block):
                 # Doesn't contain text; don't wrap it.
                 yield from par
 
-    block[:] = finish()
+    block[:] = finish(gen(block))
 
 
 def split_doctest(block):

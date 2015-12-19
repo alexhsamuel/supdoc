@@ -119,9 +119,9 @@ SINGLE_BACKTICK_REGEX = re.compile(r"`(.*?)`")
 
 def parse_formatting(text):
     # Look for ``-delimited strings.
-    text = DOUBLE_BACKTICK_REGEX.sub(r'<span class="code">\1</span>', text)
+    text = DOUBLE_BACKTICK_REGEX.sub(r'<code>\1</code>', text)
     # Look for `-delimited strings.
-    text = SINGLE_BACKTICK_REGEX.sub(r'<span class="code">\1</span>', text)
+    text = SINGLE_BACKTICK_REGEX.sub(r'<code>\1</code>', text)
 
     text = markdown.markdown(text, output_format="html5")
 
@@ -208,6 +208,8 @@ def parse_doc(source):
     return result
 
 
+#-------------------------------------------------------------------------------
+
 def markdown_to_et(text):
     """
     Parses as Markdown to `ElementTree`.
@@ -230,9 +232,9 @@ def markdown_to_et(text):
     return et
 
 
-def parse_docstring(docstring):
+def parse_doc_markdown(docstring):
     """
-    Parses a docstring.
+    Parses a docstring as Markdown.
 
     FIXME
     """
@@ -261,6 +263,8 @@ def parse_docstring(docstring):
     return result
 
 
+#-------------------------------------------------------------------------------
+
 def enrich(jso, modules={}):
     docs = jso.get("docs", {})
     try:
@@ -268,7 +272,8 @@ def enrich(jso, modules={}):
     except KeyError:
         pass
     else:
-        docs.update(parse_docstring(doc))
+        # docs.update(parse_doc_markdown(doc))
+        docs.update(parse_doc(doc))
 
     # FIXME
     for val in jso.get("dict", {}).values():
