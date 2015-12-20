@@ -7,6 +7,7 @@ import sys
 
 import html2text
 
+import pln.itr
 import pln.json
 from   pln.terminal import ansi
 
@@ -19,74 +20,75 @@ def is_ref(obj):
 
 
 def parse_ref(ref):
+    """
+    Parses a ref.
+
+    @return
+      The fully-qualified module name and the name path.
+    """
     parts = ref["$ref"].split("/")
     assert parts[0] == "#",         "ref must be absolute in current doc"
     assert len(parts) >= 3,         "ref must include module"
     assert parts[1] == "modules",   "ref must start with module"
-    return parts[2], ".".join(parts[3 :])
+    modname, name_path = parts[2], ".".join(parts[3 :])
+    return modname, name_path
 
 
-def look_up_ref(all_docs, ref):
+def look_up_ref(sdoc, ref):
+    """
+    Resolves a reference in its sdoc.
+    """
     parts = ref["$ref"].split("/")
     assert parts[0] == "#", "ref must be absolute in current doc"
-    docs = all_docs
+    docs = sdoc
     for part in parts[1 :]:
         docs = docs[part]
     return docs
 
 
-def look_up(docs, module, name=None, refs=False):
+def look_up(sdoc, modname, name_path=None, refs=False):
     """
-    Looks up a module or object in docs.
+    Looks up a module or object in an sdoc.
 
-    Finds `module`, then recursively finds `name` by traversing the module's
-    and then objects' dictionaries.  
+    Finds `modname`, then recursively finds `name_path` by traversing the
+    module's and then objects' dictionaries.
 
-    If `name` is `None`, returns the object itself.
+    If `name_path` is `None`, returns the object itself.
 
-    @param module
+    @param modname
       The fully qualified module name.
-    @type module
+    @type modname
       `str`
-    @param name
-      The fully qualified name of the object in the module, or `None` for 
-      the module itself.
-    @type name
+    @param name_path
+      The name path of the object in the module, or `None` for the module
+      itself.
+    @type name_path
       `str` or `None`
     @param refs
       If true, resolve refs.  If the value is callable, call it whenever
       resolving a ref.
     """
-    modules = docs["modules"]
+    modules = sdoc["modules"]
     try:
-        obj = modules[module]
+        odoc = modules[modname]
     except KeyError:
-        raise LookupError("no such module: {}".format(module)) from None
-    if name is not None:
-        parts = name.split(".")
+        raise LookupError("no such module: {}".format(modname)) from None
+    if name_path is not None:
+        parts = name_path.split(".")
         for i in range(len(parts)):
             try:
-                obj = obj["dict"][parts[i]]
+                odoc = odoc["dict"][parts[i]]
             except KeyError:
                 missing_name = ".".join(parts[: i + 1])
                 raise LookupError("no such name: {}".format(missing_name))
 
     # Resolve references.
-    while refs and is_ref(obj):
+    while refs and is_ref(odoc):
         if callable(refs):
-            refs(*parse_ref(obj))
-        obj = look_up_ref(docs, obj)
+            refs(*parse_ref(odoc))
+        odoc = look_up_ref(sdoc, odoc)
 
-    return obj
-
-
-def is_last(iterable):
-    for item in iterable:
-        with suppress(NameError):
-            yield False, next_item
-        next_item = item
-    with suppress(NameError):
-        yield True, next_item
+    return odoc
 
 
 #-------------------------------------------------------------------------------
@@ -103,9 +105,6 @@ class ReprObj:
 
 
 from  inspect import Signature, Parameter
-
-# FIXME: Change the signature JSO to encode a params array and return
-# annotation.
 
 def parameter_from_jso(jso):
     name = jso["name"]
@@ -162,39 +161,40 @@ def format_html(html):
 
 #-------------------------------------------------------------------------------
 
-BULLET              = "\u2022 "
-SECTION_HEADER      = lambda s: ansi.underline(s) + ":"
+BULLET              = "\u2023 "
+SECTION_HEADER      = lambda s: ansi.underline(s)
 NOTE                = ansi.fg("dark_red")
 
 
-def print_docs(all_docs, docs):
-    while is_ref(docs):
-        module, fqname = parse_ref(docs)
+def print_docs(sdoc, odoc):
+    while is_ref(odoc):
+        modname, fqname = parse_ref(odoc)
         print(NOTE("Reference!"))
-        docs = look_up_ref(all_docs, docs)
+        odoc = look_up_ref(sdoc, odoc)
 
-    name        = docs.get("name", None)
-    signature   = docs.get("signature", None)
-    docstring   = docs.get("docs", None)
+    name        = odoc.get("name")
+    signature   = odoc.get("signature")
+    docs        = odoc.get("docs")
+    dict        = odoc.get("dict")
 
     # Show the name.
     if name is not None:
-        print(ansi.bold(docs["name"]), end="")
+        print(ansi.bold(odoc["name"]), end="")
     # Show its callable signature, if it has one.
     if signature is not None:
         sig = signature_from_jso(signature)
         print("(")
-        for last, line in is_last(format_parameters(sig.parameters)):
+        for last, line in pln.itr.last(format_parameters(sig.parameters)):
             print("  " + line + ("" if last else ","))
         print(")")
     print()
 
     # Show the doc summary.
-    if docstring is not None:
-        summary = format_html(docstring.get("summary", "")).strip()
+    if docs is not None:
+        summary = format_html(docs.get("summary", "")).strip()
         print(ansi.bold(summary))
         # Show paragraphs of doc body.
-        for d in docstring.get("body", []):
+        for d in docs.get("body", []):
             print(format_html(d), end="")
         print()
 
@@ -215,8 +215,7 @@ def print_docs(all_docs, docs):
         print()
 
     # Summarize contents.
-    dict = docs.get("dict", {})
-    if len(dict) > 0:
+    if dict is not None and len(dict) > 0:
         print("dict:")
         for name in sorted(dict):
             print(BULLET + name)
@@ -231,40 +230,40 @@ def _main():
         "--path", metavar="FILE", default=None,
         help="read JSON docs from FILE")
     parser.add_argument(
-        "module", metavar="MODULE",
-        help="full module name")
+        "modname", metavar="MODULE",
+        help="fully-qualified module name")
     parser.add_argument(
-        "name", metavar="NAME", default=None, nargs="?",
-        help="object name")
+        "name_path", metavar="NAME", default=None, nargs="?",
+        help="object name path in module")
     args = parser.parse_args()
 
     if args.path is None:
         from . import inspector
-        all_docs = inspector.inspect_modules([args.module])
+        sdoc = inspector.inspect_modules([args.modname])
     else:
         # Read the docs file.
         with open(args.path) as file:
-            all_docs = json.load(file)
+            sdoc = json.load(file)
 
     if args.json:
         refs = False
     else:
-        def refs(module, name):
-            full_name = module + "." + name if name else module
+        def refs(modname, name_path):
+            full_name = modname + "." + name_path if name_path else modname
             print(NOTE("redirects to: " + full_name))
 
     # Find the requested object.
     try:
-        docs = look_up(all_docs, args.module, args.name, refs=refs)
+        odoc = look_up(sdoc, args.modname, args.name_path, refs=refs)
     except LookupError as error:
         # FIXME
         print(error, file=sys.stderr)
         raise SystemExit(1)
 
     if args.json:
-        pln.json.pprint(docs)
+        pln.json.pprint(odoc)
     else:
-        print_docs(all_docs, docs)
+        print_docs(sdoc, odoc)
 
 
 if __name__ == "__main__":
