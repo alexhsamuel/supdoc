@@ -417,11 +417,10 @@ def inspect_modules(modules, *, refs=True, builtins=False):
     # FIXME: Global state.
     _ref_modules.clear()
     module_docs = {}
-    inspect = lambda m: inspect_module(m, builtins=builtins)
 
     # Inspect all the requested modules.
     for module in modules:
-        docs = inspect(module)
+        docs = inspect_module(module, builtins=True)
         # FIXME
         if docs is not None:
             module_docs[module] = docs
@@ -429,7 +428,7 @@ def inspect_modules(modules, *, refs=True, builtins=False):
     if refs:
         while len(_ref_modules - set(module_docs)) > 0:
             for module in _ref_modules - set(module_docs):
-                module_docs[module] = inspect(module)
+                module_docs[module] = inspect_module(module, builtins=builtins)
 
     from . import docs
     docs.enrich_modules(module_docs)
