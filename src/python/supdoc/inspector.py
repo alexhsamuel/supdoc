@@ -376,6 +376,8 @@ def _inspect_parameter(param):
 
 _STDLIB_PATH = os.path.normpath(sysconfig.get_path("stdlib"))
 
+_BUILTIN_IMPORTER = builtins.__spec__.loader
+
 def is_builtin(module_obj):
     """
     @type module_obj
@@ -383,7 +385,7 @@ def is_builtin(module_obj):
     @return
       True if `module_obj` is a builtin module.
     """
-    if module_obj in {builtins, }:
+    if module_obj.__spec__.loader is _BUILTIN_IMPORTER:
         return True
 
     try:
