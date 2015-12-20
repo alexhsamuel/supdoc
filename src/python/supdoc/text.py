@@ -12,7 +12,30 @@ from   pln.terminal import ansi
 
 #-------------------------------------------------------------------------------
 
-def look_up(docs, module, name=None):
+# FIXME: Elsewhere.
+
+def is_ref(obj):
+    return "$ref" in obj
+
+
+def parse_ref(ref):
+    parts = ref["$ref"].split("/")
+    assert parts[0] == "#",         "ref must be absolute in current doc"
+    assert len(parts) >= 3,         "ref must include module"
+    assert parts[1] == "modules",   "ref must start with module"
+    return parts[2], ".".join(parts[3 :])
+
+
+def look_up_ref(all_docs, ref):
+    parts = ref["$ref"].split("/")
+    assert parts[0] == "#", "ref must be absolute in current doc"
+    docs = all_docs
+    for part in parts[1 :]:
+        docs = docs[part]
+    return docs
+
+
+def look_up(docs, module, name=None, refs=False):
     """
     Looks up a module or object in docs.
 
@@ -30,6 +53,9 @@ def look_up(docs, module, name=None):
       the module itself.
     @type name
       `str` or `None`
+    @param refs
+      If true, resolve refs.  If the value is callable, call it whenever
+      resolving a ref.
     """
     modules = docs["modules"]
     try:
@@ -44,6 +70,13 @@ def look_up(docs, module, name=None):
             except KeyError:
                 missing_name = ".".join(parts[: i + 1])
                 raise LookupError("no such name: {}".format(missing_name))
+
+    # Resolve references.
+    while refs and is_ref(obj):
+        if callable(refs):
+            refs(*parse_ref(obj))
+        obj = look_up_ref(docs, obj)
+
     return obj
 
 
@@ -129,14 +162,24 @@ def format_html(html):
 
 #-------------------------------------------------------------------------------
 
-def print_docs(docs):
-    section_header = lambda s: ansi.underline(s) + ":"
+BULLET              = "\u2022 "
+SECTION_HEADER      = lambda s: ansi.underline(s) + ":"
+NOTE                = ansi.fg("dark_red")
 
-    signature = docs.get("signature", None)
-    docstring = docs.get("docs", None)
+
+def print_docs(all_docs, docs):
+    while is_ref(docs):
+        module, fqname = parse_ref(docs)
+        print(NOTE("Reference!"))
+        docs = look_up_ref(all_docs, docs)
+
+    name        = docs.get("name", None)
+    signature   = docs.get("signature", None)
+    docstring   = docs.get("docs", None)
 
     # Show the name.
-    print(ansi.bold(docs["name"]), end="")
+    if name is not None:
+        print(ansi.bold(docs["name"]), end="")
     # Show its callable signature, if it has one.
     if signature is not None:
         sig = signature_from_jso(signature)
@@ -157,9 +200,9 @@ def print_docs(docs):
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
-        print(section_header("Parameters"))
+        print(SECTION_HEADER("Parameters"))
         for param in signature:
-            print("- " + ansi.fg("dark_green")(param["name"]))
+            print(BULLET + ansi.fg("dark_green")(param["name"]))
             doc_type = param.get("doc_type")
             if doc_type is not None:
                 print("  type: " + doc_type)
@@ -176,7 +219,7 @@ def print_docs(docs):
     if len(dict) > 0:
         print("dict:")
         for name in sorted(dict):
-            print("- " + name)
+            print(BULLET + name)
 
 
 def _main():
@@ -203,9 +246,16 @@ def _main():
         with open(args.path) as file:
             all_docs = json.load(file)
 
+    if args.json:
+        refs = False
+    else:
+        def refs(module, name):
+            full_name = module + "." + name if name else module
+            print(NOTE("redirects to: " + full_name))
+
     # Find the requested object.
     try:
-        docs = look_up(all_docs, args.module, args.name)
+        docs = look_up(all_docs, args.module, args.name, refs=refs)
     except LookupError as error:
         # FIXME
         print(error, file=sys.stderr)
@@ -214,7 +264,7 @@ def _main():
     if args.json:
         pln.json.pprint(docs)
     else:
-        print_docs(docs)
+        print_docs(all_docs, docs)
 
 
 if __name__ == "__main__":
