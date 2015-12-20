@@ -129,7 +129,7 @@ def parameter_from_jso(jso):
 
 def signature_from_jso(jso):
     # FIXME: return annotation.
-    parameters = [ parameter_from_jso(o) for o in jso ]
+    parameters = [ parameter_from_jso(o) for o in jso.get("params", []) ]
     return Signature(parameters)
 
 
@@ -201,7 +201,7 @@ def print_docs(all_docs, docs):
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
         print(SECTION_HEADER("Parameters"))
-        for param in signature:
+        for param in signature["params"]:
             print(BULLET + ansi.fg("dark_green")(param["name"]))
             doc_type = param.get("doc_type")
             if doc_type is not None:

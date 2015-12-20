@@ -332,8 +332,10 @@ def _inspect(obj, inspect_path):
             # Doesn't work for extension functions.
             pass
         else:
-            jso["signature"] = [
-                _inspect_parameter(p) for p in sig.parameters.values() ]
+            jso["signature"] = {
+                "params": [
+                    _inspect_parameter(p) for p in sig.parameters.values() ]
+            }
 
     # If this is a classmethod or staticmethod wrapper, inspect the underlying
     # function.

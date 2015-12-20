@@ -219,14 +219,14 @@ def attach_epydoc_to_signature(doc):
     except KeyError:
         return
 
-    signature = { s["name"] : s for s in signature }
+    params = { s["name"] : s for s in signature.get("params", ()) }
 
     for entry in javadoc:
         tag = entry["tag"]
         if tag in {"param", "type"}:
             name = entry["arg"]
             try:
-                param = signature[name]
+                param = params[name]
             except KeyError:
                 markup_error(
                     "no matching parameter for @{} {}".format(tag, name))
