@@ -183,10 +183,10 @@ def print_docs(sdoc, odoc):
     # Show its callable signature, if it has one.
     if signature is not None:
         sig = signature_from_jso(signature)
-        print("(")
-        for last, line in pln.itr.last(format_parameters(sig.parameters)):
-            print("  " + line + ("" if last else ","))
-        print(")")
+        print(
+            "(" 
+            + ", ".join(format_parameters(sig.parameters))
+            + ")")
     print()
 
     # Show the doc summary.
