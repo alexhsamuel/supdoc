@@ -2,10 +2,9 @@ import argparse
 from   contextlib import suppress
 from   enum import Enum
 import json
+import re
 import shutil
 import sys
-
-import html2text
 
 import pln.itr
 import pln.json
@@ -153,10 +152,19 @@ def format_parameters(parameters):
         yield result
 
 
-width = shutil.get_terminal_size().columns
+#-------------------------------------------------------------------------------
+
+# FIXME
+import html2text
+
+html2text.config.UNICODE_SNOB = True
+html2text.config.BODY_WIDTH = shutil.get_terminal_size().columns
 
 def format_html(html):
-    return html2text.html2text(html, bodywidth=width)
+    text = html2text.html2text(html)
+    # Clean up funny spacing.
+    text = re.sub(r"\n(\s*\n)+", "\n\n", text)
+    return text
 
 
 #-------------------------------------------------------------------------------
@@ -194,9 +202,9 @@ def print_docs(sdoc, odoc):
         summary = format_html(docs.get("summary", "")).strip()
         print(ansi.bold(summary))
         # Show paragraphs of doc body.
-        for d in docs.get("body", []):
-            print(format_html(d), end="")
-        print()
+        body = docs.get("body", [])
+        if len(body) > 0:
+            print(format_html("".join(body)))
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
