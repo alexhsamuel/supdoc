@@ -9,6 +9,13 @@ import sys
 import pln.itr
 import pln.json
 from   pln.terminal import ansi
+import pln.terminal.html
+
+#-------------------------------------------------------------------------------
+
+COLORS = {
+    "identifier"        : "#243",
+}
 
 #-------------------------------------------------------------------------------
 
@@ -144,27 +151,12 @@ def format_parameters(parameters):
         elif param.kind is Parameter.VAR_KEYWORD:
             prefix = "**"
             star = True
-        result = prefix + ansi.fg("dark_green")(param.name)
+        result = prefix + ansi.fg(COLORS["identifier"])(param.name)
         if param.annotation is not Parameter.empty:
             result += ":" + repr(param.annotation)
         if param.default is not Parameter.empty:
             result += "=" + repr(param.default)
         yield result
-
-
-#-------------------------------------------------------------------------------
-
-# FIXME
-import html2text
-
-html2text.config.BODY_WIDTH = shutil.get_terminal_size().columns
-html2text.config.UNICODE_SNOB = True
-
-def format_html(html):
-    text = html2text.html2text(html)
-    # Clean up funny spacing.
-    text = re.sub(r"\n(\s*\n)+", "\n\n", text)
-    return text
 
 
 #-------------------------------------------------------------------------------
@@ -199,18 +191,20 @@ def print_docs(sdoc, odoc):
 
     # Show the doc summary.
     if docs is not None:
-        summary = format_html(docs.get("summary", "")).strip()
-        print(ansi.bold(summary))
+        summary = docs.get("summary", "")
+        if summary:
+            summary = "<b>" + summary + "</b>"
+            print(pln.terminal.html.convert(summary))
         # Show paragraphs of doc body.
         body = docs.get("body", [])
         if len(body) > 0:
-            print(format_html(body))
+            print(pln.terminal.html.convert(body))
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
         print(SECTION_HEADER("Parameters"))
         for param in signature["params"]:
-            print(BULLET + ansi.fg("dark_green")(param["name"]))
+            print(BULLET + ansi.fg(COLORS["identifier"])(param["name"]))
             doc_type = param.get("doc_type")
             if doc_type is not None:
                 print("  type: " + doc_type)
