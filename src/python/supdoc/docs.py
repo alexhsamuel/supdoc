@@ -5,7 +5,7 @@ import markdown
 import xml.etree.ElementTree as ET
 
 import pln.itr
-from   pln.itr import get_indent, get_common_indent, join_pars
+from   pln.text import get_indent, get_common_indent, join_pars
 
 from   . import base
 
@@ -20,7 +20,7 @@ def markup_error(description):
 JAVADOC_ARG_TAGS = frozenset({
     "param",
     "type",
-    })
+})
 
 
 def find_javadoc(lines):
@@ -145,7 +145,7 @@ def parse_doc(source):
                     # FIXME: Use a better tag for this.
                     yield '<pre class="code">' + "\n".join(text) + "</pre>"
 
-    body = list(generate(pars))
+    body = "\n".join(generate(pars))
 
     # find_identifiers(body)
 
@@ -230,7 +230,7 @@ def parse_doc_markdown(docstring):
         result["summary"] = content(summary)
 
     # Reassemble the HTML source.
-    result["body"] = [ tostring(e) for e in et ]
+    result["body"] = "\n".join( tostring(e) for e in et )
 
     return result
 

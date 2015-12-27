@@ -204,7 +204,7 @@ def print_docs(sdoc, odoc):
         # Show paragraphs of doc body.
         body = docs.get("body", [])
         if len(body) > 0:
-            print(format_html("".join(body)))
+            print(format_html(body))
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
