@@ -157,8 +157,8 @@ def format_parameters(parameters):
 # FIXME
 import html2text
 
-html2text.config.UNICODE_SNOB = True
 html2text.config.BODY_WIDTH = shutil.get_terminal_size().columns
+html2text.config.UNICODE_SNOB = True
 
 def format_html(html):
     text = html2text.html2text(html)
