@@ -167,10 +167,10 @@ SECTION_HEADER      = lambda s: ansi.underline(s)
 NOTE                = ansi.fg("dark_red")
 
 
-def print_docs(sdoc, odoc):
+def format_docs(sdoc, odoc):
     while is_ref(odoc):
         modname, fqname = parse_ref(odoc)
-        print(NOTE("Reference!"))
+        yield NOTE("Reference!")
         odoc = look_up_ref(sdoc, odoc)
 
     name        = odoc.get("name")
@@ -181,50 +181,48 @@ def print_docs(sdoc, odoc):
     doc_style   = ansi.style(**STYLES["docs"])
 
     # Show the name.
+    line = ""
     if name is not None:
-        print(ansi.bold(odoc["name"]), end="")
+        line += ansi.bold(odoc["name"])
     # Show its callable signature, if it has one.
     if signature is not None:
         sig = signature_from_jso(signature)
-        print(
-            "(" 
-            + ", ".join(format_parameters(sig.parameters))
-            + ")")
-    print()
+        line += "(" + ", ".join(format_parameters(sig.parameters)) + ")"
+    yield line
 
     # Show the doc summary.
     if docs is not None:
         summary = docs.get("summary", "")
         if summary:
-            print(pln.terminal.html.convert(summary, style={"bold": True}))
+            yield pln.terminal.html.convert(summary, style={"bold": True})
         # Show paragraphs of doc body.
         body = docs.get("body", [])
         if len(body) > 0:
-            print(pln.terminal.html.convert(body))
+            yield pln.terminal.html.convert(body)
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
-        print(SECTION_HEADER("Parameters"))
+        yield SECTION_HEADER("Parameters")
         for param in signature["params"]:
-            output = BULLET + ansi.style(**STYLES["identifier"])(param["name"])
+            line = BULLET + ansi.style(**STYLES["identifier"])(param["name"])
             default = param.get("default")
             if default is not None:
-                output += " default=" + default["repr"]
-            print(output)
+                line += " default=" + default["repr"]
+            yield line
+
             doc_type = param.get("doc_type")
             if doc_type is not None:
-                print("  [type: " + doc_style(doc_type) + "]")
+                yield "  [type: " + doc_style(doc_type) + "]"
             doc = param.get("doc")
             if doc is not None:
-                output += "\n" + "  " + doc_style(doc)
-            print(output)
-        print()
+                yield "  " + doc_style(doc)
+        yield ""
 
     # Summarize contents.
     if dict is not None and len(dict) > 0:
-        print("dict:")
+        yield "dict:"
         for name in sorted(dict):
-            print(BULLET + name)
+            yield BULLET + name
 
 
 def _main():
@@ -269,7 +267,8 @@ def _main():
     if args.json:
         pln.json.pprint(odoc)
     else:
-        print_docs(sdoc, odoc)
+        for line in format_docs(sdoc, odoc):
+            print(line)
 
 
 if __name__ == "__main__":
