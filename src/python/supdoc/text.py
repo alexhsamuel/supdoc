@@ -13,8 +13,9 @@ import pln.terminal.html
 
 #-------------------------------------------------------------------------------
 
-COLORS = {
-    "identifier"        : "#243",
+STYLES = {
+    "docs"              : {"fg": "gray30", },
+    "identifier"        : {"fg": "#243", },
 }
 
 #-------------------------------------------------------------------------------
@@ -151,7 +152,7 @@ def format_parameters(parameters):
         elif param.kind is Parameter.VAR_KEYWORD:
             prefix = "**"
             star = True
-        result = prefix + ansi.fg(COLORS["identifier"])(param.name)
+        result = prefix + ansi.style(**STYLES["identifier"])(param.name)
         if param.annotation is not Parameter.empty:
             result += ":" + repr(param.annotation)
         if param.default is not Parameter.empty:
@@ -177,6 +178,8 @@ def print_docs(sdoc, odoc):
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
 
+    doc_style   = ansi.style(**STYLES["docs"])
+
     # Show the name.
     if name is not None:
         print(ansi.bold(odoc["name"]), end="")
@@ -193,8 +196,7 @@ def print_docs(sdoc, odoc):
     if docs is not None:
         summary = docs.get("summary", "")
         if summary:
-            summary = "<b>" + summary + "</b>"
-            print(pln.terminal.html.convert(summary))
+            print(pln.terminal.html.convert(summary, style={"bold": True}))
         # Show paragraphs of doc body.
         body = docs.get("body", [])
         if len(body) > 0:
@@ -204,16 +206,18 @@ def print_docs(sdoc, odoc):
     if signature is not None and len(signature) > 0:
         print(SECTION_HEADER("Parameters"))
         for param in signature["params"]:
-            print(BULLET + ansi.fg(COLORS["identifier"])(param["name"]))
-            doc_type = param.get("doc_type")
-            if doc_type is not None:
-                print("  type: " + doc_type)
+            output = BULLET + ansi.style(**STYLES["identifier"])(param["name"])
             default = param.get("default")
             if default is not None:
-                print("  default: " + default["repr"])
+                output += " default=" + default["repr"]
+            print(output)
+            doc_type = param.get("doc_type")
+            if doc_type is not None:
+                print("  [type: " + doc_style(doc_type) + "]")
             doc = param.get("doc")
             if doc is not None:
-                print("  " + ansi.fg("dark_gray")(doc))
+                output += "\n" + "  " + doc_style(doc)
+            print(output)
         print()
 
     # Summarize contents.
