@@ -162,10 +162,14 @@ def format_parameters(parameters):
 
 #-------------------------------------------------------------------------------
 
+from   . import inspector
+
 BULLET              = "\u2023 "
 SECTION_HEADER      = lambda s: ansi.underline(s)
 NOTE                = ansi.fg("dark_red")
 
+
+# FIXME: We need some kind of terminal object to handle width and indentation.
 
 def format_docs(sdoc, odoc):
     while is_ref(odoc):
@@ -228,22 +232,25 @@ def format_docs(sdoc, odoc):
 def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "name", metavar="NAME",
+        help="fully-qualified module or object name")
+    parser.add_argument(
         "--json", default=False, action="store_true",
         help="dump JSON docs")
     parser.add_argument(
         "--path", metavar="FILE", default=None,
         help="read JSON docs from FILE")
-    parser.add_argument(
-        "modname", metavar="MODULE",
-        help="fully-qualified module name")
-    parser.add_argument(
-        "name_path", metavar="NAME", default=None, nargs="?",
-        help="object name path in module")
     args = parser.parse_args()
 
+    # Find the requested object.
+    try:
+        path, obj = inspector.split(args.name)
+    except NameError as error:
+        print(error, file=sys.stderr)
+        raise SystemExit(1)
+
     if args.path is None:
-        from . import inspector
-        sdoc = inspector.inspect_modules([args.modname])
+        sdoc = inspector.inspect_modules([path.module])
     else:
         # Read the docs file.
         with open(args.path) as file:
@@ -256,9 +263,8 @@ def _main():
             full_name = modname + "." + name_path if name_path else modname
             print(NOTE("redirects to: " + full_name))
 
-    # Find the requested object.
     try:
-        odoc = look_up(sdoc, args.modname, args.name_path, refs=refs)
+        odoc = look_up(sdoc, path.module, path.qualname, refs=refs)
     except LookupError as error:
         # FIXME
         print(error, file=sys.stderr)

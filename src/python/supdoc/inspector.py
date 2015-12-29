@@ -146,6 +146,65 @@ def resolve(path):
     return module if path.qualname is None else look_up(path.qualname, module)
 
 
+def split(name):
+    """
+    Attempts to split a fully-qualified name into modname and qualname.
+
+    `name` is a fully-qualified name consisting of full module name and
+    optionally an object's qualname in that module.  This method attempts to
+    split it by importing a prefix `name` as a module and then resolving the
+    rest in that module.  It starts with the longest possible prefix and
+    continues right-to-left.
+
+    For example, the name `"html.parser.HTMLParser.close"` is resolved
+    as follows:
+
+    1. Attempt to import `"html.parser.HTMLParser.close"`.  This fails.
+    1. Attempt to import `"html.parser.HTMLParser"`.  This fails.
+    1. Attempt to import `"html.parser"`.  This succeeds.  In the resulting
+       module, look up `"HTMLParser.close"`, which succeeds.
+
+    The result is thus `Path("html.parser", "HTMLParser.close")`.
+
+    If name contains a colon "`:`", this is unconditionally assumed to be
+    the separator between the modname and the qualname.
+
+    @return
+      A `Path` object for the split name, and the object itself.
+    @raise NameError
+      `name` could not be resolved.
+    """
+    if ":" in name:
+        # Fixed separator between modname and qualname.
+        modname, qualname = name.split(":", 1)
+        if qualname == "":
+            qualname = None
+
+        try:
+            module = import_(modname)
+            obj = module if qualname is None else look_up(qualname, module)
+        except:
+            raise NameError("can't find {} in {}".format(qualname, modname))
+
+    else:
+        parts = name.split(".")
+        # Try successively shorter prefixes as the modname.
+        for i in range(len(parts), 1, -1):
+            modname = ".".join(parts[: i])
+            qualname = None if i == len(parts) else ".".join(parts[i :])
+            try:
+                module = import_(modname)
+                obj = module if qualname is None else look_up(qualname, module)
+            except:
+                continue
+            else:
+                break
+        else:
+            raise NameError("can't find {}".format(name))
+
+    return Path(modname, qualname), obj
+
+
 # FIXME: Global state.  Possible resolutions:
 #  - Pass this stuff around (awkward).
 #  - Go fully global: keep a cache of inspected modules.
