@@ -64,7 +64,7 @@ DOCSTRING_TYPES = (
 
 #-------------------------------------------------------------------------------
 
-class Path(collections.namedtuple("Path", ("module", "qualname"))):
+class Path(collections.namedtuple("Path", ("modname", "qualname"))):
     """
     A fully-qualified lookup path to an object.
 
@@ -72,7 +72,7 @@ class Path(collections.namedtuple("Path", ("module", "qualname"))):
     by successively using `getattr` to obtain subobjects.  `qualname` is the
     dot-delimited path of names for `getattr`.
 
-    @ivar module
+    @ivar modname
       The full module name.
     @ivar qualname
       The qualname.
@@ -93,13 +93,13 @@ class Path(collections.namedtuple("Path", ("module", "qualname"))):
                     return class_(name, None)
 
         try:
-            module = obj.__module__
+            modname = obj.__module__
             qualname = obj.__qualname__
         except AttributeError:
             pass
         else:
-            if module is not None:
-                return class_(module, qualname)
+            if modname is not None:
+                return class_(modname, qualname)
 
         return None
 
@@ -112,7 +112,7 @@ class Path(collections.namedtuple("Path", ("module", "qualname"))):
             raise ValueError("not a private name")
         else:
             mangled = ".".join(parts[: -1]) + "._" + parts[-2] + parts[-1]
-            return self.__class__(self.module, mangled)
+            return self.__class__(self.modname, mangled)
 
 
 
@@ -216,9 +216,9 @@ _orphans = {}
 def _make_ref(path):
     assert path is not None
 
-    _ref_modules.add(path.module)
+    _ref_modules.add(path.modname)
 
-    ref = "#/modules/" + path.module
+    ref = "#/modules/" + path.modname
     if path.qualname is not None:
         ref += "/dict/" + "/dict/".join(path.qualname.split("."))
     return {"$ref": ref}
@@ -332,13 +332,13 @@ def _inspect(obj, inspect_path):
         jso["qualname"] = qualname
 
     try:
-        module = obj.__module__
+        modname = obj.__module__
     except AttributeError:
         pass
     else:
-        if module is not None:
+        if modname is not None:
             # Convert the module name into a ref.
-            jso["module"] = _make_ref(Path(module, None))
+            jso["module"] = _make_ref(Path(modname, None))
 
     # Get documentation, if it belongs to this object itself (not to the
     # object's type).
@@ -362,7 +362,7 @@ def _inspect(obj, inspect_path):
                 attr_path = None
             else:
                 attr_path = Path(
-                    inspect_path.module, 
+                    inspect_path.modname, 
                     attr_name if inspect_path.qualname is None 
                         else inspect_path.qualname + '.' + attr_name)
             dict_jso[attr_name] = _inspect(attr_value, attr_path)
@@ -457,37 +457,37 @@ def is_builtin(module_obj):
         return path.startswith(_STDLIB_PATH)
 
 
-def inspect_module(module, *, builtins=False):
+def inspect_module(modname, *, builtins=False):
     try:
-        obj = import_(module)
+        obj = import_(modname)
     except ImportError:
-        logging.debug("skipping unimportable module {}".format(module))
+        logging.debug("skipping unimportable module {}".format(modname))
         return None
 
     if builtins or not is_builtin(obj):
-        logging.debug("inspecting module {}".format(module))
-        return _inspect(obj, Path(module, None))
+        logging.debug("inspecting module {}".format(modname))
+        return _inspect(obj, Path(modname, None))
     else:
-        logging.debug("skipping builtin module {}".format(module))
+        logging.debug("skipping builtin module {}".format(modname))
         return None
 
 
-def inspect_modules(modules, *, refs=True, builtins=False):
+def inspect_modules(modnames, *, refs=True, builtins=False):
     # FIXME: Global state.
     _ref_modules.clear()
     module_docs = {}
 
     # Inspect all the requested modules.
-    for module in modules:
-        docs = inspect_module(module, builtins=True)
+    for modname in modnames:
+        docs = inspect_module(modname, builtins=True)
         # FIXME
         if docs is not None:
-            module_docs[module] = docs
+            module_docs[modname] = docs
     # Inspect all directly- and indirectly-referenced modules.
     if refs:
         while len(_ref_modules - set(module_docs)) > 0:
-            for module in _ref_modules - set(module_docs):
-                module_docs[module] = inspect_module(module, builtins=builtins)
+            for modname in _ref_modules - set(module_docs):
+                module_docs[modname] = inspect_module(modname, builtins=builtins)
 
     from . import docs
     docs.enrich_modules(module_docs)

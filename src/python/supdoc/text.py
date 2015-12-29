@@ -250,7 +250,7 @@ def _main():
         raise SystemExit(1)
 
     if args.path is None:
-        sdoc = inspector.inspect_modules([path.module])
+        sdoc = inspector.inspect_modules([path.modname])
     else:
         # Read the docs file.
         with open(args.path) as file:
@@ -264,7 +264,7 @@ def _main():
             print(NOTE("redirects to: " + full_name))
 
     try:
-        odoc = look_up(sdoc, path.module, path.qualname, refs=refs)
+        odoc = look_up(sdoc, path.modname, path.qualname, refs=refs)
     except LookupError as error:
         # FIXME
         print(error, file=sys.stderr)
