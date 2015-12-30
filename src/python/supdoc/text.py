@@ -154,10 +154,6 @@ def format_parameters(parameters):
             prefix = "**"
             star = True
         result = prefix + ansi.style(**STYLES["identifier"])(param.name)
-        if param.annotation is not Parameter.empty:
-            result += ":" + repr(param.annotation)
-        if param.default is not Parameter.empty:
-            result += "=" + repr(param.default)
         yield result
 
 
@@ -185,26 +181,28 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     doc_style   = ansi.style(**STYLES["docs"])
 
+    printer.newline()
+
     # Show the name.
-    line = ""
     if name is not None:
-        line += ansi.bold(odoc["name"])
+        printer << ansi.bold(odoc["name"])
     # Show its callable signature, if it has one.
     if signature is not None:
         sig = signature_from_jso(signature)
-        line += "(" + ", ".join(format_parameters(sig.parameters)) + ")"
-    printer <= line
+        printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
+    printer.newline(2)
 
     if docs is not None:
         # Show the doc summary.
         summary = docs.get("summary", "")
         if summary:
             pln.terminal.html.Converter(printer).convert(summary, style={"bold": True})
-            printer.newline(2)
+            printer.newline(1)
         # Show the doc body.
         body = docs.get("body", "")
         if body:
-            printer.push_indent("| ")
+            printer.push_indent("\u2506 ")
+            printer.newline()
             pln.terminal.html.Converter(printer).convert(body)
             printer.pop_indent()
             printer.newline(2)
