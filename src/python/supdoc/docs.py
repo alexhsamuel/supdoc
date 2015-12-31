@@ -133,17 +133,19 @@ def parse_doc(source):
                 text = parse_formatting(text)
                 yield text
 
-            if len(par) > 0 and par[-1].rstrip().endswith(":"):
-                text = []
-                for i, p in pars:
-                    if i > indent:
-                        text.extend(p)
-                    else:
-                        pars.push((i, p))
-                        break
-                if len(text) > 0:
-                    # FIXME: Use a better tag for this.
-                    yield '<pre class="code">' + "\n".join(text) + "</pre>"
+            # FIXME
+            #
+            # if len(par) > 0 and par[-1].rstrip().endswith(":"):
+            #     text = []
+            #     for i, p in pars:
+            #         if i > indent:
+            #             text.extend(p)
+            #         else:
+            #             pars.push((i, p))
+            #             break
+            #     if len(text) > 0:
+            #         # FIXME: Use a better tag for this.
+            #         yield '<pre class="code">' + "\n".join(text) + "</pre>"
 
     body = "\n".join(generate(pars))
 
