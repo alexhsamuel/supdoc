@@ -179,8 +179,6 @@ def print_docs(sdoc, odoc, printer=Printer()):
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
 
-    doc_style   = ansi.style(**STYLES["docs"])
-
     printer.newline()
 
     # Show the name.
@@ -192,19 +190,22 @@ def print_docs(sdoc, odoc, printer=Printer()):
         printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
     printer.newline(2)
 
+    html_printer = pln.terminal.html.Converter(printer)
+
     if docs is not None:
         # Show the doc summary.
         summary = docs.get("summary", "")
         if summary:
-            pln.terminal.html.Converter(printer).convert(summary, style={"bold": True})
+            html_printer.convert(summary, style={"bold": True})
             printer.newline(1)
         # Show the doc body.
         body = docs.get("body", "")
         if body:
             printer.push_indent("\u2506 ")
-            pln.terminal.html.Converter(printer).convert(body)
+            html_printer.convert(body)
             printer.pop_indent()
-            printer.newline(2)
+            printer.newline()
+        printer.newline()
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
@@ -220,11 +221,17 @@ def print_docs(sdoc, odoc, printer=Printer()):
                 printer << " default=" + default["repr"]
             printer.newline()
 
+            printer.push_indent("  ")
             if doc_type is not None:
-                printer <= "  [type: " + doc_style(doc_type) + "]"
+                printer << "[type: "
+                html_printer.convert(doc_type)
+                printer << "]"
+                printer.newline()
             if doc is not None:
-                printer <= "  " + doc_style(doc)
-
+                html_printer.convert(doc, style=STYLES["docs"])
+                printer.newline()
+            printer.pop_indent()
+                
         printer.newline()
 
     # Summarize contents.
@@ -251,7 +258,7 @@ def _main():
     try:
         path, obj = inspector.split(args.name)
     except NameError as error:
-        print(error, file=sys.stderr)
+        print("bad NAME: {}".format(error), file=sys.stderr)
         raise SystemExit(1)
 
     if args.path is None:
@@ -278,7 +285,8 @@ def _main():
     if args.json:
         pln.json.pprint(odoc)
     else:
-        print_docs(sdoc, odoc, Printer(indent=" "))
+        width = pln.terminal.get_width() - 1
+        print_docs(sdoc, odoc, Printer(indent=" ", width=width))
 
 
 if __name__ == "__main__":

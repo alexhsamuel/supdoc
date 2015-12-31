@@ -189,7 +189,7 @@ def split(name):
     else:
         parts = name.split(".")
         # Try successively shorter prefixes as the modname.
-        for i in range(len(parts), 1, -1):
+        for i in range(len(parts), 0, -1):
             modname = ".".join(parts[: i])
             qualname = None if i == len(parts) else ".".join(parts[i :])
             try:

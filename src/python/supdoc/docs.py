@@ -49,7 +49,7 @@ def find_javadoc(lines):
                 javadoc.append(dict(
                     tag =tag, 
                     arg =arg, 
-                    text=" ".join(text)
+                    text=parse_formatting(" ".join(text)),
                 ))
             tag = first[1 :]
             # Some tags take an argument.
@@ -80,8 +80,11 @@ def find_javadoc(lines):
 
 #-------------------------------------------------------------------------------
 
-DOUBLE_BACKTICK_REGEX = re.compile(r"``(.*?)``")
-SINGLE_BACKTICK_REGEX = re.compile(r"`(.*?)`")
+DOUBLE_BACKTICK_REGEX   = re.compile(r"``(.+?)``")
+SINGLE_BACKTICK_REGEX   = re.compile(r"`(.+?)`")
+
+ITALIC_REGEX            = re.compile(r"_(.+?)_")
+BOLD_REGEX              = re.compile(r"\*(.+?)\*")
 
 def parse_formatting(text):
     # Look for ``-delimited strings.
@@ -89,7 +92,11 @@ def parse_formatting(text):
     # Look for `-delimited strings.
     text = SINGLE_BACKTICK_REGEX.sub(r'<code>\1</code>', text)
 
-    text = markdown.markdown(text, output_format="html5")
+    # text = markdown.markdown(text, output_format="html5")
+
+    # FIXME: These are too lenient.
+    # text = ITALIC_REGEX.sub(r'<i>\1</i>', text)
+    # text = BOLD_REGEX.sub(r'<b>\1</b>', text)
 
     return text
 
