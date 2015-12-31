@@ -202,7 +202,6 @@ def print_docs(sdoc, odoc, printer=Printer()):
         body = docs.get("body", "")
         if body:
             printer.push_indent("\u2506 ")
-            printer.newline()
             pln.terminal.html.Converter(printer).convert(body)
             printer.pop_indent()
             printer.newline(2)
