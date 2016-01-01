@@ -166,8 +166,9 @@ def split(name):
 
     The result is thus `Path("html.parser", "HTMLParser.close")`.
 
-    If name contains a colon "`:`", this is unconditionally assumed to be
-    the separator between the modname and the qualname.
+    If name contains a colon "`:`", this is unconditionally assumed to be the
+    separator between the modname and the qualname, e.g. 
+    `"html.parser:HTMLParser.close"`.
 
     @return
       A `Path` object for the split name, and the object itself.
