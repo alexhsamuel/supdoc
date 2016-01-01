@@ -175,6 +175,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
         odoc = look_up_ref(sdoc, odoc)
 
     name        = odoc.get("name")
+    qualname    = odoc.get("qualname")
     signature   = odoc.get("signature")
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
@@ -182,8 +183,14 @@ def print_docs(sdoc, odoc, printer=Printer()):
     printer.newline()
 
     # Show the name.
-    if name is not None:
-        printer << ansi.bold(odoc["name"])
+    if qualname is not None:
+        if qualname.endswith(name):
+            printer << qualname[: -len(name)]
+            printer << ansi.bold(name)
+        else:
+            printer << ansi.bold(qualname)
+    elif name is not None:
+        printer << ansi.bold(name)
     # Show its callable signature, if it has one.
     if signature is not None:
         sig = signature_from_jso(signature)
