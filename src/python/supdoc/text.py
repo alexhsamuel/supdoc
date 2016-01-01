@@ -180,6 +180,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
 
+    html_printer = pln.terminal.html.Converter(printer)
+
     printer.newline()
 
     # Show the name.
@@ -197,7 +199,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
         printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
     printer.newline(2)
 
-    html_printer = pln.terminal.html.Converter(printer)
+    # FIXME: Summarize location and source.
 
     if docs is not None:
         # Show the doc summary.
@@ -241,6 +243,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
             printer.pop_indent()
                 
         printer.newline()
+
+    # FIXME: Summarize return value and raises.
 
     # Summarize contents.
     if dict is not None and len(dict) > 0:
