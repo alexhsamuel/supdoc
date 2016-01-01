@@ -194,10 +194,11 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     if docs is not None:
         # Show the doc summary.
+        printer <= SECTION_HEADER("Documentation")
         summary = docs.get("summary", "")
         if summary:
-            html_printer.convert(summary, style={"bold": True})
-            printer.newline(1)
+            html_printer.convert(summary, style={})
+            printer.newline(2)
         # Show the doc body.
         body = docs.get("body", "")
         if body:
@@ -236,7 +237,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     # Summarize contents.
     if dict is not None and len(dict) > 0:
-        printer <= "dict:"
+        printer <= SECTION_HEADER("Members")
         for name in sorted(dict):
             printer <= BULLET + name
 
