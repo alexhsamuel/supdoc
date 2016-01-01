@@ -267,6 +267,41 @@ def is_mangled(obj):
         return resolved_obj is obj
 
 
+def _get_lines(obj):
+    try:
+        lines, start_num = inspect.getsourcelines(obj)
+    except (OSError, TypeError, ValueError) as exc:
+        return None
+    else:
+        # FIXME: Not sure why this is necessary.
+        if not isinstance(obj, types.ModuleType):
+            start_num -= 1
+        return [start_num, start_num + len(lines)]
+
+
+def _inspect_source(obj):
+    module = inspect.getmodule(obj)
+    if module is None:
+        source_file = None
+    else:
+        try:
+            source_file = inspect.getsourcefile(module)
+        except TypeError:
+            # Built-in module.
+            source_file = None
+
+    try:
+        file = inspect.getfile(module)
+    except:
+        file = None
+
+    return {
+        "source_file"   : source_file,
+        "file"          : file,
+        "lines"         : _get_lines(obj),
+    }
+
+
 def _inspect(obj, inspect_path):
     """
     Main inspection function.
@@ -368,6 +403,8 @@ def _inspect(obj, inspect_path):
                         else inspect_path.qualname + '.' + attr_name)
             dict_jso[attr_name] = _inspect(attr_value, attr_path)
         jso["dict"] = dict_jso
+
+    jso["source"] = _inspect_source(obj)
 
     try:
         bases = obj.__bases__
