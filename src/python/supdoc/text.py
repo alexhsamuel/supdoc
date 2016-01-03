@@ -179,6 +179,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
     qualname    = odoc.get("qualname")
     type_name   = odoc.get("type_name")
     signature   = odoc.get("signature")
+    source      = odoc.get("source")
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
 
@@ -203,9 +204,21 @@ def print_docs(sdoc, odoc, printer=Printer()):
     if type_name is not None:
         printer.right_justify(
             ansi.style(**STYLES["type_name"])(" [" + type_name + "]"))
-    printer.newline(2)
+    else:
+        printer.newline()
+    printer.newline()
 
     # FIXME: Summarize location and source.
+    if source is not None:
+        loc = source.get("source_file") or source.get("file")
+        if loc is not None:
+            lines = source.get("lines")
+            if lines is not None:
+                start, end = lines
+                loc += " [lines {}-{}]".format(start + 1, end + 1)
+            printer <= SECTION_HEADER("Location")
+            printer <= loc
+            printer.newline()
 
     if docs is not None:
         # Show the doc summary.
