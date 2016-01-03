@@ -410,7 +410,8 @@ def _inspect(obj, inspect_path):
             dict_jso[attr_name] = _inspect(attr_value, attr_path)
         jso["dict"] = dict_jso
 
-    jso["source"] = _inspect_source(obj)
+    if isinstance(obj, (type, types.ModuleType, types.FunctionType)):
+        jso["source"] = _inspect_source(obj)
 
     try:
         bases = obj.__bases__
