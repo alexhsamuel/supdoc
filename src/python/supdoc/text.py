@@ -208,6 +208,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
         printer.newline()
     printer.newline()
 
+    # Summarize the source / import location.
     if source is not None:
         loc = source.get("source_file") or source.get("file")
         if loc is not None:
@@ -219,21 +220,22 @@ def print_docs(sdoc, odoc, printer=Printer()):
             printer <= loc
             printer.newline()
 
+    # Show documentation.
     if docs is not None:
-        # Show the doc summary.
-        printer <= SECTION_HEADER("Documentation")
         summary = docs.get("summary", "")
+        body = docs.get("body", "")
+        if summary or body:
+            printer <= SECTION_HEADER("Documentation")
+        # Show the doc summary.
         if summary:
             html_printer.convert(summary, style={})
             printer.newline(2)
         # Show the doc body.
-        body = docs.get("body", "")
         if body:
             printer.push_indent("\u2506 ")
             html_printer.convert(body)
             printer.pop_indent()
-            printer.newline()
-        printer.newline()
+            printer.newline(2)
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
