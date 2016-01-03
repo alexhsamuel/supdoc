@@ -17,6 +17,7 @@ import pln.terminal.html
 STYLES = {
     "docs"              : {"fg": "gray30", },
     "identifier"        : {"fg": "#243", },
+    "type_name"         : {"fg": "#642", },
 }
 
 #-------------------------------------------------------------------------------
@@ -176,6 +177,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     name        = odoc.get("name")
     qualname    = odoc.get("qualname")
+    type_name   = odoc.get("type_name")
     signature   = odoc.get("signature")
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
@@ -197,6 +199,10 @@ def print_docs(sdoc, odoc, printer=Printer()):
     if signature is not None:
         sig = signature_from_jso(signature)
         printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
+    # Show its type.
+    if type_name is not None:
+        printer.right_justify(
+            ansi.style(**STYLES["type_name"])(" [" + type_name + "]"))
     printer.newline(2)
 
     # FIXME: Summarize location and source.
