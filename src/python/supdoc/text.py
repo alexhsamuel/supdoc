@@ -225,6 +225,12 @@ def print_docs(sdoc, odoc, printer=Printer()):
         if source_text is not None:
             printer <= SECTION_HEADER("Source")
             printer.push_indent("\u205a ")
+            width = printer.width
+            # Elide long lines of source.
+            source_text = "\n".join(
+                l if len(l) <= width else l[: width - 1] + "\u2026"
+                for l in source_text.split("\n")
+            )
             printer.write(ansi.style(**STYLES["source"])(source_text))
             printer.pop_indent()
             printer.newline()
