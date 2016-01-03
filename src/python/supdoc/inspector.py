@@ -212,6 +212,7 @@ def split(name):
 #  - Encapsulate in a class.
 _ref_modules = set()
 _orphans = {}
+_include_source = False
 
 
 def _make_ref(path):
@@ -267,16 +268,16 @@ def is_mangled(obj):
         return resolved_obj is obj
 
 
-def _get_lines(obj):
+def _get_source(obj):
     try:
         lines, start_num = inspect.getsourcelines(obj)
     except (OSError, TypeError, ValueError) as exc:
-        return None
+        return None, None
     else:
         # FIXME: Not sure why this is necessary.
         if not isinstance(obj, types.ModuleType):
             start_num -= 1
-        return [start_num, start_num + len(lines)]
+        return lines, [start_num, start_num + len(lines)]
 
 
 def _inspect_source(obj):
@@ -295,11 +296,16 @@ def _inspect_source(obj):
     except:
         file = None
 
-    return {
+    source_lines, line_numbers = _get_source(obj)
+
+    result = {
         "source_file"   : source_file,
         "file"          : file,
-        "lines"         : _get_lines(obj),
+        "lines"         : line_numbers,
     }
+    if _include_source and source_lines is not None:
+        result["source"] = "".join(source_lines)
+    return result
 
 
 def _inspect(obj, inspect_path):
@@ -510,10 +516,13 @@ def inspect_module(modname, *, builtins=False):
         return None
 
 
-def inspect_modules(modnames, *, refs=True, builtins=False):
+def inspect_modules(modnames, *, refs=True, builtins=False, 
+                    include_source=False):
     # FIXME: Global state.
     _ref_modules.clear()
     module_docs = {}
+    global _include_source
+    _include_source = bool(include_source)
 
     # Inspect all the requested modules.
     for modname in modnames:
@@ -552,6 +561,12 @@ def main():
         "--no-references", dest="refs", default=True, action="store_false",
         help="don't inspect referenced modules")
     parser.add_argument(
+        "--source", dest="include_source", default=False, action="store_true",
+        help="include source")
+    parser.add_argument(
+        "--no-source", dest="include_source",  action="store_false",
+        help="don't include source")
+    parser.add_argument(
         "modules", nargs="*", metavar="MODULE",
         help="packages and modules to inspect")
     args = parser.parse_args()
@@ -564,7 +579,9 @@ def main():
         else:
             logging.getLogger().setLevel(level)
 
-    docs = inspect_modules(args.modules, builtins=args.builtins, refs=args.refs)
+    docs = inspect_modules(
+        args.modules, builtins=args.builtins, refs=args.refs, 
+        include_source=args.include_source)
     json.dump(docs, sys.stdout, indent=1, sort_keys=True)
 
     # FIXME: Track all the ids we've inspected, and if an orphan object

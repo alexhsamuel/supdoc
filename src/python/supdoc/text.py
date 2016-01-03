@@ -17,6 +17,7 @@ import pln.terminal.html
 STYLES = {
     "docs"              : {"fg": "gray30", },
     "identifier"        : {"fg": "#243", },
+    "source"            : {"fg": "#222845", },
     "type_name"         : {"fg": "#642", },
 }
 
@@ -220,6 +221,14 @@ def print_docs(sdoc, odoc, printer=Printer()):
             printer <= loc
             printer.newline()
 
+        source_text = source.get("source")
+        if source_text is not None:
+            printer <= SECTION_HEADER("Source")
+            printer.push_indent("\u205a ")
+            printer.write(ansi.style(**STYLES["source"])(source_text))
+            printer.pop_indent()
+            printer.newline()
+
     # Show documentation.
     if docs is not None:
         summary = docs.get("summary", "")
@@ -275,6 +284,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
 def _main():
     parser = argparse.ArgumentParser()
+    # FIXME: Share some arguments with supdoc.inspector.main().
     parser.add_argument(
         "name", metavar="NAME",
         help="fully-qualified module or object name")
@@ -284,6 +294,12 @@ def _main():
     parser.add_argument(
         "--path", metavar="FILE", default=None,
         help="read JSON docs from FILE")
+    parser.add_argument(
+        "--source", dest="include_source", default=False, action="store_true",
+        help="include source")
+    parser.add_argument(
+        "--no-source", dest="include_source",  action="store_false",
+        help="don't include source")
     args = parser.parse_args()
 
     # Find the requested object.
@@ -294,7 +310,8 @@ def _main():
         raise SystemExit(1)
 
     if args.path is None:
-        sdoc = inspector.inspect_modules([path.modname])
+        sdoc = inspector.inspect_modules(
+            [path.modname], include_source=args.include_source)
     else:
         # Read the docs file.
         with open(args.path) as file:
