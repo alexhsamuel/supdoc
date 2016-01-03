@@ -268,6 +268,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
             printer.push_indent("  ")
             if doc_type is not None:
+                # FIXME: Type could be long.
                 printer << "[type: "
                 html_printer.convert(doc_type)
                 printer << "]"
