@@ -208,7 +208,6 @@ def print_docs(sdoc, odoc, printer=Printer()):
         printer.newline()
     printer.newline()
 
-    # FIXME: Summarize location and source.
     if source is not None:
         loc = source.get("source_file") or source.get("file")
         if loc is not None:
