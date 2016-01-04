@@ -18,6 +18,7 @@ STYLES = {
     "docs"              : {},
     "header"            : {"underline": True, "fg": 53, },
     "identifier"        : {"bold": True, },
+    "rule"              : {"fg": "gray95", },
     "source"            : {"fg": "#222845", },
     "summary"           : {},
     "type_name"         : {"fg": 23, },
@@ -187,11 +188,13 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     html_printer = pln.terminal.html.Converter(printer)
     print_header = lambda h: printer.write_line(h, style=STYLES["header"])
+    print_rule = lambda: printer.write_line(
+        "\u2501" * printer.width, style=STYLES["rule"])
 
     printer.newline()
+    print_rule()
 
     # Show the name.
-    printer.write_line("\u2501" * printer.width, style={"fg": "gray90"})
     # FIXME: Show its module.
     if qualname is not None:
         if qualname.endswith(name):
@@ -211,7 +214,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
             ansi.style(**STYLES["type_name"])(" \u220a " + type_name + ""))
     else:
         printer.newline()
-    printer.write_line("\u2501" * printer.width, style={"fg": "gray90"})
+    print_rule()
     printer.newline()
 
     # Summarize the source / import location.
