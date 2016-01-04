@@ -16,9 +16,9 @@ import pln.terminal.html
 
 STYLES = {
     "docs"              : {"fg": "gray30", },
-    "identifier"        : {"fg": "#243", },
+    "identifier"        : {"fg": "#225", },
     "source"            : {"fg": "#222845", },
-    "type_name"         : {"fg": "#642", },
+    "type_name"         : {"fg": "#234", },
 }
 
 #-------------------------------------------------------------------------------
@@ -238,19 +238,21 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # Show documentation.
     if docs is not None:
         summary = docs.get("summary", "")
-        body = docs.get("body", "")
+        body    = docs.get("body", "")
+
         if summary or body:
             printer <= SECTION_HEADER("Documentation")
+
+        printer.push_style(**STYLES["docs"])
         # Show the doc summary.
         if summary:
-            html_printer.convert(summary, style={})
+            html_printer.convert(summary, style={"bold": True})
             printer.newline(2)
         # Show the doc body.
         if body:
-            printer.push_indent("\u2506 ")
             html_printer.convert(body)
-            printer.pop_indent()
             printer.newline(2)
+        printer.pop_style()
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
@@ -261,25 +263,27 @@ def print_docs(sdoc, odoc, printer=Printer()):
             doc_type    = param.get("doc_type")
             doc         = param.get("doc")
 
-            printer << BULLET + ansi.style(**STYLES["identifier"])(name)
+            printer.push_style(**STYLES["identifier"])
+            printer << BULLET + name
+            printer.pop_style()
             if default is not None:
                 printer << " \u225d " + default["repr"]
-            printer.newline()
 
+            printer.newline()
             printer.push_indent("  ")
+
             if doc_type is not None:
-                # FIXME: Type could be long.
-                printer << "[type: "
-                html_printer.convert(doc_type)
-                printer << "]"
+                html_printer.convert(
+                    "[type: " + doc_type + "]", style=STYLES["type_name"])
                 printer.newline()
+
             if doc is not None:
                 html_printer.convert(doc, style=STYLES["docs"])
                 printer.newline()
-            printer.pop_indent()
-                
-        printer.newline()
 
+            printer.pop_indent()
+            printer.newline()
+                
     # FIXME: Summarize return value and raises.
 
     # Summarize contents.
