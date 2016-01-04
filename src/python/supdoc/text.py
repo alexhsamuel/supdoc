@@ -163,7 +163,7 @@ def format_parameters(parameters):
 
 from   . import inspector
 
-BULLET              = "\u2023 "
+BULLET              = "\u203a "
 SECTION_HEADER      = lambda s: ansi.underline(s)
 NOTE                = ansi.fg("dark_red")
 
@@ -263,7 +263,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
             printer << BULLET + ansi.style(**STYLES["identifier"])(name)
             if default is not None:
-                printer << " default=" + default["repr"]
+                printer << " \u225d " + default["repr"]
             printer.newline()
 
             printer.push_indent("  ")
