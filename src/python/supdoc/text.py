@@ -15,10 +15,12 @@ import pln.terminal.html
 #-------------------------------------------------------------------------------
 
 STYLES = {
-    "docs"              : {"fg": "gray30", },
-    "identifier"        : {"fg": "#225", },
+    "docs"              : {},
+    "header"            : {"underline": True, "fg": 53, },
+    "identifier"        : {"bold": True, },
     "source"            : {"fg": "#222845", },
-    "type_name"         : {"fg": "#234", },
+    "summary"           : {},
+    "type_name"         : {"fg": 23, },
 }
 
 #-------------------------------------------------------------------------------
@@ -164,7 +166,6 @@ def format_parameters(parameters):
 from   . import inspector
 
 BULLET              = "\u203a "
-SECTION_HEADER      = lambda s: ansi.underline(s)
 NOTE                = ansi.fg("dark_red")
 
 
@@ -185,10 +186,13 @@ def print_docs(sdoc, odoc, printer=Printer()):
     dict        = odoc.get("dict")
 
     html_printer = pln.terminal.html.Converter(printer)
+    print_header = lambda h: printer.write_line(h, style=STYLES["header"])
 
     printer.newline()
 
     # Show the name.
+    printer.write_line("\u2501" * printer.width, style={"fg": "gray90"})
+    # FIXME: Show its module.
     if qualname is not None:
         if qualname.endswith(name):
             printer << qualname[: -len(name)]
@@ -204,26 +208,29 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # Show its type.
     if type_name is not None:
         printer.right_justify(
-            ansi.style(**STYLES["type_name"])(" [" + type_name + "]"))
+            ansi.style(**STYLES["type_name"])(" \u220a " + type_name + ""))
     else:
         printer.newline()
+    printer.write_line("\u2501" * printer.width, style={"fg": "gray90"})
     printer.newline()
 
     # Summarize the source / import location.
     if source is not None:
         loc = source.get("source_file") or source.get("file")
         if loc is not None:
+            print_header("Location")
+            printer << loc
+
             lines = source.get("lines")
             if lines is not None:
                 start, end = lines
-                loc += " [lines {}-{}]".format(start + 1, end + 1)
-            printer <= SECTION_HEADER("Location")
-            printer <= loc
+                printer.right_justify(" lines {}-{}".format(start + 1, end + 1))
+
             printer.newline()
 
         source_text = source.get("source")
         if source_text is not None:
-            printer <= SECTION_HEADER("Source")
+            print_header("Source")
             printer.push_indent("\u205a ")
             width = printer.width
             # Elide long lines of source.
@@ -241,12 +248,12 @@ def print_docs(sdoc, odoc, printer=Printer()):
         body    = docs.get("body", "")
 
         if summary or body:
-            printer <= SECTION_HEADER("Documentation")
+            print_header("Documentation")
 
         printer.push_style(**STYLES["docs"])
         # Show the doc summary.
         if summary:
-            html_printer.convert(summary, style={"bold": True})
+            html_printer.convert(summary, style=STYLES["summary"])
             printer.newline(2)
         # Show the doc body.
         if body:
@@ -256,7 +263,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
-        printer <= SECTION_HEADER("Parameters")
+        print_header("Parameters")
         for param in signature["params"]:
             name        = param["name"]
             default     = param.get("default")
@@ -274,7 +281,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
             if doc_type is not None:
                 html_printer.convert(
-                    "[type: " + doc_type + "]", style=STYLES["type_name"])
+                    "\u220a " + doc_type, style=STYLES["type_name"])
                 printer.newline()
 
             if doc is not None:
@@ -288,7 +295,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     # Summarize contents.
     if dict is not None and len(dict) > 0:
-        printer <= SECTION_HEADER("Members")
+        print_header("Members")
         for name in sorted(dict):
             printer <= BULLET + name
 
