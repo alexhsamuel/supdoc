@@ -14,6 +14,12 @@ import pln.terminal.html
 
 #-------------------------------------------------------------------------------
 
+# FIXME: A color for each of:
+# - modules
+# - types
+# - callables
+# and then use bold for emphasis (summary / parameters)
+
 STYLES = {
     "docs"              : {},
     "header"            : {"underline": True, "fg": 53, },
