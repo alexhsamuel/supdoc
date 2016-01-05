@@ -225,7 +225,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # Show its type.
     if type_name is not None:
         printer.right_justify(
-            " \u220a " + type_name + "", style=STYLES["type_name"])
+            " \u220a " + ansi.style(**STYLES["type_name"])(type_name))
     else:
         printer.newline()
     print_rule()
@@ -397,7 +397,7 @@ def _print_members(sdoc, dict, printer, html_printer):
             printer.write_string(" = " + repr, style=STYLES["repr"])
         if type_name is not None:
             printer.right_justify(
-                " \u220a " + type_name + "", style=STYLES["type_name"])
+                " \u220a " + ansi.style(**STYLES["type_name"])(type_name))
         else:
             printer.newline()
 
