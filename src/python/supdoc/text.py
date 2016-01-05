@@ -23,9 +23,9 @@ import pln.terminal.html
 # and then use bold for emphasis (summary / parameters)
 
 STYLES = {
-    "docs"              : {},
+    "docs"              : {"fg": "gray12", },
     "header"            : {"underline": True, "fg": 53, },
-    "identifier"        : {"bold": True, "fg": "gray50", },
+    "identifier"        : {"bold": True, "fg": "black", },
     "modname"           : {"fg": 52, },
     "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": "gray95", },
@@ -327,6 +327,13 @@ def print_docs(sdoc, odoc, printer=Printer()):
         functions   = {}
         attributes  = {}
         for name, odoc in dict.items():
+            # FIXME
+            if is_ref(odoc):
+                try:
+                    odoc = look_up_ref(sdoc, odoc)
+                except LookupError:
+                    pass
+
             type_name = odoc.get("type_name")
             if type_name == "module":
                 modules[name] = odoc
@@ -364,11 +371,13 @@ def _print_members(sdoc, dict, printer, html_printer):
         printer.write_string(name, style=STYLES["identifier"])
 
         odoc        = dict[name]
+        # FIXME
         if is_ref(odoc):
             try:
                 odoc = look_up_ref(sdoc, odoc)
             except LookupError:
                 pass
+            # FIXME!!
             if odoc is None:
                 odoc = {}
 
