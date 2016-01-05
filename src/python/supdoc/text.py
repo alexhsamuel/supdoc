@@ -18,6 +18,8 @@ STYLES = {
     "docs"              : {},
     "header"            : {"underline": True, "fg": 53, },
     "identifier"        : {"bold": True, },
+    "modname"           : {"fg": 52, },
+    "repr"              : {"fg": "gray60", },
     "rule"              : {"fg": "gray95", },
     "source"            : {"fg": "#222845", },
     "summary"           : {},
@@ -55,6 +57,8 @@ def look_up_ref(sdoc, ref):
     assert parts[0] == "#", "ref must be absolute in current doc"
     docs = sdoc
     for part in parts[1 :]:
+        if docs is None:
+            raise LookupError("can't look up {} in {}".format(part, "/".join(parts)))
         docs = docs[part]
     return docs
 
@@ -166,10 +170,12 @@ def format_parameters(parameters):
 
 from   . import inspector
 
-BULLET              = "\u203a "
+BULLET              = ansi.fg(109)("\u203a ")
+ELLIPSIS            = "\u2026"
 NOTE                = ansi.fg("dark_red")
 
 
+# FIXME: Break this function up.
 def print_docs(sdoc, odoc, printer=Printer()):
     while is_ref(odoc):
         modname, fqname = parse_ref(odoc)
@@ -178,6 +184,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     name        = odoc.get("name")
     qualname    = odoc.get("qualname")
+    module      = odoc.get("module")
     type_name   = odoc.get("type_name")
     signature   = odoc.get("signature")
     source      = odoc.get("source")
@@ -190,10 +197,16 @@ def print_docs(sdoc, odoc, printer=Printer()):
         "\u2501" * printer.width, style=STYLES["rule"])
 
     printer.newline()
-    print_rule()
 
     # Show the name.
-    # FIXME: Show its module.
+    if module is not None:
+        modname, _ = parse_ref(module)
+        printer.push_style(**STYLES["modname"])
+        printer << modname
+        printer.pop_style()
+        printer <=  "."
+    print_rule()
+
     if qualname is not None:
         if qualname.endswith(name):
             printer << qualname[: -len(name)]
@@ -209,7 +222,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # Show its type.
     if type_name is not None:
         printer.right_justify(
-            ansi.style(**STYLES["type_name"])(" \u220a " + type_name + ""))
+            " \u220a " + type_name + "", style=STYLES["type_name"])
     else:
         printer.newline()
     print_rule()
@@ -236,7 +249,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
             width = printer.width
             # Elide long lines of source.
             source_text = "\n".join(
-                l if len(l) <= width else l[: width - 1] + "\u2026"
+                l if len(l) <= width else l[: width - 1] + ELLIPSIS
                 for l in source_text.split("\n")
             )
             printer.write(ansi.style(**STYLES["source"])(source_text))
@@ -298,7 +311,45 @@ def print_docs(sdoc, odoc, printer=Printer()):
     if dict is not None and len(dict) > 0:
         print_header("Members")
         for name in sorted(dict):
-            printer <= BULLET + name
+            printer << BULLET
+            printer.write_string(name, style=STYLES["identifier"])
+
+            odoc        = dict[name]
+            if is_ref(odoc):
+                try:
+                    odoc = look_up_ref(sdoc, odoc)
+                except LookupError:
+                    pass
+                if odoc is None:
+                    odoc = {}
+
+            type_name   = odoc.get("type_name")
+            repr        = odoc.get("repr")
+            signature   = odoc.get("signature")
+            docs        = odoc.get("docs", {})
+            summary     = docs.get("summary")
+
+            if signature is not None:
+                # FIXME
+                printer << "(...)"
+            if type_name is not None:
+                printer.right_justify(
+                    " \u220a " + type_name + "", style=STYLES["type_name"])
+            else:
+                printer.newline()
+
+            printer.push_indent("   ")
+
+            if signature is None and type_name != "module" and repr is not None:
+                printer.elide("= " + repr, style=STYLES["repr"])
+
+            if summary is not None:
+                html_printer.convert(summary, style=STYLES["docs"])
+                printer.newline()
+
+            printer.pop_indent()
+
+    printer.newline()
 
 
 def _main():
