@@ -198,13 +198,6 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     printer.newline()
 
-    # Show the name.
-    if module is not None:
-        modname, _ = parse_ref(module)
-        printer.push_style(**STYLES["modname"])
-        printer << modname
-        printer.pop_style()
-        printer <=  "."
     print_rule()
 
     if qualname is not None:
@@ -226,6 +219,14 @@ def print_docs(sdoc, odoc, printer=Printer()):
     else:
         printer.newline()
     print_rule()
+
+    # Show the name.
+    if module is not None:
+        modname, _ = parse_ref(module)
+        printer << "in module "
+        printer.push_style(**STYLES["modname"])
+        printer <= modname
+        printer.pop_style()
     printer.newline()
 
     # Summarize the source / import location.
@@ -308,64 +309,101 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # FIXME: Summarize return value and raises.
 
     # Summarize contents.
-    # FIXME: Separate methods (normal/class/static), properties, modules, 
-    # other members/attributes.
+    # FIXME: Distinguish imports from locally defined.
     if dict is not None and len(dict) > 0:
-        print_header("Members")
-        for name in sorted(dict):
-            printer << BULLET
-            printer.write_string(name, style=STYLES["identifier"])
-
-            odoc        = dict[name]
-            if is_ref(odoc):
-                try:
-                    odoc = look_up_ref(sdoc, odoc)
-                except LookupError:
-                    pass
-                if odoc is None:
-                    odoc = {}
-
-            type_name   = odoc.get("type_name")
-            repr        = odoc.get("repr")
-            signature   = odoc.get("signature")
-            docs        = odoc.get("docs", {})
-            summary     = docs.get("summary")
-
-            # Show the repr if this is not a callable or one of several other
-            # types with uninteresting reprs.
-            show_repr = (
-                repr is not None 
-                and signature is None 
-                and type_name not in ("module", "property", "type", )
-            )
-            long_repr = show_repr and (
-                len(repr) > printer.width - printer.column - len(type_name) - 8)
-
-            if signature is not None:
-                sig = signature_from_jso(signature)
-                printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
-            elif show_repr and not long_repr:
-                printer.write_string(" = " + repr, style=STYLES["repr"])
-            if type_name is not None:
-                printer.right_justify(
-                    " \u220a " + type_name + "", style=STYLES["type_name"])
+        modules     = {}
+        types       = {}
+        properties  = {}
+        functions   = {}
+        attributes  = {}
+        for name, odoc in dict.items():
+            type_name = odoc.get("type_name")
+            if type_name == "module":
+                modules[name] = odoc
+            elif type_name == "type":
+                types[name] = odoc
+            elif type_name == "property":
+                properties[name] = odoc
+            elif odoc.get("signature") is not None:
+                functions[name] = odoc
             else:
-                printer.newline()
+                attributes[name] = odoc
 
-            printer.push_indent("   ")
-
-            if long_repr:
-                printer.elide("= " + repr, style=STYLES["repr"])
-
-            if summary is not None:
-                html_printer.convert(summary, style=STYLES["docs"])
-                printer.newline()
-
-            printer.pop_indent()
-            
-            printer.newline()
+        if modules:
+            print_header("Modules")
+            _print_members(sdoc, modules, printer, html_printer)
+        if types:
+            print_header("Types")
+            _print_members(sdoc, types, printer, html_printer)
+        if properties:
+            print_header("Properties")
+            _print_members(sdoc, properties, printer, html_printer)
+        if functions:
+            print_header("Functions" if type_name == "module" else "Methods")
+            _print_members(sdoc, functions, printer, html_printer)
+        if attributes:
+            print_header("Attributes")
+            _print_members(sdoc, attributes, printer, html_printer)
 
     printer.newline()
+
+
+def _print_members(sdoc, dict, printer, html_printer):
+    for name in sorted(dict):
+        printer << BULLET
+        printer.write_string(name, style=STYLES["identifier"])
+
+        odoc        = dict[name]
+        if is_ref(odoc):
+            try:
+                odoc = look_up_ref(sdoc, odoc)
+            except LookupError:
+                pass
+            if odoc is None:
+                odoc = {}
+
+        type_name   = odoc.get("type_name")
+        repr        = odoc.get("repr")
+        signature   = odoc.get("signature")
+        docs        = odoc.get("docs", {})
+        summary     = docs.get("summary")
+
+        # Show the repr if this is not a callable or one of several other
+        # types with uninteresting reprs.
+        show_repr = (
+            repr is not None 
+            and signature is None 
+            and type_name not in ("module", "property", "type", )
+        )
+        long_repr = show_repr and (
+            len(repr) > printer.width - printer.column - len(type_name) - 8)
+
+        # FIXME: Distinguish normal / static / class methods from functions.
+
+        if signature is not None:
+            sig = signature_from_jso(signature)
+            printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
+        elif show_repr and not long_repr:
+            printer.write_string(" = " + repr, style=STYLES["repr"])
+        if type_name is not None:
+            printer.right_justify(
+                " \u220a " + type_name + "", style=STYLES["type_name"])
+        else:
+            printer.newline()
+
+        printer.push_indent("   ")
+
+        if long_repr:
+            printer.elide("= " + repr, style=STYLES["repr"])
+
+        if summary is not None:
+            html_printer.convert(summary, style=STYLES["docs"])
+            printer.newline()
+
+        printer.pop_indent()
+
+        printer.newline()
+
 
 
 def _main():
