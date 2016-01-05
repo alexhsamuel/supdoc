@@ -14,6 +14,8 @@ import pln.terminal.html
 
 #-------------------------------------------------------------------------------
 
+# FIXME: Look up refs consistently.
+
 # FIXME: A color for each of:
 # - modules
 # - types
@@ -129,7 +131,7 @@ class ReprObj:
 
 from  inspect import Signature, Parameter
 
-def parameter_from_jso(jso):
+def parameter_from_jso(jso, sdoc):
     name = jso["name"]
     kind = getattr(Parameter, jso["kind"])
     try:
@@ -137,6 +139,8 @@ def parameter_from_jso(jso):
     except KeyError:
         default = Parameter.empty
     else:
+        if is_ref(default):
+            default = look_up_ref(sdoc, default)
         # FIXME
         default = ReprObj(default["repr"])
     try:
@@ -149,9 +153,9 @@ def parameter_from_jso(jso):
     return Parameter(name, kind, default=default, annotation=annotation)
 
 
-def signature_from_jso(jso):
+def signature_from_jso(jso, sdoc):
     # FIXME: return annotation.
-    parameters = [ parameter_from_jso(o) for o in jso.get("params", []) ]
+    parameters = [ parameter_from_jso(o, sdoc) for o in jso.get("params", []) ]
     return Signature(parameters)
 
 
@@ -216,7 +220,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
         printer << ansi.bold(name)
     # Show its callable signature, if it has one.
     if signature is not None:
-        sig = signature_from_jso(signature)
+        sig = signature_from_jso(signature, sdoc)
         printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
     # Show its type.
     if type_name is not None:
@@ -387,7 +391,7 @@ def _print_members(sdoc, dict, printer, html_printer):
         # FIXME: Distinguish normal / static / class methods from functions.
 
         if signature is not None:
-            sig = signature_from_jso(signature)
+            sig = signature_from_jso(signature, sdoc)
             printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
         elif show_repr and not long_repr:
             printer.write_string(" = " + repr, style=STYLES["repr"])
@@ -398,18 +402,14 @@ def _print_members(sdoc, dict, printer, html_printer):
             printer.newline()
 
         printer.push_indent("   ")
-
         if long_repr:
             printer.elide("= " + repr, style=STYLES["repr"])
-
         if summary is not None:
             html_printer.convert(summary, style=STYLES["docs"])
             printer.newline()
-
         printer.pop_indent()
 
-        printer.newline()
-
+    printer.newline()
 
 
 def _main():
