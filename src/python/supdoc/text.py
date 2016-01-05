@@ -342,8 +342,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
                 len(repr) > printer.width - printer.column - len(type_name) - 8)
 
             if signature is not None:
-                # FIXME
-                printer << "(...)"
+                sig = signature_from_jso(signature)
+                printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
             elif show_repr and not long_repr:
                 printer.write_string(" = " + repr, style=STYLES["repr"])
             if type_name is not None:
