@@ -10,6 +10,22 @@ Markup
 * Mark modules part of Python library.
 - Link Python library modules to docs.
 
+Text UI
+- distinguish / indicate imported modules and other types
+- distinguish method, staticmethod, classmethod from functions
+- show return type annotation and javadoc
+- show information about properties
+- show base classes / MRO
+- distinguish extension types / functions / modules
+- distinguish builtin modules and their contents
+- show/hide protected or private names
+- look up builtins directly on command line (e.g. "supdoc str")
+- command line --help
+- clean up styles
+- add a help() replacement
+- get terminal width from attached terminal, not stdout
+- clean up code
+
 UI
 * Object display based on doc components, rather than on type.
 * Show function arguments on obj page.
