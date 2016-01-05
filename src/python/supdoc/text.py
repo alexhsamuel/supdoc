@@ -17,9 +17,9 @@ import pln.terminal.html
 STYLES = {
     "docs"              : {},
     "header"            : {"underline": True, "fg": 53, },
-    "identifier"        : {"bold": True, },
+    "identifier"        : {"bold": True, "fg": "gray50", },
     "modname"           : {"fg": 52, },
-    "repr"              : {"fg": "gray60", },
+    "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": "gray95", },
     "source"            : {"fg": "#222845", },
     "summary"           : {},
@@ -308,6 +308,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # FIXME: Summarize return value and raises.
 
     # Summarize contents.
+    # FIXME: Separate methods (normal/class/static), properties, modules, 
+    # other members/attributes.
     if dict is not None and len(dict) > 0:
         print_header("Members")
         for name in sorted(dict):
@@ -329,9 +331,21 @@ def print_docs(sdoc, odoc, printer=Printer()):
             docs        = odoc.get("docs", {})
             summary     = docs.get("summary")
 
+            # Show the repr if this is not a callable or one of several other
+            # types with uninteresting reprs.
+            show_repr = (
+                repr is not None 
+                and signature is None 
+                and type_name not in ("module", "property", "type", )
+            )
+            long_repr = show_repr and (
+                len(repr) > printer.width - printer.column - len(type_name) - 8)
+
             if signature is not None:
                 # FIXME
                 printer << "(...)"
+            elif show_repr and not long_repr:
+                printer.write_string(" = " + repr, style=STYLES["repr"])
             if type_name is not None:
                 printer.right_justify(
                     " \u220a " + type_name + "", style=STYLES["type_name"])
@@ -340,7 +354,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
             printer.push_indent("   ")
 
-            if signature is None and type_name != "module" and repr is not None:
+            if long_repr:
                 printer.elide("= " + repr, style=STYLES["repr"])
 
             if summary is not None:
@@ -348,6 +362,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
                 printer.newline()
 
             printer.pop_indent()
+            
+            printer.newline()
 
     printer.newline()
 
