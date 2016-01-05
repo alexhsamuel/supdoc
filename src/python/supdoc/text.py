@@ -170,8 +170,6 @@ BULLET              = "\u203a "
 NOTE                = ansi.fg("dark_red")
 
 
-# FIXME: We need some kind of terminal object to handle width and indentation.
-
 def print_docs(sdoc, odoc, printer=Printer()):
     while is_ref(odoc):
         modname, fqname = parse_ref(odoc)
