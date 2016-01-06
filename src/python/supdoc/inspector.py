@@ -329,7 +329,7 @@ def _inspect(obj, inspect_path):
     @type inspect_path
       `Path`.
     @return
-      JSO extracted from the object.
+      Odoc extracted from the object.
     """
     logging.info("_inspect({!r}, {!r})".format(obj, inspect_path))
 
@@ -344,35 +344,35 @@ def _inspect(obj, inspect_path):
         # Defined elsewhere.  Produce a ref.
         return _make_ref(path)
     
-    jso = {}
+    odoc = {}
 
     if mangled:
-        jso["mangled"] = True
+        odoc["mangled"] = True
 
     type_path = Path.of(type(obj))
     if type_path is not None:
-        jso["type"] = _make_ref(type_path)
-    jso["type_name"] = type(obj).__name__
+        odoc["type"] = _make_ref(type_path)
+    odoc["type_name"] = type(obj).__name__
     try:
         obj_repr = repr(obj)
     except Exception:
         log.warning("failed to get repr: {}".format(traceback.format_exc()))
     else:
-        jso["repr"] = obj_repr[: MAX_REPR_LENGTH]
+        odoc["repr"] = obj_repr[: MAX_REPR_LENGTH]
 
     try:
         name = obj.__name__
     except AttributeError:
         pass
     else:
-        jso["name"] = name
+        odoc["name"] = name
 
     try:
         qualname = obj.__qualname__
     except AttributeError:
         pass
     else:
-        jso["qualname"] = qualname
+        odoc["qualname"] = qualname
 
     try:
         modname = obj.__module__
@@ -381,7 +381,7 @@ def _inspect(obj, inspect_path):
     else:
         if modname is not None:
             # Convert the module name into a ref.
-            jso["module"] = _make_ref(Path(modname, None))
+            odoc["module"] = _make_ref(Path(modname, None))
 
     # Get documentation, if it belongs to this object itself (not to the
     # object's type).
@@ -389,7 +389,7 @@ def _inspect(obj, inspect_path):
     if (doc is not None 
         and (isinstance(obj, type) 
              or doc != getattr(type(obj), "__doc__", None))):
-        jso["docs"] = {"doc": doc}
+        odoc["docs"] = {"doc": doc}
 
     try:
         dict = obj.__dict__
@@ -409,28 +409,28 @@ def _inspect(obj, inspect_path):
                     attr_name if inspect_path.qualname is None 
                         else inspect_path.qualname + '.' + attr_name)
             dict_jso[attr_name] = _inspect(attr_value, attr_path)
-        jso["dict"] = dict_jso
+        odoc["dict"] = dict_jso
 
     if isinstance(obj, (type, types.ModuleType, types.FunctionType)):
-        jso["source"] = _inspect_source(obj)
+        odoc["source"] = _inspect_source(obj)
 
     try:
         bases = obj.__bases__
     except AttributeError:
         pass
     else:
-        jso["bases"] = [ _inspect(b, None) for b in bases ]
+        odoc["bases"] = [ _inspect(b, None) for b in bases ]
 
     try:
         mro = obj.__mro__
     except AttributeError:
         pass
     else:
-        jso["mro"] = [ _inspect(c, None) for c in mro ]
+        odoc["mro"] = [ _inspect(c, None) for c in mro ]
 
     # If this is callable, get its signature; however, skip types, as we 
     # get their __init__ signature.
-    jso["callable"] = callable(obj)
+    odoc["callable"] = callable(obj)
     if callable(obj) and not isinstance(obj, type):
         try:
             sig = inspect.signature(obj)
@@ -438,7 +438,7 @@ def _inspect(obj, inspect_path):
             # Doesn't work for extension functions.
             pass
         else:
-            jso["signature"] = {
+            odoc["signature"] = {
                 "params": [
                     _inspect_parameter(p) for p in sig.parameters.values() ]
             }
@@ -450,15 +450,15 @@ def _inspect(obj, inspect_path):
     except AttributeError:
         pass
     else:
-        jso["func"] = _inspect(func, inspect_path)
+        odoc["func"] = _inspect(func, inspect_path)
 
     # If this is a property, inspect the underlying accessors.
     if isinstance(obj, property):
-        jso["get"] = None if obj.fget is None else _inspect(obj.fget, inspect_path)
-        jso["set"] = None if obj.fset is None else _inspect(obj.fset, inspect_path)
-        jso["del"] = None if obj.fdel is None else _inspect(obj.fdel, inspect_path)
+        odoc["get"] = None if obj.fget is None else _inspect(obj.fget, inspect_path)
+        odoc["set"] = None if obj.fset is None else _inspect(obj.fset, inspect_path)
+        odoc["del"] = None if obj.fdel is None else _inspect(obj.fdel, inspect_path)
 
-    return jso
+    return odoc
 
 
 def _inspect_parameter(param):
