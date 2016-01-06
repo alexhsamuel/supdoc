@@ -216,7 +216,11 @@ _orphans = {}
 _include_source = False
 
 
-def _make_ref(obj):
+def _make_ref(obj, *, with_type=True):
+    """
+    @param with_type
+      If true, include a "type" field with a ref to the object's type.
+    """
     path = Path.of(obj)
     if path is None:
         return None
@@ -225,11 +229,11 @@ def _make_ref(obj):
     ref = "#/modules/" + path.modname
     if path.qualname is not None:
         ref += "/dict/" + "/dict/".join(path.qualname.split("."))
+
     return {
-        "$ref"      : ref,
-        "type_name" : type(obj).__name__,
+        "$ref"  : ref,
+        "type"  : _make_ref(type(obj), with_type=False) if with_type else None,
     }
-    
 
 
 # FIXME: Not used.
