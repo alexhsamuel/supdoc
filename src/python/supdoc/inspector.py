@@ -105,6 +105,10 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
         return None
 
 
+    def __str__(self):
+        return self.modname + "." + self.qualname
+
+
     def mangle(self):
         if self.qualname is None:
             raise ValueError("no qualname")

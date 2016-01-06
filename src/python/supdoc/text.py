@@ -11,6 +11,8 @@ import pln.json
 from   pln.terminal import ansi
 from   pln.terminal.printer import Printer, NL
 
+from   . import inspector
+
 #-------------------------------------------------------------------------------
 
 # FIXME: Look up refs consistently.
@@ -57,19 +59,22 @@ def parse_ref(ref):
     return modname, name_path
 
 
-def _get_full_name(odoc):
+def _get_path(odoc):
     """
-    Returns the modname and qualname for an odoc or ref.
+    Returns the lookup path for an odoc or ref.
+
+    @rtype
+      `inspector.Path`.
     """
     if is_ref(odoc):
         modname, name_path = parse_ref(odoc)
         parts = name_path.split(".")
         assert all( n == "dict" for n in parts[:: 2] )
         name_path = ".".join(parts[1 :: 2])
-        return modname, name_path
+        return inspector.Path(modname, name_path)
     else:
         # FIXME: Should we store and use the name path, in place of qualname?
-        return odoc.get("modname"), odoc.get("qualname")
+        return inspector.Path(odoc.get("modname"), odoc.get("qualname"))
 
 
 def look_up_ref(sdoc, ref):
@@ -191,8 +196,6 @@ def signature_from_jso(jso, sdoc):
 
 
 #-------------------------------------------------------------------------------
-
-from   . import inspector
 
 BULLET              = ansi.fg(89)("\u203a ")
 ELLIPSIS            = "\u2026"
@@ -443,8 +446,8 @@ _PARTITIONS = {
 def _partition_members(dict):
     partitions = {}
     for name, odoc in dict.items():
-        full_type_name = ".".join(_get_full_name(odoc["type"]))
-        partition_name = _PARTITIONS.get(full_type_name, "attributes")
+        type_path = ".".join(_get_path(odoc["type"]))
+        partition_name = _PARTITIONS.get(str(type_path), "attributes")
         partitions.setdefault(partition_name, {})[name] = odoc
     return partitions
         
@@ -456,22 +459,13 @@ def _print_members(sdoc, dict, pr, show_type):
             pr << name
 
         odoc        = dict[name]
-        # FIXME
-        if is_ref(odoc):
-            try:
-                odoc = look_up_ref(sdoc, odoc)
-            except LookupError:
-                pass
-            # FIXME!!
-            if odoc is None:
-                odoc = {}
-
         type_name   = odoc.get("type_name")
         repr        = odoc.get("repr")
         callable    = is_callable(odoc)
         signature   = get_signature(odoc)
         docs        = odoc.get("docs", {})
         summary     = docs.get("summary")
+        
 
         # Show the repr if this is not a callable or one of several other
         # types with uninteresting reprs.
