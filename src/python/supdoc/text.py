@@ -9,8 +9,7 @@ import sys
 import pln.itr
 import pln.json
 from   pln.terminal import ansi
-from   pln.terminal.printer import Printer
-import pln.terminal.html
+from   pln.terminal.printer import Printer, NL
 
 #-------------------------------------------------------------------------------
 
@@ -168,9 +167,12 @@ def signature_from_jso(jso, sdoc):
 
 from   . import inspector
 
-BULLET              = ansi.fg(109)("\u203a ")
+BULLET              = ansi.fg(89)("\u203a ")
 ELLIPSIS            = "\u2026"
 MISSING             = "\u2047"
+MEMBER_OF           = "\u220a"
+
+# FIXME
 NOTE                = ansi.fg("dark_red")
 
 
@@ -224,7 +226,7 @@ def is_function_like(odoc):
     )
 
 
-def _print_signature(sdoc, odoc, printer):
+def _print_signature(sdoc, odoc, pr):
     """
     If `odoc` is callable, prints its call signature in parentheses.
 
@@ -233,22 +235,26 @@ def _print_signature(sdoc, odoc, printer):
     if not is_function_like(odoc):
         return
 
-    printer << "("
+    pr << "("
     signature = get_signature(odoc)
     if signature is not None:
         sig = signature_from_jso(signature, sdoc)
-        printer << ", ".join(_format_parameters(sig.parameters))
+        pr << ", ".join(_format_parameters(sig.parameters))
     else:
-        printer.write(MISSING, style=STYLES["warning"])
-    printer << ")"
+        with pr(**STYLES["warning"]):
+            pr << MISSING
+    pr << ")"
     # FIXME: Return value annotation
 
 
 # FIXME: Break this function up.
 def print_docs(sdoc, odoc, printer=Printer()):
+    pr = printer  # For brevity.
+
+    # FIXME
     while is_ref(odoc):
         modname, fqname = parse_ref(odoc)
-        printer << NOTE("Reference!")
+        pr << NOTE("Reference!")
         odoc = look_up_ref(sdoc, odoc)
 
     name        = odoc.get("name")
@@ -261,41 +267,41 @@ def print_docs(sdoc, odoc, printer=Printer()):
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
 
-    html_printer = pln.terminal.html.Converter(printer)
-    print_header = lambda h: printer.write_line(h, style=STYLES["header"])
-    print_rule = lambda: printer.write_line(
-        "\u2501" * printer.width, style=STYLES["rule"])
+    def header(header):
+        with pr(**STYLES["header"]):
+            pr << header << NL
 
-    printer.newline()
+    def rule():
+        with pr(**STYLES["rule"]):
+            pr << "\u2501" * pr.width << NL
 
-    print_rule()
+    pr << NL
+    rule()
 
     if qualname is not None:
         if qualname.endswith(name):
-            printer << qualname[: -len(name)]
-            printer << ansi.bold(name)
+            pr << qualname[: -len(name)] << ansi.bold(name)
         else:
-            printer << ansi.bold(qualname)
+            pr << ansi.bold(qualname)
     elif name is not None:
-        printer << ansi.bold(name)
+        pr << ansi.bold(name)
     # Show its callable signature, if it has one.
-    _print_signature(sdoc, odoc, printer)
+    _print_signature(sdoc, odoc, pr)
     # Show its type.
     if type_name is not None and not is_function_like(odoc):
-        printer.right_justify(
-            " \u220a " + ansi.style(**STYLES["type_name"])(type_name))
-    else:
-        printer.newline()
-    print_rule()
+        with pr(**STYLES["type_name"]):
+            pr >> type_name
+
+    pr << NL
+    rule()
 
     # Show the name.
     if module is not None:
         modname, _ = parse_ref(module)
-        printer << "in module "
-        printer.push_style(**STYLES["modname"])
-        printer <= modname
-        printer.pop_style()
-    printer.newline()
+        pr << "in module "
+        with pr(**STYLES["modname"]):
+            pr << modname << NL
+    pr << NL
 
     # Summarize the source / import location.
     if source is not None:
@@ -303,29 +309,20 @@ def print_docs(sdoc, odoc, printer=Printer()):
         source_text = source.get("source")
 
         if loc is not None or source_text is not None:
-            print_header("Source")
+            header("Source")
 
         if loc is not None:
-            printer << loc
+            pr << loc
             lines = source.get("lines")
             if lines is not None:
                 start, end = lines
-                printer.right_justify(" lines {}-{}".format(start + 1, end + 1))
-            else:
-                printer.newline()
-            printer.newline()
+                pr >> " lines {}-{}".format(start + 1, end + 1)
+            pr << NL << NL
 
         if source_text is not None:
-            printer.push_indent("\u2506 ")
-            width = printer.width
-            # Elide long lines of source.
-            source_text = "\n".join(
-                l if len(l) <= width else l[: width - 1] + ELLIPSIS
-                for l in source_text.split("\n")
-            )
-            printer.write(source_text, style=STYLES["source"])
-            printer.pop_indent()
-            printer.newline()
+            with pr(indent="\u2506 ", **STYLES["source"]):
+                pr.elide(source_text)
+            pr << NL << NL
 
     # Show documentation.
     if docs is not None:
@@ -333,48 +330,43 @@ def print_docs(sdoc, odoc, printer=Printer()):
         body    = docs.get("body", "")
 
         if summary or body:
-            print_header("Documentation")
+            header("Documentation")
 
-        printer.push_style(**STYLES["docs"])
-        # Show the doc summary.
-        if summary:
-            html_printer.convert(summary, style=STYLES["summary"])
-            printer.newline(2)
-        # Show the doc body.
-        if body:
-            html_printer.convert(body)
-            printer.newline(2)
-        printer.pop_style()
+        with pr(**STYLES["docs"]):
+            # Show the doc summary.
+            if summary:
+                with pr(**STYLES["summary"]):
+                    pr.html(summary) << NL << NL
+            # Show the doc body.
+            if body:
+                pr.html(body) << NL << NL
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
-        print_header("Parameters")
+        header("Parameters")
         for param in signature["params"]:
             name        = param["name"]
             default     = param.get("default")
             doc_type    = param.get("doc_type")
             doc         = param.get("doc")
 
-            printer.push_style(**STYLES["identifier"])
-            printer << BULLET + name
-            printer.pop_style()
+            with pr(**STYLES["identifier"]):
+                pr << BULLET + name
             if default is not None:
-                printer << " \u225d " + default["repr"]
+                pr << " \u225d " + default["repr"]
 
-            printer.newline()
-            printer.push_indent("  ")
+            pr << NL
+            with pr(indent="  "):
+                if doc_type is not None:
+                    pr << MEMBER_OF << " "
+                    with pr(**STYLES["type_name"]):
+                        pr.html(doc_type) << NL
 
-            if doc_type is not None:
-                html_printer.convert(
-                    "\u220a " + doc_type, style=STYLES["type_name"])
-                printer.newline()
+                if doc is not None:
+                    with pr(**STYLES["docs"]):
+                        pr.html(doc) << NL
 
-            if doc is not None:
-                html_printer.convert(doc, style=STYLES["docs"])
-                printer.newline()
-
-            printer.pop_indent()
-            printer.newline()
+            pr << NL
                 
     # FIXME: Summarize return value and raises.
 
@@ -410,28 +402,27 @@ def print_docs(sdoc, odoc, printer=Printer()):
                 attributes[name] = odoc
 
         if modules:
-            print_header("Modules")
-            _print_members(sdoc, modules, printer, html_printer, False)
+            header("Modules")
+            _print_members(sdoc, modules, pr, False)
         if types:
-            print_header("Types")
-            _print_members(sdoc, types, printer, html_printer, False)
+            header("Types")
+            _print_members(sdoc, types, pr, False)
         if properties:
-            print_header("Properties")
-            _print_members(sdoc, properties, printer, html_printer, False)
+            header("Properties")
+            _print_members(sdoc, properties, pr, False)
         if functions:
-            print_header("Functions" if type_name == "module" else "Methods")
-            _print_members(sdoc, functions, printer, html_printer, False)
+            header("Functions" if type_name == "module" else "Methods")
+            _print_members(sdoc, functions, pr, False)
         if attributes:
-            print_header("Attributes")
-            _print_members(sdoc, attributes, printer, html_printer, True)
-
-    printer.newline()
+            header("Attributes")
+            _print_members(sdoc, attributes, pr, True)
 
 
-def _print_members(sdoc, dict, printer, html_printer, show_type):
+def _print_members(sdoc, dict, pr, show_type):
     for name in sorted(dict):
-        printer << BULLET
-        printer.write_string(name, style=STYLES["identifier"])
+        pr << BULLET
+        with pr(**STYLES["identifier"]):
+            pr << name
 
         odoc        = dict[name]
         # FIXME
@@ -459,29 +450,31 @@ def _print_members(sdoc, dict, printer, html_printer, show_type):
             and type_name not in ("module", "property", "type", )
         )
         long_repr = show_repr and (
-            len(repr) > printer.width - printer.column - len(type_name) - 8)
+            len(repr) > pr.width - pr.column - len(type_name) - 8)
 
         # FIXME: Distinguish normal / static / class methods from functions.
 
-        _print_signature(sdoc, odoc, printer)
+        _print_signature(sdoc, odoc, pr)
         # FIXME: Common code with print_docs().
         if show_repr and not long_repr and not is_function_like(odoc):
-            printer.write_string(" = " + repr, style=STYLES["repr"])
+            with pr(**STYLES["repr"]):
+                pr << " = " << repr
         if show_type and type_name is not None:
-            printer.right_justify(
-                " \u220a " + ansi.style(**STYLES["type_name"])(type_name))
-        else:
-            printer.newline()
+            pr >> (
+                " " + MEMBER_OF + " " 
+                + ansi.style(**STYLES["type_name"])(type_name))
+        pr << NL
 
-        printer.push_indent("   ")
-        if long_repr:
-            printer.elide("= " + repr, style=STYLES["repr"])
-        if summary is not None:
-            html_printer.convert(summary, style=STYLES["docs"])
-            printer.newline()
-        printer.pop_indent()
+        with pr(indent="   "):
+            if long_repr:
+                with pr(**STYLES["repr"]):
+                    pr.elide("= " + repr)
+                pr << NL
+            if summary is not None:
+                with pr(**STYLES["docs"]):
+                    pr.html(summary) << NL
 
-    printer.newline()
+    pr << NL
 
 
 def _main():
@@ -536,7 +529,8 @@ def _main():
     if args.json:
         pln.json.pprint(odoc)
     else:
-        width = pln.terminal.get_width() - 1
+        # Leave a one-space border on the right.
+        width = pln.terminal.get_width() - 1 
         print_docs(sdoc, odoc, Printer(indent=" ", width=width))
 
 
