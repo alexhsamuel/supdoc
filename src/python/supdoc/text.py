@@ -321,8 +321,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # FIXME: Summarize return value and raises.
 
     # Summarize contents.
-    # FIXME: Distinguish imports from locally defined.
     if dict is not None and len(dict) > 0:
+        # FIXME: So ugly.
         modules     = {}
         types       = {}
         properties  = {}
@@ -335,6 +335,9 @@ def print_docs(sdoc, odoc, printer=Printer()):
                     odoc = look_up_ref(sdoc, odoc)
                 except LookupError:
                     pass
+                # FIXME!
+                if odoc is None:
+                    odoc = {}
 
             type_name = odoc.get("type_name")
             if type_name == "module":
@@ -350,24 +353,24 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
         if modules:
             print_header("Modules")
-            _print_members(sdoc, modules, printer, html_printer)
+            _print_members(sdoc, modules, printer, html_printer, False)
         if types:
             print_header("Types")
-            _print_members(sdoc, types, printer, html_printer)
+            _print_members(sdoc, types, printer, html_printer, False)
         if properties:
             print_header("Properties")
-            _print_members(sdoc, properties, printer, html_printer)
+            _print_members(sdoc, properties, printer, html_printer, False)
         if functions:
             print_header("Functions" if type_name == "module" else "Methods")
-            _print_members(sdoc, functions, printer, html_printer)
+            _print_members(sdoc, functions, printer, html_printer, False)
         if attributes:
             print_header("Attributes")
-            _print_members(sdoc, attributes, printer, html_printer)
+            _print_members(sdoc, attributes, printer, html_printer, True)
 
     printer.newline()
 
 
-def _print_members(sdoc, dict, printer, html_printer):
+def _print_members(sdoc, dict, printer, html_printer, show_type):
     for name in sorted(dict):
         printer << BULLET
         printer.write_string(name, style=STYLES["identifier"])
@@ -406,7 +409,7 @@ def _print_members(sdoc, dict, printer, html_printer):
             printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
         elif show_repr and not long_repr:
             printer.write_string(" = " + repr, style=STYLES["repr"])
-        if type_name is not None:
+        if show_type and type_name is not None:
             printer.right_justify(
                 " \u220a " + ansi.style(**STYLES["type_name"])(type_name))
         else:
