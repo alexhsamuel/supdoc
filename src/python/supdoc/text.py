@@ -23,14 +23,14 @@ import pln.terminal.html
 # and then use bold for emphasis (summary / parameters)
 
 STYLES = {
-    "docs"              : {"fg": "gray12", },
-    "header"            : {"underline": True, "fg": 53, },
+    "docs"              : {"fg": "gray24", },
+    "header"            : {"underline": True, "fg": 89, },
     "identifier"        : {"bold": True, "fg": "black", },
     "modname"           : {"fg": 52, },
     "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": "gray95", },
     "source"            : {"fg": "#222845", },
-    "summary"           : {},
+    "summary"           : {"fg": 89, },
     "type_name"         : {"fg": 23, },
 }
 
