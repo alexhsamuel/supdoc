@@ -32,6 +32,7 @@ STYLES = {
     "source"            : {"fg": "#222845", },
     "summary"           : {"fg": 89, },
     "type_name"         : {"fg": 23, },
+    "warning"           : {"fg": 130, },
 }
 
 #-------------------------------------------------------------------------------
@@ -163,7 +164,38 @@ def signature_from_jso(jso, sdoc):
     return Signature(parameters)
 
 
-def format_parameters(parameters):
+#-------------------------------------------------------------------------------
+
+from   . import inspector
+
+BULLET              = ansi.fg(109)("\u203a ")
+ELLIPSIS            = "\u2026"
+MISSING             = "\u2047"
+NOTE                = ansi.fg("dark_red")
+
+
+def is_callable(odoc):
+    """
+    Returns true if the object is callable or wraps a callable.
+    """
+    return odoc.get("callable") or odoc.get("func", {}).get("callable")
+
+
+def get_signature(odoc):
+    """
+    Returns the signature of a callable object or the wrapped callable.
+
+    @return
+      The signature, or `None` if none is available, for example for a built-in
+      or extension function or method.
+    """
+    with suppress(KeyError):
+        return odoc["signature"]
+    with suppress(KeyError):
+        return odoc["func"]["signature"]
+
+
+def _format_parameters(parameters):
     star = False
     for param in parameters.values():
         prefix = ""
@@ -180,13 +212,36 @@ def format_parameters(parameters):
         yield result
 
 
-#-------------------------------------------------------------------------------
+def is_function_like(odoc):
+    """
+    Returns true if `odoc` is for a function or similar object.
+    """
+    return (
+        odoc.get("callable") 
+        and odoc.get("type_name") not in (
+            "type", 
+        )
+    )
 
-from   . import inspector
 
-BULLET              = ansi.fg(109)("\u203a ")
-ELLIPSIS            = "\u2026"
-NOTE                = ansi.fg("dark_red")
+def _print_signature(sdoc, odoc, printer):
+    """
+    If `odoc` is callable, prints its call signature in parentheses.
+
+    Does not print default arguments, annotations, or other metadata.
+    """
+    if not is_function_like(odoc):
+        return
+
+    printer << "("
+    signature = get_signature(odoc)
+    if signature is not None:
+        sig = signature_from_jso(signature, sdoc)
+        printer << ", ".join(_format_parameters(sig.parameters))
+    else:
+        printer.write(MISSING, style=STYLES["warning"])
+    printer << ")"
+    # FIXME: Return value annotation
 
 
 # FIXME: Break this function up.
@@ -200,7 +255,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
     qualname    = odoc.get("qualname")
     module      = odoc.get("module")
     type_name   = odoc.get("type_name")
-    signature   = odoc.get("signature")
+    callable    = is_callable(odoc)
+    signature   = get_signature(odoc)
     source      = odoc.get("source")
     docs        = odoc.get("docs")
     dict        = odoc.get("dict")
@@ -223,11 +279,9 @@ def print_docs(sdoc, odoc, printer=Printer()):
     elif name is not None:
         printer << ansi.bold(name)
     # Show its callable signature, if it has one.
-    if signature is not None:
-        sig = signature_from_jso(signature, sdoc)
-        printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
+    _print_signature(sdoc, odoc, printer)
     # Show its type.
-    if type_name is not None:
+    if type_name is not None and not is_function_like(odoc):
         printer.right_justify(
             " \u220a " + ansi.style(**STYLES["type_name"])(type_name))
     else:
@@ -350,7 +404,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
                 types[name] = odoc
             elif type_name == "property":
                 properties[name] = odoc
-            elif odoc.get("signature") is not None:
+            elif odoc.get("callable"):
                 functions[name] = odoc
             else:
                 attributes[name] = odoc
@@ -392,7 +446,8 @@ def _print_members(sdoc, dict, printer, html_printer, show_type):
 
         type_name   = odoc.get("type_name")
         repr        = odoc.get("repr")
-        signature   = odoc.get("signature")
+        callable    = is_callable(odoc)
+        signature   = get_signature(odoc)
         docs        = odoc.get("docs", {})
         summary     = docs.get("summary")
 
@@ -408,10 +463,9 @@ def _print_members(sdoc, dict, printer, html_printer, show_type):
 
         # FIXME: Distinguish normal / static / class methods from functions.
 
-        if signature is not None:
-            sig = signature_from_jso(signature, sdoc)
-            printer << "(" + ", ".join(format_parameters(sig.parameters)) + ")"
-        elif show_repr and not long_repr:
+        _print_signature(sdoc, odoc, printer)
+        # FIXME: Common code with print_docs().
+        if show_repr and not long_repr and not is_function_like(odoc):
             printer.write_string(" = " + repr, style=STYLES["repr"])
         if show_type and type_name is not None:
             printer.right_justify(
