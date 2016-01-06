@@ -28,6 +28,7 @@ INTERNAL_NAMES = {
     "__module__",
     "__name__",
     "__package__",
+    "__path__",
     "__spec__",
     "__weakref__",
     }
