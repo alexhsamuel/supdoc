@@ -57,6 +57,21 @@ def parse_ref(ref):
     return modname, name_path
 
 
+def _get_full_name(odoc):
+    """
+    Returns the modname and qualname for an odoc or ref.
+    """
+    if is_ref(odoc):
+        modname, name_path = parse_ref(odoc)
+        parts = name_path.split(".")
+        assert all( n == "dict" for n in parts[:: 2] )
+        name_path = ".".join(parts[1 :: 2])
+        return modname, name_path
+    else:
+        # FIXME: Should we store and use the name path, in place of qualname?
+        return odoc.get("modname"), odoc.get("qualname")
+
+
 def look_up_ref(sdoc, ref):
     """
     Resolves a reference in its sdoc.
@@ -382,53 +397,57 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # FIXME: Summarize return value and raises.
 
     # Summarize contents.
-    if dict is not None and len(dict) > 0:
-        # FIXME: So ugly.
-        modules     = {}
-        types       = {}
-        properties  = {}
-        functions   = {}
-        attributes  = {}
-        for name, odoc in dict.items():
-            tn = odoc.get("type_name")
-            if tn == "module":
-                modules[name] = odoc
-            elif tn == "type":
-                types[name] = odoc
-            elif tn in (
-                    "getset_descriptor",
-                    "property",
-            ):
-                properties[name] = odoc
-            elif tn in (
-                    "builtin_function_or_method", 
-                    "classmethod",
-                    "classmethod_descriptor",
-                    "function", 
-                    "method_descriptor", 
-                    "staticmethod",
-                    "wrapper_descriptor",
-            ):
-                functions[name] = odoc
-            else:
-                attributes[name] = odoc
+    partitions = _partition_members(dict or {})
 
-        if modules:
-            header("Modules")
-            _print_members(sdoc, modules, pr, False)
-        if types:
-            header("Types")
-            _print_members(sdoc, types, pr, False)
-        if properties:
-            header("Properties")
-            _print_members(sdoc, properties, pr, False)
-        if functions:
-            header("Functions" if type_name == "module" else "Methods")
-            _print_members(sdoc, functions, pr, True)
-        if attributes:
-            header("Attributes")
-            _print_members(sdoc, attributes, pr, True)
+    partition = partitions.pop("modules", {})
+    if len(partition) > 0:
+        header("Modules")
+        _print_members(sdoc, partition, pr, False)
 
+    partition = partitions.pop("types", {})
+    if len(partition) > 0:
+        header("Types")
+        _print_members(sdoc, partition, pr, False)
+
+    partition = partitions.pop("properties", {})
+    if len(partition) > 0:
+        header("Properties")
+        _print_members(sdoc, partition, pr, False)
+
+    partition = partitions.pop("functions", {})
+    if len(partition) > 0:
+        header("Functions" if type_name == "module" else "Methods")
+        _print_members(sdoc, partition, pr, True)
+
+    partition = partitions.pop("attributes", {})
+    if len(partition) > 0:
+        header("Attributes")
+        _print_members(sdoc, partition, pr, True)
+
+    assert len(partitions) == 0
+
+
+_PARTITIONS = {
+    "builtins.builtin_function_or_method"   : "functions",
+    "builtins.classmethod"                  : "functions",
+    "builtins.classmethod_descriptor"       : "functions",
+    "builtins.function"                     : "functions",
+    "builtins.method_descriptor"            : "functions",
+    "builtins.module"                       : "modules",
+    "builtins.property"                     : "properties",
+    "builtins.staticmethod"                 : "functions",
+    "builtins.type"                         : "types",
+    "builtins.wrapper_descriptor"           : "functions",
+}
+
+def _partition_members(dict):
+    partitions = {}
+    for name, odoc in dict.items():
+        full_type_name = ".".join(_get_full_name(odoc["type"]))
+        partition_name = _PARTITIONS.get(full_type_name, "attributes")
+        partitions.setdefault(partition_name, {})[name] = odoc
+    return partitions
+        
 
 def _print_members(sdoc, dict, pr, show_type):
     for name in sorted(dict):
