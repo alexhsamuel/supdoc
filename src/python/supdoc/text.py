@@ -27,7 +27,7 @@ STYLES = {
     "docs"              : {"fg": "gray24", },
     "header"            : {"underline": True, "fg": 89, },
     "identifier"        : {"bold": True, "fg": "black", },
-    "modname"           : {"fg": 52, },
+    "modname"           : {"fg": 17, },
     "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": "gray95", },
     "source"            : {"fg": "#222845", },
@@ -68,13 +68,17 @@ def _get_path(odoc):
     """
     if is_ref(odoc):
         modname, name_path = parse_ref(odoc)
-        parts = name_path.split(".")
-        assert all( n == "dict" for n in parts[:: 2] )
-        name_path = ".".join(parts[1 :: 2])
-        return inspector.Path(modname, name_path)
+        if len(name_path) > 0:
+            parts = name_path.split(".")
+            assert all( n == "dict" for n in parts[:: 2] )
+            qualname = ".".join(parts[1 :: 2])
+        else:
+            qualname = None
     else:
+        modname = odoc.get("modname")
         # FIXME: Should we store and use the name path, in place of qualname?
-        return inspector.Path(odoc.get("modname"), odoc.get("qualname"))
+        qualname = odoc.get("qualname")
+    return inspector.Path(modname, qualname)
 
 
 def look_up_ref(sdoc, ref):
@@ -459,13 +463,27 @@ def _print_members(sdoc, dict, pr, show_type):
             pr << name
 
         odoc        = dict[name]
+
+        if is_ref(odoc):
+            # Find the full name from which this was imported.
+            import_ref = _get_path(odoc)
+            # Read through the ref.
+            try:
+                resolved = look_up_ref(sdoc, odoc)
+            except LookupError:
+                pass
+            else:
+                if resolved is not None:
+                    odoc = resolved
+        else:
+            import_ref = None
+
         type_name   = odoc.get("type_name")
         repr        = odoc.get("repr")
         callable    = is_callable(odoc)
         signature   = get_signature(odoc)
         docs        = odoc.get("docs", {})
         summary     = docs.get("summary")
-        
 
         # Show the repr if this is not a callable or one of several other
         # types with uninteresting reprs.
@@ -484,6 +502,13 @@ def _print_members(sdoc, dict, pr, show_type):
         if show_repr and not long_repr and not is_function_like(odoc):
             with pr(**STYLES["repr"]):
                 pr << " = " << repr
+        if import_ref is not None:
+            pr << " \u21d0 "
+            with pr(**STYLES["identifier"]):
+                with pr(**STYLES["modname"]):
+                    pr << import_ref.modname
+                if import_ref.qualname is not None:
+                    pr << "." << import_ref.qualname
         if show_type and type_name is not None:
             with pr(**STYLES["type_name"]):
                 pr >> type_name
