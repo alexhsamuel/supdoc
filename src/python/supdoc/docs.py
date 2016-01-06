@@ -118,7 +118,7 @@ def parse_doc(source):
     except StopIteration:
         summary = None
     else:
-        summary = " ".join( l.lstrip() for l in summary )
+        summary = parse_formatting(" ".join( l.lstrip() for l in summary ))
 
     # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ] 
