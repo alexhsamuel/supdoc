@@ -9,7 +9,9 @@ Doc support
 
 Markup
 * Javadoc.
-  - other annotations like @ivar
+  - @ivar
+  - @note
+  - @author and all that
 * Distinguish packages from modules.
 * Mark built-in / frozen / extension modules.
 * Mark modules part of Python library.
@@ -30,6 +32,7 @@ Text UI
 - add a help() replacement
 - get terminal width from attached terminal, not stdout
 - clean up code
+- inherited members?
 ! help for an **object**!
 
 UI
