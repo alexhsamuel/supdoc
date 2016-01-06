@@ -140,9 +140,13 @@ def parameter_from_jso(jso, sdoc):
         default = Parameter.empty
     else:
         if is_ref(default):
-            default = look_up_ref(sdoc, default)
+            # FIXME
+            try:
+                default = look_up_ref(sdoc, default)
+            except:
+                pass
         # FIXME
-        default = ReprObj(default["repr"])
+        default = ReprObj(default.get("repr", "???"))
     try:
         annotation = jso["annotation"]
     except KeyError:
