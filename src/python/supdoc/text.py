@@ -71,6 +71,18 @@ def look_up_ref(sdoc, ref):
     return docs
 
 
+def resolve_ref(sdoc, odoc):
+    """
+    If `odoc` is a reference, resolves it.
+    """
+    try:
+        odoc["$ref"]
+    except KeyError:
+        return odoc
+    else:
+        return look_up_ref(sdoc, ref)
+
+
 def look_up(sdoc, modname, name_path=None, refs=False):
     """
     Looks up a module or object in an sdoc.
@@ -253,8 +265,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     # FIXME
     while is_ref(odoc):
-        modname, fqname = parse_ref(odoc)
-        pr << NOTE("Reference!")
+        pr << NOTE("Reference!") << NL
         odoc = look_up_ref(sdoc, odoc)
 
     name        = odoc.get("name")
@@ -379,24 +390,25 @@ def print_docs(sdoc, odoc, printer=Printer()):
         functions   = {}
         attributes  = {}
         for name, odoc in dict.items():
-            # FIXME
-            if is_ref(odoc):
-                try:
-                    odoc = look_up_ref(sdoc, odoc)
-                except LookupError:
-                    pass
-                # FIXME!
-                if odoc is None:
-                    odoc = {}
-
-            type_name = odoc.get("type_name")
-            if type_name == "module":
+            tn = odoc.get("type_name")
+            if tn == "module":
                 modules[name] = odoc
-            elif type_name == "type":
+            elif tn == "type":
                 types[name] = odoc
-            elif type_name == "property":
+            elif tn in (
+                    "getset_descriptor",
+                    "property",
+            ):
                 properties[name] = odoc
-            elif odoc.get("callable"):
+            elif tn in (
+                    "builtin_function_or_method", 
+                    "classmethod",
+                    "classmethod_descriptor",
+                    "function", 
+                    "method_descriptor", 
+                    "staticmethod",
+                    "wrapper_descriptor",
+            ):
                 functions[name] = odoc
             else:
                 attributes[name] = odoc
@@ -412,7 +424,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
             _print_members(sdoc, properties, pr, False)
         if functions:
             header("Functions" if type_name == "module" else "Methods")
-            _print_members(sdoc, functions, pr, False)
+            _print_members(sdoc, functions, pr, True)
         if attributes:
             header("Attributes")
             _print_members(sdoc, attributes, pr, True)
@@ -460,9 +472,8 @@ def _print_members(sdoc, dict, pr, show_type):
             with pr(**STYLES["repr"]):
                 pr << " = " << repr
         if show_type and type_name is not None:
-            pr >> (
-                " " + MEMBER_OF + " " 
-                + ansi.style(**STYLES["type_name"])(type_name))
+            with pr(**STYLES["type_name"]):
+                pr >> type_name
         pr << NL
 
         with pr(indent="   "):
@@ -486,6 +497,9 @@ def _main():
     parser.add_argument(
         "--json", default=False, action="store_true",
         help="dump JSON docs")
+    parser.add_argument(
+        "--sdoc", default=False, action="store_true",
+        help="dump JSON sdoc")
     parser.add_argument(
         "--path", metavar="FILE", default=None,
         help="read JSON docs from FILE")
@@ -526,7 +540,9 @@ def _main():
         print(error, file=sys.stderr)
         raise SystemExit(1)
 
-    if args.json:
+    if args.sdoc:
+        pln.json.pprint(sdoc)
+    elif args.json:
         pln.json.pprint(odoc)
     else:
         # Leave a one-space border on the right.

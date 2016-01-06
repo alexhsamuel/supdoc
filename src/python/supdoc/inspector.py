@@ -216,15 +216,20 @@ _orphans = {}
 _include_source = False
 
 
-def _make_ref(path):
-    assert path is not None
-
+def _make_ref(obj):
+    path = Path.of(obj)
+    if path is None:
+        return None
     _ref_modules.add(path.modname)
 
     ref = "#/modules/" + path.modname
     if path.qualname is not None:
         ref += "/dict/" + "/dict/".join(path.qualname.split("."))
-    return {"$ref": ref}
+    return {
+        "$ref"      : ref,
+        "type_name" : type(obj).__name__,
+    }
+    
 
 
 # FIXME: Not used.
@@ -342,16 +347,15 @@ def _inspect(obj, inspect_path):
 
     if path is not None and (inspect_path is None or path != inspect_path):
         # Defined elsewhere.  Produce a ref.
-        return _make_ref(path)
+        return _make_ref(obj)
     
     odoc = {}
 
     if mangled:
         odoc["mangled"] = True
 
-    type_path = Path.of(type(obj))
-    if type_path is not None:
-        odoc["type"] = _make_ref(type_path)
+    if Path.of(type(obj)) is not None:
+        odoc["type"] = _make_ref(type(obj))
     odoc["type_name"] = type(obj).__name__
     try:
         obj_repr = repr(obj)
@@ -521,6 +525,10 @@ def inspect_module(modname, *, builtins=False):
 
 def inspect_modules(modnames, *, refs=True, builtins=False, 
                     include_source=False):
+    """
+    @param refs
+      If true, also inspect any directly or indirectly referenced modules.
+    """
     # FIXME: Global state.
     _ref_modules.clear()
     module_docs = {}
@@ -533,11 +541,10 @@ def inspect_modules(modnames, *, refs=True, builtins=False,
         # FIXME
         if docs is not None:
             module_docs[modname] = docs
-    # Inspect all directly- and indirectly-referenced modules.
-    if refs:
-        while len(_ref_modules - set(module_docs)) > 0:
-            for modname in _ref_modules - set(module_docs):
-                module_docs[modname] = inspect_module(modname, builtins=builtins)
+    # Inspect referenced modules.
+    while refs and len(_ref_modules - set(module_docs)) > 0:
+        for modname in _ref_modules - set(module_docs):
+            module_docs[modname] = inspect_module(modname, builtins=builtins)
 
     from . import docs
     docs.enrich_modules(module_docs)
