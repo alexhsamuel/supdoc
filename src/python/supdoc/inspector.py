@@ -106,7 +106,10 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
 
 
     def __str__(self):
-        return self.modname + "." + self.qualname
+        return (
+            self.modname if self.qualname is None 
+            else self.modname + "." + self.qualname
+        )
 
 
     def mangle(self):
@@ -220,12 +223,7 @@ _orphans = {}
 _include_source = False
 
 
-def _make_ref(obj, *, with_type=True):
-    """
-    @param with_type
-      If true, include a "type" field with a ref to the object's type.
-    """
-    path = Path.of(obj)
+def _ref_from_path(path):
     if path is None:
         return None
     _ref_modules.add(path.modname)
@@ -236,8 +234,19 @@ def _make_ref(obj, *, with_type=True):
 
     return {
         "$ref"  : ref,
-        "type"  : _make_ref(type(obj), with_type=False) if with_type else None,
     }
+
+
+def _make_ref(obj, *, with_type=True):
+    """
+    @param with_type
+      If true, include a "type" field with a ref to the object's type.
+    """
+    ref = _ref_from_path(Path.of(obj))
+    if ref is not None:
+        ref["type"] = (
+            _make_ref(type(obj), with_type=False) if with_type else None)
+    return ref
 
 
 # FIXME: Not used.
@@ -386,14 +395,10 @@ def _inspect(obj, inspect_path):
     else:
         odoc["qualname"] = qualname
 
-    try:
-        modname = obj.__module__
-    except AttributeError:
-        pass
-    else:
-        if modname is not None:
-            # Convert the module name into a ref.
-            odoc["module"] = _make_ref(Path(modname, None))
+    modname = getattr(obj, "__module__", None)
+    if modname is not None:
+        # Convert the module name into a ref.
+        odoc["module"] = _ref_from_path(Path(modname, None))
 
     # Get documentation, if it belongs to this object itself (not to the
     # object's type).
