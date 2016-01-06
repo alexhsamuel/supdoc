@@ -1,5 +1,6 @@
 import re
 
+import html
 import logging
 import markdown
 import xml.etree.ElementTree as ET
@@ -103,6 +104,8 @@ def parse_formatting(text):
 
 
 def parse_doc(source):
+    source = html.escape(source)
+
     # Split into lines.
     lines = ( l.expandtabs().rstrip() for l in source.splitlines() )
 
@@ -118,7 +121,8 @@ def parse_doc(source):
     except StopIteration:
         summary = None
     else:
-        summary = parse_formatting(" ".join( l.lstrip() for l in summary ))
+        summary = " ".join( l.lstrip() for l in summary )
+        summary = parse_formatting(summary)
 
     # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ] 
