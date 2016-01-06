@@ -248,7 +248,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
         loc         = source.get("source_file") or source.get("file")
         source_text = source.get("source")
 
-        if loc is not None or soure_text is not None:
+        if loc is not None or source_text is not None:
             print_header("Source")
 
         if loc is not None:
