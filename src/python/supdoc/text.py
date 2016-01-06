@@ -241,29 +241,31 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     # Summarize the source / import location.
     if source is not None:
-        loc = source.get("source_file") or source.get("file")
-        if loc is not None:
-            print_header("Location")
-            printer << loc
+        loc         = source.get("source_file") or source.get("file")
+        source_text = source.get("source")
 
+        if loc is not None or soure_text is not None:
+            print_header("Source")
+
+        if loc is not None:
+            printer << loc
             lines = source.get("lines")
             if lines is not None:
                 start, end = lines
                 printer.right_justify(" lines {}-{}".format(start + 1, end + 1))
-
+            else:
+                printer.newline()
             printer.newline()
 
-        source_text = source.get("source")
         if source_text is not None:
-            print_header("Source")
-            printer.push_indent("\u205a ")
+            printer.push_indent("\u2506 ")
             width = printer.width
             # Elide long lines of source.
             source_text = "\n".join(
                 l if len(l) <= width else l[: width - 1] + ELLIPSIS
                 for l in source_text.split("\n")
             )
-            printer.write(ansi.style(**STYLES["source"])(source_text))
+            printer.write(source_text, style=STYLES["source"])
             printer.pop_indent()
             printer.newline()
 
