@@ -429,6 +429,7 @@ def _inspect(obj, inspect_path):
 
     # If this is callable, get its signature; however, skip types, as we 
     # get their __init__ signature.
+    jso["callable"] = callable(obj)
     if callable(obj) and not isinstance(obj, type):
         try:
             sig = inspect.signature(obj)
