@@ -306,7 +306,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     def rule():
         with pr(**STYLES["rule"]):
-            pr << "\u2501" * pr.width << NL
+            pr << "\u2501" * pr.remaining << NL
 
     pr << NL
     rule()
