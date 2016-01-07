@@ -445,6 +445,7 @@ _PARTITIONS = {
     "builtins.staticmethod"                 : "functions",
     "builtins.type"                         : "types",
     "builtins.wrapper_descriptor"           : "functions",
+    "_ctypes.PyCStructType"                 : "types",
 }
 
 def _partition_members(dict):
