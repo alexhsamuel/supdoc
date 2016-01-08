@@ -511,6 +511,16 @@ def _print_members(sdoc, dict, pr, show_type):
                     pr << import_path.modname
                 if import_path.qualname is not None:
                     pr << "." << import_path.qualname
+        # For properties, show which get/set/del operations are available.
+        if type_name == "property":
+            tags = []
+            if odoc.get("get") is not None:
+                tags.append("get")
+            if odoc.get("set") is not None:
+                tags.append("set")
+            if odoc.get("del") is not None:
+                tags.append("del")
+            pr << " [" << "/".join(tags) << "]"
         if show_type and type_name is not None:
             with pr(**STYLES["type_name"]):
                 pr >> type_name
