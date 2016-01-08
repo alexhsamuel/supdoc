@@ -28,10 +28,11 @@ STYLES = {
     "header"            : {"underline": True, "fg": 89, },
     "identifier"        : {"bold": True, "fg": "black", },
     "modname"           : {"fg": 17, },
+    "path"              : {"fg": 22, },
     "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": "gray95", },
     "source"            : {"fg": "#222845", },
-    "summary"           : {"fg": 89, },
+    "summary"           : {"fg": "black", },
     "type_name"         : {"fg": 23, },
     "warning"           : {"fg": 130, },
 }
@@ -344,7 +345,8 @@ def print_docs(sdoc, odoc, printer=Printer()):
             header("Source")
 
         if loc is not None:
-            pr << loc
+            with pr(**STYLES["path"]):
+                pr << loc
             lines = source.get("lines")
             if lines is not None:
                 start, end = lines
@@ -503,7 +505,7 @@ def _print_members(sdoc, dict, pr, show_type):
             with pr(**STYLES["repr"]):
                 pr << " = " << repr
         if import_path is not None:
-            pr << " \u21d0 "
+            pr << " \u27f8  "
             with pr(**STYLES["identifier"]):
                 with pr(**STYLES["modname"]):
                     pr << import_path.modname
