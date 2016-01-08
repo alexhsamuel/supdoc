@@ -336,7 +336,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
         pr << "in module "
         with pr(**STYLES["modname"]):
             pr << modname << NL
-    pr << NL
+        pr << NL
 
     # Show the mangled name.
     if mangled_name is not None:
