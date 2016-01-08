@@ -485,7 +485,7 @@ def _print_members(sdoc, dict, pr, show_type):
         else:
             import_path = None
 
-        name            = odoc.get("name")
+        name            = odoc.get("name", dict_name)
         type_name       = odoc.get("type_name")
         repr            = odoc.get("repr")
         callable        = is_callable(odoc)
