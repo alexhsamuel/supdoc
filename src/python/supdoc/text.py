@@ -466,7 +466,7 @@ def _print_members(sdoc, dict, pr, show_type):
 
         if is_ref(odoc):
             # Find the full name from which this was imported.
-            import_ref = _get_path(odoc)
+            import_path = _get_path(odoc)
             # Read through the ref.
             try:
                 resolved = look_up_ref(sdoc, odoc)
@@ -476,7 +476,7 @@ def _print_members(sdoc, dict, pr, show_type):
                 if resolved is not None:
                     odoc = resolved
         else:
-            import_ref = None
+            import_path = None
 
         type_name   = odoc.get("type_name")
         repr        = odoc.get("repr")
@@ -502,13 +502,13 @@ def _print_members(sdoc, dict, pr, show_type):
         if show_repr and not long_repr and not is_function_like(odoc):
             with pr(**STYLES["repr"]):
                 pr << " = " << repr
-        if import_ref is not None:
+        if import_path is not None:
             pr << " \u21d0 "
             with pr(**STYLES["identifier"]):
                 with pr(**STYLES["modname"]):
-                    pr << import_ref.modname
-                if import_ref.qualname is not None:
-                    pr << "." << import_ref.qualname
+                    pr << import_path.modname
+                if import_path.qualname is not None:
+                    pr << "." << import_path.qualname
         if show_type and type_name is not None:
             with pr(**STYLES["type_name"]):
                 pr >> type_name
