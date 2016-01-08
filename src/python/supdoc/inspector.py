@@ -150,7 +150,7 @@ def look_up(name, obj):
 
 
 def resolve(path):
-    module = import_(path.module)
+    module = import_(path.modname)
     return module if path.qualname is None else look_up(path.qualname, module)
 
 
@@ -369,7 +369,7 @@ def _inspect(obj, inspect_path):
     odoc = {}
 
     if mangled:
-        odoc["mangled"] = True
+        odoc["mangled_name"] = path.qualname.rsplit(".")[-1]
 
     if Path.of(type(obj)) is not None:
         odoc["type"] = _make_ref(type(obj))
