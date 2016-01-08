@@ -27,6 +27,7 @@ STYLES = {
     "docs"              : {"fg": "gray24", },
     "header"            : {"underline": True, "fg": 89, },
     "identifier"        : {"bold": True, "fg": "black", },
+    "mangled_name"      : {"bold": True, "fg": "black", },
     "modname"           : {"fg": 17, },
     "path"              : {"fg": "gray60", },
     "repr"              : {"fg": "gray70", },
@@ -291,15 +292,16 @@ def print_docs(sdoc, odoc, printer=Printer()):
         pr << NOTE("Reference!") << NL
         odoc = look_up_ref(sdoc, odoc)
 
-    name        = odoc.get("name")
-    qualname    = odoc.get("qualname")
-    module      = odoc.get("module")
-    type_name   = odoc.get("type_name")
-    callable    = is_callable(odoc)
-    signature   = get_signature(odoc)
-    source      = odoc.get("source")
-    docs        = odoc.get("docs")
-    dict        = odoc.get("dict")
+    name            = odoc.get("name")
+    qualname        = odoc.get("qualname")
+    mangled_name    = odoc.get("mangled_name")
+    module          = odoc.get("module")
+    type_name       = odoc.get("type_name")
+    callable        = is_callable(odoc)
+    signature       = get_signature(odoc)
+    source          = odoc.get("source")
+    docs            = odoc.get("docs")
+    dict            = odoc.get("dict")
 
     def header(header):
         with pr(**STYLES["header"]):
@@ -334,6 +336,13 @@ def print_docs(sdoc, odoc, printer=Printer()):
         pr << "in module "
         with pr(**STYLES["modname"]):
             pr << modname << NL
+    pr << NL
+
+    # Show the mangled name.
+    if mangled_name is not None:
+        pr << "external name "
+        with pr(**STYLES["mangled_name"]):
+            pr << mangled_name << NL 
     pr << NL
 
     # Summarize the source / import location.
@@ -459,12 +468,8 @@ def _partition_members(dict):
         
 
 def _print_members(sdoc, dict, pr, show_type):
-    for name in sorted(dict):
-        pr << BULLET
-        with pr(**STYLES["identifier"]):
-            pr << name
-
-        odoc        = dict[name]
+    for dict_name in sorted(dict):
+        odoc        = dict[dict_name]
 
         if is_ref(odoc):
             # Find the full name from which this was imported.
@@ -480,12 +485,17 @@ def _print_members(sdoc, dict, pr, show_type):
         else:
             import_path = None
 
-        type_name   = odoc.get("type_name")
-        repr        = odoc.get("repr")
-        callable    = is_callable(odoc)
-        signature   = get_signature(odoc)
-        docs        = odoc.get("docs", {})
-        summary     = docs.get("summary")
+        name            = odoc.get("name")
+        type_name       = odoc.get("type_name")
+        repr            = odoc.get("repr")
+        callable        = is_callable(odoc)
+        signature       = get_signature(odoc)
+        docs            = odoc.get("docs", {})
+        summary         = docs.get("summary")
+
+        pr << BULLET
+        with pr(**STYLES["identifier"]):
+            pr << name
 
         # Show the repr if this is not a callable or one of several other
         # types with uninteresting reprs.
