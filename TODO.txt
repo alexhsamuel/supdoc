@@ -18,7 +18,6 @@ Markup
 - Link Python library modules to docs.
 
 Text UI
-- distinguish / indicate imported modules and other types
 - distinguish method, staticmethod, classmethod from functions
   - handle or change the "func" field
 - show return type annotation and javadoc
