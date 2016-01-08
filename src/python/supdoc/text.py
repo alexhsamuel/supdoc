@@ -308,7 +308,6 @@ def print_docs(sdoc, odoc, printer=Printer()):
         with pr(**STYLES["rule"]):
             pr << "\u2501" * pr.remaining << NL
 
-    pr << NL
     rule()
 
     if qualname is not None:
