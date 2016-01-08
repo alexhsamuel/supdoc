@@ -34,6 +34,7 @@ class Master:
 
     def __init__(self, value):
         self.__value = value
+        self.__data = None
         Master.__total_value += value
 
 
@@ -43,6 +44,24 @@ class Master:
         The value.
         """
         return self.__value
+
+
+    def __get_data(self):
+        """
+        The stored data.
+        """
+        return self.__data
+
+
+    def __set_data(self, data):
+        self.__data = data
+
+
+    def __del_data(self):
+        self.__data = None
+
+
+    data = property(__get_data, __set_data, __del_data)
 
 
     @staticmethod
