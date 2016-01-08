@@ -28,7 +28,7 @@ STYLES = {
     "header"            : {"underline": True, "fg": 89, },
     "identifier"        : {"bold": True, "fg": "black", },
     "modname"           : {"fg": 17, },
-    "path"              : {"fg": 22, },
+    "path"              : {"fg": "gray60", },
     "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": "gray95", },
     "source"            : {"fg": "#222845", },
@@ -321,7 +321,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
     # Show its callable signature, if it has one.
     _print_signature(sdoc, odoc, pr)
     # Show its type.
-    if type_name is not None and not is_function_like(odoc):
+    if type_name is not None:
         with pr(**STYLES["type_name"]):
             pr >> type_name
 
