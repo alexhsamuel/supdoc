@@ -27,7 +27,7 @@ STYLES = {
     "docs"              : {"fg": "gray24", },
     "header"            : {"underline": True, "fg": 89, },
     "identifier"        : {"bold": True, "fg": "black", },
-    "mangled_name"      : {"bold": True, "fg": "black", },
+    "mangled_name"      : {"bold": True, "fg": "gray70", },
     "modname"           : {"fg": 17, },
     "path"              : {"fg": "gray60", },
     "repr"              : {"fg": "gray70", },
@@ -152,6 +152,27 @@ def look_up(sdoc, modname, name_path=None, refs=False):
         odoc = look_up_ref(sdoc, odoc)
 
     return odoc
+
+
+def unmangle(name, parent_name):
+    """
+    Unmangles a private mangled name.
+
+      >>> unmangle("_MyClass__foo", "MyClass")
+      '__foo'
+      >>> unmangle("_MyClass__foo", "MyOtherClass")
+      None
+      >>> unmangle("__foo", "MyClass")
+      None
+
+    @return
+      If `name` is mangled for `parent_name`, the mangled name; `None` 
+      otherwise.
+    """
+    if name.startswith("_" + parent_name + "__"):
+        return name[1 + len(parent_name) :]
+    else:
+        return None
 
 
 #-------------------------------------------------------------------------------
@@ -419,27 +440,27 @@ def print_docs(sdoc, odoc, printer=Printer()):
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
         header("Modules")
-        _print_members(sdoc, partition, pr, False)
+        _print_members(sdoc, partition, name, pr, False)
 
     partition = partitions.pop("types", {})
     if len(partition) > 0:
         header("Types")
-        _print_members(sdoc, partition, pr, False)
+        _print_members(sdoc, partition, name, pr, False)
 
     partition = partitions.pop("properties", {})
     if len(partition) > 0:
         header("Properties")
-        _print_members(sdoc, partition, pr, False)
+        _print_members(sdoc, partition, name, pr, False)
 
     partition = partitions.pop("functions", {})
     if len(partition) > 0:
         header("Functions" if type_name == "module" else "Methods")
-        _print_members(sdoc, partition, pr, True)
+        _print_members(sdoc, partition, name, pr, True)
 
     partition = partitions.pop("attributes", {})
     if len(partition) > 0:
         header("Attributes")
-        _print_members(sdoc, partition, pr, True)
+        _print_members(sdoc, partition, name, pr, True)
 
     assert len(partitions) == 0
 
@@ -467,7 +488,7 @@ def _partition_members(dict):
     return partitions
         
 
-def _print_members(sdoc, dict, pr, show_type):
+def _print_members(sdoc, dict, parent_name, pr, show_type):
     for dict_name in sorted(dict):
         odoc        = dict[dict_name]
 
@@ -486,6 +507,7 @@ def _print_members(sdoc, dict, pr, show_type):
             import_path = None
 
         name            = odoc.get("name", dict_name)
+        unmangled_name  = unmangle(dict_name, parent_name)
         type_name       = odoc.get("type_name")
         repr            = odoc.get("repr")
         callable        = is_callable(odoc)
@@ -495,7 +517,7 @@ def _print_members(sdoc, dict, pr, show_type):
 
         pr << BULLET
         with pr(**STYLES["identifier"]):
-            pr << name
+            pr << dict_name if unmangled_name is None else unmangled_name 
 
         # Show the repr if this is not a callable or one of several other
         # types with uninteresting reprs.
@@ -521,6 +543,10 @@ def _print_members(sdoc, dict, pr, show_type):
                     pr << import_path.modname
                 if import_path.qualname is not None:
                     pr << "." << import_path.qualname
+        if unmangled_name is not None:
+            with pr(**STYLES["mangled_name"]):
+                pr << " \u2248 " << dict_name
+
         # For properties, show which get/set/del operations are available.
         if type_name == "property":
             tags = []
