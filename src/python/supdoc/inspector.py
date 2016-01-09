@@ -345,9 +345,9 @@ def _inspect(obj, lookup_path):
     @param obj
       The object to inspect.
     @param lookup_path
-      The qualname of the object.  This is the path by which the object has
-      been reached, by module import followed by successive `getattr`.  It
-      may not be the same as the name by which the object knows itself.
+      The path by which the object has been reached, by module import followed
+      by successive `getattr`.  It may not be the same as the name by which the
+      object knows itself.
     @type lookup_path
       `Path`.
     @return
