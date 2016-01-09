@@ -450,7 +450,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
     partition = partitions.pop("properties", {})
     if len(partition) > 0:
         header("Properties")
-        _print_members(sdoc, partition, name, pr, False)
+        _print_members(sdoc, partition, name, pr, True)
 
     partition = partitions.pop("functions", {})
     if len(partition) > 0:
@@ -515,10 +515,6 @@ def _print_members(sdoc, dict, parent_name, pr, show_type):
         docs            = odoc.get("docs", {})
         summary         = docs.get("summary")
 
-        pr << BULLET
-        with pr(**STYLES["identifier"]):
-            pr << dict_name if unmangled_name is None else unmangled_name 
-
         # Show the repr if this is not a callable or one of several other
         # types with uninteresting reprs.
         show_repr = (
@@ -529,13 +525,14 @@ def _print_members(sdoc, dict, parent_name, pr, show_type):
         long_repr = show_repr and (
             len(repr) > pr.width - pr.column - len(type_name) - 8)
 
+        pr << BULLET
+        with pr(**STYLES["identifier"]):
+            pr << (dict_name if unmangled_name is None else unmangled_name)
+
         # FIXME: Distinguish normal / static / class methods from functions.
 
         _print_signature(sdoc, odoc, pr)
         # FIXME: Common code with print_docs().
-        if show_repr and not long_repr and not is_function_like(odoc):
-            with pr(**STYLES["repr"]):
-                pr << " = " << repr
         if import_path is not None:
             pr << " \u27f8  "
             with pr(**STYLES["identifier"]):
@@ -543,10 +540,19 @@ def _print_members(sdoc, dict, parent_name, pr, show_type):
                     pr << import_path.modname
                 if import_path.qualname is not None:
                     pr << "." << import_path.qualname
+
+        # If this is a mangled name, we showed the unmangled name earlier.  Now
+        # show the mangled name too.
         if unmangled_name is not None:
             with pr(**STYLES["mangled_name"]):
                 pr << " \u2248 " << dict_name
 
+        # For less common types, show the repr.
+        if show_repr and not long_repr and not is_function_like(odoc):
+            with pr(**STYLES["repr"]):
+                pr << " = " << repr
+
+        right = ""
         # For properties, show which get/set/del operations are available.
         if type_name == "property":
             tags = []
@@ -556,10 +562,12 @@ def _print_members(sdoc, dict, parent_name, pr, show_type):
                 tags.append("set")
             if odoc.get("del") is not None:
                 tags.append("del")
-            pr << " [" << "/".join(tags) << "]"
+            right += "/".join(tags) + " "
+        # Show the type.
         if show_type and type_name is not None:
-            with pr(**STYLES["type_name"]):
-                pr >> type_name
+            right += ansi.style(**STYLES["type_name"])(type_name)
+        if right:
+            pr >> right
         pr << NL
 
         with pr(indent="   "):
