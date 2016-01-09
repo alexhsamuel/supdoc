@@ -331,7 +331,7 @@ def _inspect_source(obj):
     return result
 
 
-def _inspect(obj, inspect_path):
+def _inspect(obj, lookup_path):
     """
     Main inspection function.
 
@@ -339,21 +339,21 @@ def _inspect(obj, inspect_path):
     relevant details.  Captures characteristics visible to Python, not
     specified in documentation.
 
-    If `obj` has a path and it does not match `inspect_path`, returns a 
+    If `obj` has a path and it does not match `lookup_path`, returns a 
     `$ref` JSO object instead of inspecting.
 
     @param obj
       The object to inspect.
-    @param inspect_path
+    @param lookup_path
       The qualname of the object.  This is the path by which the object has
       been reached, by module import followed by successive `getattr`.  It
       may not be the same as the name by which the object knows itself.
-    @type inspect_path
+    @type lookup_path
       `Path`.
     @return
       Odoc extracted from the object.
     """
-    logging.info("_inspect({!r}, {!r})".format(obj, inspect_path))
+    logging.info("_inspect({!r}, {!r})".format(obj, lookup_path))
 
     mangled = is_mangled(obj)
     # imposter = not mangled and is_imposter(obj)
@@ -362,7 +362,7 @@ def _inspect(obj, inspect_path):
     if mangled:
         path = path.mangle()
 
-    if path is not None and (inspect_path is None or path != inspect_path):
+    if path is not None and (lookup_path is None or path != lookup_path):
         # Defined elsewhere.  Produce a ref.
         # FIXME: If obj has a private name, we should mangle it in the ref.
         return _make_ref(obj)
@@ -419,13 +419,13 @@ def _inspect(obj, inspect_path):
         names = sorted( n for n in dict if n not in INTERNAL_NAMES )
         for attr_name in names:
             attr_value = dict[attr_name]
-            if inspect_path is None:
+            if lookup_path is None:
                 attr_path = None
             else:
                 attr_path = Path(
-                    inspect_path.modname, 
-                    attr_name if inspect_path.qualname is None 
-                        else inspect_path.qualname + '.' + attr_name)
+                    lookup_path.modname, 
+                    attr_name if lookup_path.qualname is None 
+                        else lookup_path.qualname + '.' + attr_name)
             dict_jso[attr_name] = _inspect(attr_value, attr_path)
         odoc["dict"] = dict_jso
 
@@ -468,13 +468,13 @@ def _inspect(obj, inspect_path):
     except AttributeError:
         pass
     else:
-        odoc["func"] = _inspect(func, inspect_path)
+        odoc["func"] = _inspect(func, lookup_path)
 
     # If this is a property, inspect the underlying accessors.
     if isinstance(obj, property):
-        odoc["get"] = None if obj.fget is None else _inspect(obj.fget, inspect_path)
-        odoc["set"] = None if obj.fset is None else _inspect(obj.fset, inspect_path)
-        odoc["del"] = None if obj.fdel is None else _inspect(obj.fdel, inspect_path)
+        odoc["get"] = None if obj.fget is None else _inspect(obj.fget, lookup_path)
+        odoc["set"] = None if obj.fset is None else _inspect(obj.fset, lookup_path)
+        odoc["del"] = None if obj.fdel is None else _inspect(obj.fdel, lookup_path)
 
     return odoc
 
