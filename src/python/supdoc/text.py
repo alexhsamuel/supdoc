@@ -162,18 +162,18 @@ def unmangle(name, parent_name):
       >>> unmangle("_MyClass__foo", "MyClass")
       '__foo'
       >>> unmangle("_MyClass__foo", "MyOtherClass")
-      None
+      '_MyClass__foo'
       >>> unmangle("__foo", "MyClass")
-      None
+      '__foo'
 
     @return
-      If `name` is mangled for `parent_name`, the mangled name; `None` 
+      If `name` is mangled for `parent_name`, the mangled name; `name`
       otherwise.
     """
     if parent_name is not None and name.startswith("_" + parent_name + "__"):
         return name[1 + len(parent_name) :]
     else:
-        return None
+        return name
 
 
 #-------------------------------------------------------------------------------
@@ -532,7 +532,7 @@ def _partition_members(dict):
         
 
 # FIXME: WTF is this signature anyway?
-def _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type=True):
+def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
     if is_ref(odoc):
         # Find the full name from which this was imported.
         import_path = _get_path(odoc)
@@ -547,8 +547,8 @@ def _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type=True):
     else:
         import_path = None
 
-    name            = odoc.get("name", dict_name)
-    unmangled_name  = unmangle(dict_name, parent_name)
+    name            = odoc.get("name")
+    unmangled_name  = unmangle(lookup_name, parent_name)
     type_name       = odoc.get("type_name")
     repr            = odoc.get("repr")
     callable        = is_callable(odoc)
@@ -567,7 +567,7 @@ def _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type=True):
         len(repr) > pr.width - pr.column - len(type_name) - 8)
 
     with pr(**STYLES["identifier"]):
-        pr << (dict_name if unmangled_name is None else unmangled_name)
+        pr << unmangled_name
 
     # FIXME: Distinguish normal / static / class methods from functions.
 
@@ -587,7 +587,7 @@ def _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type=True):
         with pr(**STYLES["mangled_name"]):
             pr << " \u224b "  # FIXME: Something better?
             with pr(**STYLES["identifier"]):
-                pr << dict_name 
+                pr << lookup_name 
 
     # For less common types, show the repr.
     if show_repr and not long_repr and not is_function_like(odoc):
@@ -624,10 +624,10 @@ def _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type=True):
 
 
 def _print_members(sdoc, dict, parent_name, pr, show_type=True):
-    for dict_name in sorted(dict):
-        odoc = dict[dict_name]
+    for lookup_name in sorted(dict):
+        odoc = dict[lookup_name]
         pr << BULLET
-        _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type)
+        _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type)
     pr << NL
 
 
