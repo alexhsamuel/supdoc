@@ -583,7 +583,7 @@ def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
-    if unmangled_name is not None:
+    if unmangled_name != lookup_name:
         with pr(**STYLES["mangled_name"]):
             pr << " \u224b "  # FIXME: Something better?
             with pr(**STYLES["identifier"]):
