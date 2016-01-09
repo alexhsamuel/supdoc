@@ -555,6 +555,7 @@ def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
     signature       = get_signature(odoc)
     docs            = odoc.get("docs", {})
     summary         = docs.get("summary")
+    body            = docs.get("body")
 
     # Show the repr if this is not a callable or one of several other
     # types with uninteresting reprs.
@@ -619,8 +620,12 @@ def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
             pr << NL
         if summary is not None:
             with pr(**STYLES["docs"]):
-                pr.html(summary) << NL
-
+                pr.html(summary)
+            if body:
+                # Don't print the body, but indicate that there are more docs.
+                with pr(fg="gray80"):
+                    pr << " " << ELLIPSIS
+            pr << NL
 
 
 def _print_members(sdoc, dict, parent_name, pr, show_type=True):
