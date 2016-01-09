@@ -26,8 +26,8 @@ from   . import inspector
 STYLES = {
     "docs"              : {"fg": "gray24", },
     "header"            : {"underline": True, "fg": 89, },
-    "identifier"        : {"bold": True, "fg": "black", },
-    "mangled_name"      : {"bold": True, "fg": "gray70", },
+    "identifier"        : {"bold": True, },
+    "mangled_name"      : {"fg": "gray70", },
     "modname"           : {"fg": 17, },
     "path"              : {"fg": "gray60", },
     "repr"              : {"fg": "gray70", },
@@ -545,7 +545,9 @@ def _print_members(sdoc, dict, parent_name, pr, show_type):
         # show the mangled name too.
         if unmangled_name is not None:
             with pr(**STYLES["mangled_name"]):
-                pr << " \u2248 " << dict_name
+                pr << " aka "
+                with pr(**STYLES["identifier"]):
+                    pr << dict_name 
 
         # For less common types, show the repr.
         if show_repr and not long_repr and not is_function_like(odoc):
