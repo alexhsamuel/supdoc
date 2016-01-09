@@ -339,8 +339,8 @@ def _inspect(obj, lookup_path):
     relevant details.  Captures characteristics visible to Python, not
     specified in documentation.
 
-    If `obj` has a path and it does not match `lookup_path`, returns a 
-    `$ref` JSO object instead of inspecting.
+    If `obj` has a path and it does not match `lookup_path`, returns a ref
+    instead of inspecting.
 
     @param obj
       The object to inspect.
