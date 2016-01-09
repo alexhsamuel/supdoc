@@ -33,6 +33,7 @@ Text UI
 - get terminal width from attached terminal, not stdout
 - clean up code
 - inherited members?
+- Style class in pln.terminal.ansi
 ! help for an **object**!
 
 UI
@@ -101,6 +102,7 @@ Done
 - Style navigatable links.  Change pointer?
 - Load modules separately.
 * Mark protected, private contents.
+- distinguish / indicate imported modules and other types
 
 ================================================================================
 Some markup seen in the wild:
