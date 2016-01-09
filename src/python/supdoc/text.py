@@ -6,6 +6,7 @@ import re
 import shutil
 import sys
 
+from   pln import if_none
 import pln.itr
 import pln.json
 from   pln.terminal import ansi
@@ -304,8 +305,24 @@ def _print_signature(sdoc, odoc, pr):
     # FIXME: Return value annotation
 
 
+def _print_name(qualname, name, pr):
+    if qualname is not None:
+        if name is None:
+            _, name = qualname.rsplit(".", 1)
+        if qualname.endswith("." + name):
+            pr << qualname[: -len(name)] << ansi.bold(name)
+        else:
+            pr << ansi.bold(qualname)
+    elif name is not None:
+        pr << ansi.bold(name)
+
+
 # FIXME: Break this function up.
-def print_docs(sdoc, odoc, printer=Printer()):
+def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
+    """
+    @param lookup_path
+      The path under which this odoc was found.
+    """
     pr = printer  # For brevity.
 
     # FIXME
@@ -334,13 +351,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
 
     rule()
 
-    if qualname is not None:
-        if qualname.endswith(name):
-            pr << qualname[: -len(name)] << ansi.bold(name)
-        else:
-            pr << ansi.bold(qualname)
-    elif name is not None:
-        pr << ansi.bold(name)
+    _print_name(if_none(qualname, lookup_path.qualname), name, pr)
     # Show its callable signature, if it has one.
     _print_signature(sdoc, odoc, pr)
     # Show its type.
@@ -643,7 +654,7 @@ def _main():
     else:
         # Leave a one-space border on the right.
         width = pln.terminal.get_width() - 1 
-        print_docs(sdoc, odoc, Printer(indent=" ", width=width))
+        print_docs(sdoc, odoc, path, Printer(indent=" ", width=width))
 
 
 if __name__ == "__main__":
