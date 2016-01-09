@@ -142,7 +142,7 @@ def parse_doc(source):
                 _, lines = get_common_indent(par)
                 text = " ".join(lines)
                 text = parse_formatting(text)
-                yield text
+                yield '<p>' + text + '</p>'
 
             # FIXME
             #
