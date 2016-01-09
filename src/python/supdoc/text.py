@@ -420,7 +420,7 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
                     pr.html(summary) << NL << NL
             # Show the doc body.
             if body:
-                pr.html(body) << NL
+                pr.html(body)
 
     # Summarize property.
     if type_name == "property":
