@@ -545,7 +545,7 @@ def _print_members(sdoc, dict, parent_name, pr, show_type):
         # show the mangled name too.
         if unmangled_name is not None:
             with pr(**STYLES["mangled_name"]):
-                pr << " \u2f1b "  # FIXME: Something better?
+                pr << " \u224b "  # FIXME: Something better?
                 with pr(**STYLES["identifier"]):
                     pr << dict_name 
 
