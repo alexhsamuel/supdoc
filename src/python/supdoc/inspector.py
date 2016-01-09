@@ -249,24 +249,6 @@ def _make_ref(obj, *, with_type=True):
     return ref
 
 
-# FIXME: Not used.
-def is_imposter(obj):
-    """
-    Returns true if `obj` has a path that doesn't resolve back to it.
-    """
-    path = Path.of(obj)
-    if path is None:
-        # Doesn't carry its own path.
-        return False
-    try:
-        resolved_obj = resolve(path)
-    except (ImportError, AttributeError):
-        # Doesn't resolve to anything.
-        return True
-    # Does the path resolve back to the object?
-    return resolved_obj is not obj
-
-
 def is_mangled(obj):
     """
     Returns true if `obj` has a mangled private name.
@@ -356,7 +338,6 @@ def _inspect(obj, lookup_path):
     logging.info("_inspect({!r}, {!r})".format(obj, lookup_path))
 
     mangled = is_mangled(obj)
-    # imposter = not mangled and is_imposter(obj)
 
     path = Path.of(obj)
     if mangled:
