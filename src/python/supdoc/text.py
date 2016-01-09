@@ -403,7 +403,7 @@ def print_docs(sdoc, odoc, printer=Printer()):
                     pr.html(summary) << NL << NL
             # Show the doc body.
             if body:
-                pr.html(body) << NL << NL
+                pr.html(body) << NL
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
