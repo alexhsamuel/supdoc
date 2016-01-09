@@ -364,6 +364,7 @@ def _inspect(obj, inspect_path):
 
     if path is not None and (inspect_path is None or path != inspect_path):
         # Defined elsewhere.  Produce a ref.
+        # FIXME: If obj has a private name, we should mangle it in the ref.
         return _make_ref(obj)
     
     odoc = {}
