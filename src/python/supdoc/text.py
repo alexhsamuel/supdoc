@@ -317,6 +317,13 @@ def _print_name(qualname, name, pr):
         pr << ansi.bold(name)
 
 
+def _print_module(modname, pr):
+    if modname is not None:
+        pr << "in module "
+        with pr(**STYLES["modname"]):
+            pr << modname << NL
+
+
 # FIXME: Break this function up.
 def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
     """
@@ -351,6 +358,7 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
 
     rule()
 
+    # Show its name.
     _print_name(if_none(qualname, lookup_path.qualname), name, pr)
     # Show its callable signature, if it has one.
     _print_signature(sdoc, odoc, pr)
@@ -363,11 +371,9 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
     rule()
 
     # Show the name.
-    if module is not None:
-        modname, _ = parse_ref(module)
-        pr << "in module "
-        with pr(**STYLES["modname"]):
-            pr << modname << NL
+    _print_module(
+        lookup_path.modname if module is None else parse_ref(module)[0],
+        pr)
     pr << NL
 
     # Show the mangled name.
