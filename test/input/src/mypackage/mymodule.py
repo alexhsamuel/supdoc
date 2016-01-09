@@ -61,6 +61,10 @@ class Master:
         self.__data = None
 
 
+    def __private(self):
+        return 42
+
+
     data = property(__get_data, __set_data, __del_data)
 
 
