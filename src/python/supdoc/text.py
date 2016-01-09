@@ -107,7 +107,7 @@ def resolve_ref(sdoc, odoc):
     except KeyError:
         return odoc
     else:
-        return look_up_ref(sdoc, ref)
+        return look_up_ref(sdoc, odoc)
 
 
 def look_up(sdoc, modname, name_path=None, refs=False):
@@ -170,7 +170,7 @@ def unmangle(name, parent_name):
       If `name` is mangled for `parent_name`, the mangled name; `None` 
       otherwise.
     """
-    if name.startswith("_" + parent_name + "__"):
+    if parent_name is not None and name.startswith("_" + parent_name + "__"):
         return name[1 + len(parent_name) :]
     else:
         return None
@@ -372,7 +372,7 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
 
     # Show the name.
     _print_module(
-        lookup_path.modname if module is None else parse_ref(module)[0],
+        parse_ref(module)[0] if module is not None else lookup_path.modname,
         pr)
     pr << NL
 
@@ -421,6 +421,32 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
             # Show the doc body.
             if body:
                 pr.html(body) << NL
+
+    # Summarize property.
+    if type_name == "property":
+        # FIXME: This is a mess.
+        getter  = odoc.get("get")
+        setter  = odoc.get("set")
+        deller  = odoc.get("del")
+        parent  = None
+
+        header("Property")
+        pr << "get: "
+        if getter is not None:
+            _print_member(sdoc, resolve_ref(sdoc, getter), None, parent, pr)
+        else:
+            pr << "none" << NL
+        pr << "set: "
+        if setter is not None:
+            _print_member(sdoc, resolve_ref(sdoc, setter), None, parent, pr)
+        else:
+            pr << "none" << NL
+        pr << "del: "
+        if deller is not None:
+            _print_member(sdoc, resolve_ref(sdoc, deller), None, parent, pr)
+        else:
+            pr << "none" << NL
+        pr << NL 
 
     # Summarize parameters.
     if signature is not None and len(signature) > 0:
@@ -505,99 +531,103 @@ def _partition_members(dict):
     return partitions
         
 
-def _print_members(sdoc, dict, parent_name, pr, show_type):
-    for dict_name in sorted(dict):
-        odoc        = dict[dict_name]
-
-        if is_ref(odoc):
-            # Find the full name from which this was imported.
-            import_path = _get_path(odoc)
-            # Read through the ref.
-            try:
-                resolved = look_up_ref(sdoc, odoc)
-            except LookupError:
-                pass
-            else:
-                if resolved is not None:
-                    odoc = resolved
+# FIXME: WTF is this signature anyway?
+def _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type=True):
+    if is_ref(odoc):
+        # Find the full name from which this was imported.
+        import_path = _get_path(odoc)
+        # Read through the ref.
+        try:
+            resolved = look_up_ref(sdoc, odoc)
+        except LookupError:
+            pass
         else:
-            import_path = None
+            if resolved is not None:
+                odoc = resolved
+    else:
+        import_path = None
 
-        name            = odoc.get("name", dict_name)
-        unmangled_name  = unmangle(dict_name, parent_name)
-        type_name       = odoc.get("type_name")
-        repr            = odoc.get("repr")
-        callable        = is_callable(odoc)
-        signature       = get_signature(odoc)
-        docs            = odoc.get("docs", {})
-        summary         = docs.get("summary")
+    name            = odoc.get("name", dict_name)
+    unmangled_name  = unmangle(dict_name, parent_name)
+    type_name       = odoc.get("type_name")
+    repr            = odoc.get("repr")
+    callable        = is_callable(odoc)
+    signature       = get_signature(odoc)
+    docs            = odoc.get("docs", {})
+    summary         = docs.get("summary")
 
-        # Show the repr if this is not a callable or one of several other
-        # types with uninteresting reprs.
-        show_repr = (
-            repr is not None 
-            and signature is None 
-            and type_name not in ("module", "property", "type", )
-        )
-        long_repr = show_repr and (
-            len(repr) > pr.width - pr.column - len(type_name) - 8)
+    # Show the repr if this is not a callable or one of several other
+    # types with uninteresting reprs.
+    show_repr = (
+        repr is not None 
+        and signature is None 
+        and type_name not in ("module", "property", "type", )
+    )
+    long_repr = show_repr and (
+        len(repr) > pr.width - pr.column - len(type_name) - 8)
 
-        pr << BULLET
+    with pr(**STYLES["identifier"]):
+        pr << (dict_name if unmangled_name is None else unmangled_name)
+
+    # FIXME: Distinguish normal / static / class methods from functions.
+
+    _print_signature(sdoc, odoc, pr)
+    # FIXME: Common code with print_docs().
+    if import_path is not None:
+        pr << " \u27f8  "
         with pr(**STYLES["identifier"]):
-            pr << (dict_name if unmangled_name is None else unmangled_name)
+            with pr(**STYLES["modname"]):
+                pr << import_path.modname
+            if import_path.qualname is not None:
+                pr << "." << import_path.qualname
 
-        # FIXME: Distinguish normal / static / class methods from functions.
-
-        _print_signature(sdoc, odoc, pr)
-        # FIXME: Common code with print_docs().
-        if import_path is not None:
-            pr << " \u27f8  "
+    # If this is a mangled name, we showed the unmangled name earlier.  Now
+    # show the mangled name too.
+    if unmangled_name is not None:
+        with pr(**STYLES["mangled_name"]):
+            pr << " \u224b "  # FIXME: Something better?
             with pr(**STYLES["identifier"]):
-                with pr(**STYLES["modname"]):
-                    pr << import_path.modname
-                if import_path.qualname is not None:
-                    pr << "." << import_path.qualname
+                pr << dict_name 
 
-        # If this is a mangled name, we showed the unmangled name earlier.  Now
-        # show the mangled name too.
-        if unmangled_name is not None:
-            with pr(**STYLES["mangled_name"]):
-                pr << " \u224b "  # FIXME: Something better?
-                with pr(**STYLES["identifier"]):
-                    pr << dict_name 
+    # For less common types, show the repr.
+    if show_repr and not long_repr and not is_function_like(odoc):
+        with pr(**STYLES["repr"]):
+            pr << " = " << repr
 
-        # For less common types, show the repr.
-        if show_repr and not long_repr and not is_function_like(odoc):
+    right = ""
+    # For properties, show which get/set/del operations are available.
+    if type_name == "property":
+        tags = []
+        if odoc.get("get") is not None:
+            tags.append("get")
+        if odoc.get("set") is not None:
+            tags.append("set")
+        if odoc.get("del") is not None:
+            tags.append("del")
+        right += "/".join(tags) + " "
+    # Show the type.
+    if show_type and type_name is not None:
+        right += ansi.style(**STYLES["type_name"])(type_name)
+    if right:
+        pr >> right
+    pr << NL
+
+    with pr(indent="   "):
+        if long_repr:
             with pr(**STYLES["repr"]):
-                pr << " = " << repr
+                pr.elide("= " + repr)
+            pr << NL
+        if summary is not None:
+            with pr(**STYLES["docs"]):
+                pr.html(summary) << NL
 
-        right = ""
-        # For properties, show which get/set/del operations are available.
-        if type_name == "property":
-            tags = []
-            if odoc.get("get") is not None:
-                tags.append("get")
-            if odoc.get("set") is not None:
-                tags.append("set")
-            if odoc.get("del") is not None:
-                tags.append("del")
-            right += "/".join(tags) + " "
-        # Show the type.
-        if show_type and type_name is not None:
-            right += ansi.style(**STYLES["type_name"])(type_name)
-        if right:
-            pr >> right
-        pr << NL
 
-        with pr(indent="   "):
-            if long_repr:
-                with pr(**STYLES["repr"]):
-                    pr.elide("= " + repr)
-                pr << NL
-            if summary is not None:
-                with pr(**STYLES["docs"]):
-                    pr.html(summary) << NL
 
+def _print_members(sdoc, dict, parent_name, pr, show_type=True):
+    for dict_name in sorted(dict):
+        odoc = dict[dict_name]
+        pr << BULLET
+        _print_member(sdoc, odoc, dict_name, parent_name, pr, show_type)
     pr << NL
 
 
