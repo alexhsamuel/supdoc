@@ -3,6 +3,7 @@ import re
 import html
 import logging
 import markdown
+import sys
 import xml.etree.ElementTree as ET
 
 import pln.itr
@@ -104,10 +105,8 @@ def parse_formatting(text):
 
 
 def parse_doc(source):
-    source = html.escape(source)
-
     # Split into lines.
-    lines = ( l.expandtabs().rstrip() for l in source.splitlines() )
+    lines = ( l.expandtabs().rstrip() for l in source.split("\n") )
 
     # Filter and parse Javadoc tags.
     lines, javadoc = find_javadoc(lines)
@@ -122,7 +121,7 @@ def parse_doc(source):
         summary = None
     else:
         summary = " ".join( l.lstrip() for l in summary )
-        summary = parse_formatting(summary)
+        summary = parse_formatting(html.escape(summary))
 
     # Remove common indentation.
     pars = [ get_common_indent(p) for p in pars ] 
@@ -141,22 +140,26 @@ def parse_doc(source):
             if len(par) > 0:
                 _, lines = get_common_indent(par)
                 text = " ".join(lines)
-                text = parse_formatting(text)
+                text = parse_formatting(html.escape(text))
                 yield '<p>' + text + '</p>'
 
-            # FIXME
-            #
-            # if len(par) > 0 and par[-1].rstrip().endswith(":"):
-            #     text = []
-            #     for i, p in pars:
-            #         if i > indent:
-            #             text.extend(p)
-            #         else:
-            #             pars.push((i, p))
-            #             break
-            #     if len(text) > 0:
-            #         # FIXME: Use a better tag for this.
-            #         yield '<pre class="code">' + "\n".join(text) + "</pre>"
+            if len(par) > 0 and par[-1].rstrip().endswith(":"):
+                text = []
+                for i, p in pars:
+                    if i > indent:
+                        text.extend(p)
+                        # FIXME: This is wrong.  It adds a single space between
+                        # "paragraphs" of preformatted text, regardless of how
+                        # many were there originally.  To get this write, we
+                        # should split paragraphs incrementally, so we don't
+                        # have to split at all for preformatted elements.
+                        text.append("")
+                    else:
+                        pars.push((i, p))
+                        break
+                if len(text) > 0:
+                    text = html.escape("\n".join(text))
+                    yield '<pre class="code">' + text + "</pre>"
 
     body = "\n".join(generate(pars))
 
