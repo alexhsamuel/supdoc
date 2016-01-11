@@ -187,13 +187,13 @@ A Javadoc comment looks as follows:
 /**
  * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  *
- * @tag1 sed do eiusmod tempor incididunt
- * @tag2 arg ut labore et dolore magna aliqua
+ * @tag1         sed do eiusmod tempor incididunt
+ * @tag2 foobar  ut labore et dolore magna aliqua
  */
 ```
 
-Some tags, such as tag1 above, acccept a single-word argument, while others, 
-such as tag2, do not.  A tag is followed by associated text, which may start
+Some tags, such as tag2 above, accept a single-word argument, while others, 
+such as tag1, do not.  A tag is followed by associated text, which may start
 or extend onto following lines, and extends until the next tag or the end of
 the docstring.
 
@@ -201,9 +201,9 @@ The Javadoc-style tag objects look as follows:
 
 ```js
 {
-  "tag": "...",
-  "arg": "...",
-  "text": "..."
+  "tag": "tag2",
+  "arg": "foobar",
+  "text": "sed do eiusmod tempor incididunt"
 }
 ```
 
