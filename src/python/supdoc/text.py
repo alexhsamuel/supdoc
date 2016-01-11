@@ -62,15 +62,15 @@ def parse_ref(ref):
     return modname, name_path
 
 
-def _get_path(odoc):
+def _get_path(objdoc):
     """
-    Returns the lookup path for an odoc or ref.
+    Returns the lookup path for an objdoc or ref.
 
     @rtype
       `inspector.Path`.
     """
-    if is_ref(odoc):
-        modname, name_path = parse_ref(odoc)
+    if is_ref(objdoc):
+        modname, name_path = parse_ref(objdoc)
         if len(name_path) > 0:
             parts = name_path.split(".")
             assert all( n == "dict" for n in parts[:: 2] )
@@ -78,9 +78,9 @@ def _get_path(odoc):
         else:
             qualname = None
     else:
-        modname = odoc.get("modname")
+        modname = objdoc.get("modname")
         # FIXME: Should we store and use the name path, in place of qualname?
-        qualname = odoc.get("qualname")
+        qualname = objdoc.get("qualname")
     return inspector.Path(modname, qualname)
 
 
@@ -100,16 +100,16 @@ def look_up_ref(sdoc, ref):
     return docs
 
 
-def resolve_ref(sdoc, odoc):
+def resolve_ref(sdoc, objdoc):
     """
-    If `odoc` is a reference, resolves it.
+    If `objdoc` is a reference, resolves it.
     """
     try:
-        odoc["$ref"]
+        objdoc["$ref"]
     except KeyError:
-        return odoc
+        return objdoc
     else:
-        return look_up_ref(sdoc, odoc)
+        return look_up_ref(sdoc, objdoc)
 
 
 def look_up(sdoc, modname, name_path=None, refs=False):
@@ -138,25 +138,25 @@ def look_up(sdoc, modname, name_path=None, refs=False):
     """
     modules = sdoc["modules"]
     try:
-        odoc = modules[modname]
+        objdoc = modules[modname]
     except KeyError:
         raise LookupError("no such module: {}".format(modname)) from None
     if name_path is not None:
         parts = name_path.split(".")
         for i in range(len(parts)):
             try:
-                odoc = odoc["dict"][parts[i]]
+                objdoc = objdoc["dict"][parts[i]]
             except KeyError:
                 missing_name = ".".join(parts[: i + 1])
                 raise LookupError("no such name: {}".format(missing_name))
 
     # Resolve references.
-    while refs and is_ref(odoc):
+    while refs and is_ref(objdoc):
         if callable(refs):
-            refs(*parse_ref(odoc))
-        odoc = look_up_ref(sdoc, odoc)
+            refs(*parse_ref(objdoc))
+        objdoc = look_up_ref(sdoc, objdoc)
 
-    return odoc
+    return objdoc
 
 
 def unmangle(name, parent_name):
@@ -238,14 +238,14 @@ MEMBER_OF           = "\u220a"
 NOTE                = ansi.fg("dark_red")
 
 
-def is_callable(odoc):
+def is_callable(objdoc):
     """
     Returns true if the object is callable or wraps a callable.
     """
-    return odoc.get("callable") or odoc.get("func", {}).get("callable")
+    return objdoc.get("callable") or objdoc.get("func", {}).get("callable")
 
 
-def get_signature(odoc):
+def get_signature(objdoc):
     """
     Returns the signature of a callable object or the wrapped callable.
 
@@ -254,9 +254,9 @@ def get_signature(odoc):
       or extension function or method.
     """
     with suppress(KeyError):
-        return odoc["signature"]
+        return objdoc["signature"]
     with suppress(KeyError):
-        return odoc["func"]["signature"]
+        return objdoc["func"]["signature"]
 
 
 def _format_parameters(parameters):
@@ -276,29 +276,29 @@ def _format_parameters(parameters):
         yield result
 
 
-def is_function_like(odoc):
+def is_function_like(objdoc):
     """
-    Returns true if `odoc` is for a function or similar object.
+    Returns true if `objdoc` is for a function or similar object.
     """
     return (
-        odoc.get("callable") 
-        and odoc.get("type_name") not in (
+        objdoc.get("callable") 
+        and objdoc.get("type_name") not in (
             "type", 
         )
     )
 
 
-def _print_signature(sdoc, odoc, pr):
+def _print_signature(sdoc, objdoc, pr):
     """
-    If `odoc` is callable, prints its call signature in parentheses.
+    If `objdoc` is callable, prints its call signature in parentheses.
 
     Does not print default arguments, annotations, or other metadata.
     """
-    if not is_function_like(odoc):
+    if not is_function_like(objdoc):
         return
 
     pr << "("
-    signature = get_signature(odoc)
+    signature = get_signature(objdoc)
     if signature is not None:
         sig = signature_from_jso(signature, sdoc)
         pr << ", ".join(_format_parameters(sig.parameters))
@@ -322,32 +322,32 @@ def _print_name(qualname, name, pr):
 
 
 # FIXME: Break this function up.
-def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
+def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
     """
     @param lookup_path
-      The path under which this odoc was found.
+      The path under which this objdoc was found.
     """
     pr = printer  # For brevity.
 
     # FIXME
-    while is_ref(odoc):
+    while is_ref(objdoc):
         pr << NOTE("Reference!") << NL
-        odoc = look_up_ref(sdoc, odoc)
+        objdoc = look_up_ref(sdoc, objdoc)
 
-    name            = odoc.get("name")
-    qualname        = odoc.get("qualname")
-    mangled_name    = odoc.get("mangled_name")
-    module          = odoc.get("module")
+    name            = objdoc.get("name")
+    qualname        = objdoc.get("qualname")
+    mangled_name    = objdoc.get("mangled_name")
+    module          = objdoc.get("module")
     modname         = (
         parse_ref(module)[0] if module is not None
         else lookup_path.modname
     )
-    type_name       = odoc.get("type_name")
-    callable        = is_callable(odoc)
-    signature       = get_signature(odoc)
-    source          = odoc.get("source")
-    docs            = odoc.get("docs")
-    dict            = odoc.get("dict")
+    type_name       = objdoc.get("type_name")
+    callable        = is_callable(objdoc)
+    signature       = get_signature(objdoc)
+    source          = objdoc.get("source")
+    docs            = objdoc.get("docs")
+    dict            = objdoc.get("dict")
 
     def header(header):
         with pr(**STYLES["header"]):
@@ -362,7 +362,7 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
     # Show its name.
     _print_name(if_none(qualname, lookup_path.qualname), name, pr)
     # Show its callable signature, if it has one.
-    _print_signature(sdoc, odoc, pr)
+    _print_signature(sdoc, objdoc, pr)
     # Show its type.
     if type_name is not None:
         with pr(**STYLES["type_name"]):
@@ -428,9 +428,9 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
     # Summarize property.
     if type_name == "property":
         # FIXME: This is a mess.
-        getter  = odoc.get("get")
-        setter  = odoc.get("set")
-        deller  = odoc.get("del")
+        getter  = objdoc.get("get")
+        setter  = objdoc.get("set")
+        deller  = objdoc.get("del")
         parent  = None
 
         header("Property")
@@ -527,36 +527,36 @@ _PARTITIONS = {
 
 def _partition_members(dict):
     partitions = {}
-    for name, odoc in dict.items():
-        type_path = ".".join(_get_path(odoc["type"]))
+    for name, objdoc in dict.items():
+        type_path = ".".join(_get_path(objdoc["type"]))
         partition_name = _PARTITIONS.get(str(type_path), "attributes")
-        partitions.setdefault(partition_name, {})[name] = odoc
+        partitions.setdefault(partition_name, {})[name] = objdoc
     return partitions
         
 
 # FIXME: WTF is this signature anyway?
-def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
-    if is_ref(odoc):
+def _print_member(sdoc, objdoc, lookup_name, parent_name, pr, show_type=True):
+    if is_ref(objdoc):
         # Find the full name from which this was imported.
-        import_path = _get_path(odoc)
+        import_path = _get_path(objdoc)
         # Read through the ref.
         try:
-            resolved = look_up_ref(sdoc, odoc)
+            resolved = look_up_ref(sdoc, objdoc)
         except LookupError:
             pass
         else:
             if resolved is not None:
-                odoc = resolved
+                objdoc = resolved
     else:
         import_path = None
 
-    name            = odoc.get("name")
+    name            = objdoc.get("name")
     unmangled_name  = unmangle(lookup_name, parent_name)
-    type_name       = odoc.get("type_name")
-    repr            = odoc.get("repr")
-    callable        = is_callable(odoc)
-    signature       = get_signature(odoc)
-    docs            = odoc.get("docs", {})
+    type_name       = objdoc.get("type_name")
+    repr            = objdoc.get("repr")
+    callable        = is_callable(objdoc)
+    signature       = get_signature(objdoc)
+    docs            = objdoc.get("docs", {})
     summary         = docs.get("summary")
     body            = docs.get("body")
 
@@ -575,7 +575,7 @@ def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
 
     # FIXME: Distinguish normal / static / class methods from functions.
 
-    _print_signature(sdoc, odoc, pr)
+    _print_signature(sdoc, objdoc, pr)
     # FIXME: Common code with print_docs().
     if import_path is not None:
         pr << " \u27f8  "
@@ -594,7 +594,7 @@ def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
                 pr << lookup_name 
 
     # For less common types, show the repr.
-    if show_repr and not long_repr and not is_function_like(odoc):
+    if show_repr and not long_repr and not is_function_like(objdoc):
         with pr(**STYLES["repr"]):
             pr << " = " << repr
 
@@ -602,11 +602,11 @@ def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
     # For properties, show which get/set/del operations are available.
     if type_name == "property":
         tags = []
-        if odoc.get("get") is not None:
+        if objdoc.get("get") is not None:
             tags.append("get")
-        if odoc.get("set") is not None:
+        if objdoc.get("set") is not None:
             tags.append("set")
-        if odoc.get("del") is not None:
+        if objdoc.get("del") is not None:
             tags.append("del")
         right += "/".join(tags) + " "
     # Show the type.
@@ -633,9 +633,9 @@ def _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type=True):
 
 def _print_members(sdoc, dict, parent_name, pr, show_type=True):
     for lookup_name in sorted(dict):
-        odoc = dict[lookup_name]
+        objdoc = dict[lookup_name]
         pr << BULLET
-        _print_member(sdoc, odoc, lookup_name, parent_name, pr, show_type)
+        _print_member(sdoc, objdoc, lookup_name, parent_name, pr, show_type)
     pr << NL
 
 
@@ -685,7 +685,7 @@ def _main():
             print(NOTE("redirects to: " + full_name))
 
     try:
-        odoc = look_up(sdoc, path.modname, path.qualname, refs=refs)
+        objdoc = look_up(sdoc, path.modname, path.qualname, refs=refs)
     except LookupError as error:
         # FIXME
         print(error, file=sys.stderr)
@@ -694,11 +694,11 @@ def _main():
     if args.sdoc:
         pln.json.pprint(sdoc)
     elif args.json:
-        pln.json.pprint(odoc)
+        pln.json.pprint(objdoc)
     else:
         # Leave a one-space border on the right.
         width = pln.terminal.get_width() - 1 
-        print_docs(sdoc, odoc, path, Printer(indent=" ", width=width))
+        print_docs(sdoc, objdoc, path, Printer(indent=" ", width=width))
 
 
 if __name__ == "__main__":
