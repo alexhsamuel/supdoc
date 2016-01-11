@@ -214,39 +214,16 @@ def split(name):
     return Path(modname, qualname), obj
 
 
-# FIXME: Global state.  Possible resolutions:
-#  - Pass this stuff around (awkward).
-#  - Go fully global: keep a cache of inspected modules.
-#  - Encapsulate in a class.
-_ref_modules = set()
-_orphans = {}
-_include_source = False
-
-
-def _ref_from_path(path):
+def _make_ref(path):
     if path is None:
         return None
-    _ref_modules.add(path.modname)
-
-    ref = "#/modules/" + path.modname
-    if path.qualname is not None:
-        ref += "/dict/" + "/dict/".join(path.qualname.split("."))
-
-    return {
-        "$ref"  : ref,
-    }
-
-
-def _make_ref(obj, *, with_type=True):
-    """
-    @param with_type
-      If true, include a "type" field with a ref to the object's type.
-    """
-    ref = _ref_from_path(Path.of(obj))
-    if ref is not None:
-        ref["type"] = (
-            _make_ref(type(obj), with_type=False) if with_type else None)
-    return ref
+    else:
+        ref = "#/modules/" + path.modname
+        if path.qualname is not None:
+            ref += "/dict/" + "/dict/".join(path.qualname.split("."))
+        return {
+            "$ref"  : ref,
+        }
 
 
 def is_mangled(obj):
@@ -273,211 +250,314 @@ def is_mangled(obj):
         return resolved_obj is obj
 
 
-def _get_source(obj):
-    try:
-        lines, start_num = inspect.getsourcelines(obj)
-    except (OSError, TypeError, ValueError) as exc:
-        return None, None
-    else:
-        # FIXME: Not sure why this is necessary.
-        if not isinstance(obj, types.ModuleType):
-            start_num -= 1
-        return lines, [start_num, start_num + len(lines)]
+#-------------------------------------------------------------------------------
+
+class Inspector:
+
+    def __init__(self, *, source):
+        self.__source = bool(source)
+        self.__ref_modnames = set()
 
 
-def _inspect_source(obj):
-    module = inspect.getmodule(obj)
-    if module is None:
-        source_file = None
-    else:
+    @property
+    def referenced_modnames(self):
+        """
+        Names of modules that have been referenced during inspection.
+        """
+        return self.__ref_modnames
+
+
+    @classmethod
+    def _get_source(class_, obj):
+        """
+        Returns source code and line number range for `obj`.
+
+        @return
+          The source code, and a semi-inclusive [start, end) pair of line
+          numbers in the source file.
+        @raise LookupError
+          `obj` has no source, or the source cannot be obtained.
+        """
         try:
-            source_file = inspect.getsourcefile(module)
-        except TypeError:
-            # Built-in module.
-            source_file = None
-
-    try:
-        file = inspect.getfile(module)
-    except:
-        file = None
-
-    source_lines, line_numbers = _get_source(obj)
-
-    result = {
-        "source_file"   : source_file,
-        "file"          : file,
-        "lines"         : line_numbers,
-    }
-    if _include_source and source_lines is not None:
-        result["source"] = "".join(source_lines)
-    return result
+            lines, start_num = inspect.getsourcelines(obj)
+        except (OSError, TypeError, ValueError) as exc:
+            raise LookupError("no source for {!r}".format(obj))
+        else:
+            # FIXME: Not sure why this is necessary.
+            if not isinstance(obj, types.ModuleType):
+                start_num -= 1
+            return "".join(lines), [start_num, start_num + len(lines)]
 
 
-def _inspect(obj, lookup_path):
-    """
-    Main inspection function.
+    def _inspect_source(self, obj):
+        """
+        Returns information about the source of `obj`.
 
-    Inspects `obj` to determine its type, signature, documentation, and other
-    relevant details.  Captures characteristics visible to Python, not
-    specified in documentation.
-
-    If `obj` has a path and it does not match `lookup_path`, returns a ref
-    instead of inspecting.
-
-    @param obj
-      The object to inspect.
-    @param lookup_path
-      The path by which the object has been reached, by module import followed
-      by successive `getattr`.  It may not be the same as the name by which the
-      object knows itself.
-    @type lookup_path
-      `Path`.
-    @return
-      Odoc extracted from the object.
-    """
-    logging.info("_inspect({!r}, {!r})".format(obj, lookup_path))
-
-    mangled = is_mangled(obj)
-
-    path = Path.of(obj)
-    if mangled:
-        path = path.mangle()
-
-    if path is not None and (lookup_path is None or path != lookup_path):
-        # Defined elsewhere.  Produce a ref.
-        # FIXME: If obj has a private name, we should mangle it in the ref.
-        return _make_ref(obj)
-    
-    odoc = {}
-
-    if mangled:
-        odoc["mangled_name"] = path.qualname.rsplit(".")[-1]
-
-    if Path.of(type(obj)) is not None:
-        odoc["type"] = _make_ref(type(obj))
-    odoc["type_name"] = type(obj).__name__
-    try:
-        obj_repr = repr(obj)
-    except Exception:
-        log.warning("failed to get repr: {}".format(traceback.format_exc()))
-    else:
-        odoc["repr"] = obj_repr[: MAX_REPR_LENGTH]
-
-    try:
-        name = obj.__name__
-    except AttributeError:
-        pass
-    else:
-        odoc["name"] = name
-
-    try:
-        qualname = obj.__qualname__
-    except AttributeError:
-        pass
-    else:
-        odoc["qualname"] = qualname
-
-    modname = getattr(obj, "__module__", None)
-    if modname is not None:
-        # Convert the module name into a ref.
-        odoc["module"] = _ref_from_path(Path(modname, None))
-
-    # Get documentation, if it belongs to this object itself (not to the
-    # object's type).
-    doc = getattr(obj, "__doc__", None)
-    if (doc is not None 
-        and (isinstance(obj, type) 
-             or doc != getattr(type(obj), "__doc__", None))):
-        odoc["docs"] = {"doc": doc}
-
-    try:
-        dict = obj.__dict__
-    except AttributeError:
-        pass
-    else:
-        dict_jso = {}
-        # FIXME: Don't need to sort, but do this for debuggability.
-        names = sorted( n for n in dict if n not in INTERNAL_NAMES )
-        for attr_name in names:
-            attr_value = dict[attr_name]
-            if lookup_path is None:
-                attr_path = None
-            else:
-                attr_path = Path(
-                    lookup_path.modname, 
-                    attr_name if lookup_path.qualname is None 
-                        else lookup_path.qualname + '.' + attr_name)
-            dict_jso[attr_name] = _inspect(attr_value, attr_path)
-        odoc["dict"] = dict_jso
-
-    if isinstance(obj, (type, types.ModuleType, types.FunctionType)):
-        odoc["source"] = _inspect_source(obj)
-
-    try:
-        bases = obj.__bases__
-    except AttributeError:
-        pass
-    else:
-        odoc["bases"] = [ _inspect(b, None) for b in bases ]
-
-    try:
-        mro = obj.__mro__
-    except AttributeError:
-        pass
-    else:
-        odoc["mro"] = [ _inspect(c, None) for c in mro ]
-
-    # If this is callable, get its signature; however, skip types, as we 
-    # get their __init__ signature.
-    odoc["callable"] = callable(obj)
-    if callable(obj) and not isinstance(obj, type):
+        @return
+          A `dict` with source information.
+        """
+        result = {}
+        
+        module = inspect.getmodule(obj)
+        if module is not None:
+            with suppress(TypeError):
+                result["source_file"] = inspect.getsourcefile(module)
+            with suppress(TypeError):
+                result["file"] = inspect.getfile(module)
         try:
-            sig = inspect.signature(obj)
-        except ValueError:
-            # Doesn't work for extension functions.
+            source, result["lines"] = self._get_source(obj)
+        except LookupError:
             pass
         else:
-            odoc["signature"] = {
-                "params": [
-                    _inspect_parameter(p) for p in sig.parameters.values() ]
-            }
+            if self.__source:
+                result["source"] = source
 
-    # If this is a classmethod or staticmethod wrapper, inspect the underlying
-    # function.
-    try:
-        func = obj.__func__
-    except AttributeError:
-        pass
-    else:
-        odoc["func"] = _inspect(func, lookup_path)
-
-    # If this is a property, inspect the underlying accessors.
-    if isinstance(obj, property):
-        odoc["get"] = None if obj.fget is None else _inspect(obj.fget, lookup_path)
-        odoc["set"] = None if obj.fset is None else _inspect(obj.fset, lookup_path)
-        odoc["del"] = None if obj.fdel is None else _inspect(obj.fdel, lookup_path)
-
-    return odoc
+        return result
 
 
-def _inspect_parameter(param):
-    jso = {
-        "name"      : param.name,
-        "kind"      : str(param.kind),
-    }
+    def _inspect_ref(self, obj, *, with_type=True):
+        """
+        Returns a ref to `obj`.
+
+        @param with_type
+          If true, include a "type" field with a ref to `type(obj)`.
+        @return
+          A dict with a "$ref" key.
+        """
+        path = Path.of(obj)
+        self.__ref_modnames.add(path.modname)
+        ref = _make_ref(path)
+        if with_type:
+            # Add information about its type.
+            ref["type"] = _make_ref(Path.of(type(obj)))
+        return ref
+
+
+    def _inspect(self, obj, lookup_path=None):
+        """
+        Inspects `obj` and produces an objdoc or ref.
+
+        Inspects `obj` to determine its type, signature, documentation, and
+        other relevant details.  Captures characteristics visible to Python, not
+        specified in documentation.
+
+        `lookup_path` is the path by which `obj` was located.  If `obj` carries
+        a path and it does not match `lookup_path`, returns a ref instead of
+        inspecting, since this object (a module, class, or function) is not the
+        location at which it was defined.
+
+        @param obj
+          The object to inspect.
+        @param lookup_path
+          The path by which the object has been reached, by module import followed
+          by successive `getattr`.  It may not be the same as the name by which the
+          object knows itself.
+        @type lookup_path
+          `Path`.
+        @return
+          The objdoc extracted from `obj`, or a ref to it.
+        """
+        if isinstance(obj, types.ModuleType):
+            logging.info("inspecting module {}".format(obj.__name__))
+        logging.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
+
+        path = Path.of(obj)
+
+        if path is not None and lookup_path is not None and path != lookup_path:
+            # Defined elsewhere.  Produce a ref.
+            return self._inspect_ref(obj)
+
+        objdoc = {}
+
+        if Path.of(type(obj)) is not None:
+            objdoc["type"] = _make_ref(Path.of(type(obj)))
+        objdoc["type_name"] = type(obj).__name__
+        try:
+            obj_repr = repr(obj)
+        except Exception:
+            log.warning("failed to get repr: {}".format(traceback.format_exc()))
+        else:
+            objdoc["repr"] = obj_repr[: MAX_REPR_LENGTH]
+
+        try:
+            name = obj.__name__
+        except AttributeError:
+            pass
+        else:
+            objdoc["name"] = name
+
+        try:
+            qualname = obj.__qualname__
+        except AttributeError:
+            pass
+        else:
+            objdoc["qualname"] = qualname
+
+        modname = getattr(obj, "__module__", None)
+        if modname is not None:
+            # Convert the module name into a ref.
+            objdoc["module"] = _make_ref(Path(modname, None))
+
+        # Get documentation, if it belongs to this object itself (not to the
+        # object's type).
+        doc = getattr(obj, "__doc__", None)
+        if (doc is not None 
+            and (isinstance(obj, type) 
+                 or doc != getattr(type(obj), "__doc__", None))):
+            objdoc["docs"] = {"doc": doc}
+
+        try:
+            dict = obj.__dict__
+        except AttributeError:
+            pass
+        else:
+            dict_jso = {}
+            # FIXME: Don't need to sort, but do this for debuggability.
+            names = sorted( n for n in dict if n not in INTERNAL_NAMES )
+            for attr_name in names:
+                attr_value = dict[attr_name]
+                if lookup_path is None:
+                    attr_path = None
+                else:
+                    attr_path = Path(
+                        lookup_path.modname, 
+                        attr_name if lookup_path.qualname is None 
+                            else lookup_path.qualname + '.' + attr_name)
+                dict_jso[attr_name] = self._inspect(attr_value, attr_path)
+            objdoc["dict"] = dict_jso
+
+        if isinstance(obj, (type, types.ModuleType, types.FunctionType)):
+            objdoc["source"] = self._inspect_source(obj)
+
+        try:
+            bases = obj.__bases__
+        except AttributeError:
+            pass
+        else:
+            objdoc["bases"] = [ self._inspect(b, None) for b in bases ]
+
+        try:
+            mro = obj.__mro__
+        except AttributeError:
+            pass
+        else:
+            objdoc["mro"] = [
+                self._inspect(c, None) for c in mro if c is not obj
+            ]
+
+        # If this is callable, get its signature; however, skip types, as we 
+        # get their __init__ signature.
+        objdoc["callable"] = callable(obj)
+        if callable(obj) and not isinstance(obj, type):
+            try:
+                sig = inspect.signature(obj)
+            except ValueError:
+                # Doesn't work for extension functions.
+                pass
+            else:
+                objdoc["signature"] = {
+                    "params": [
+                        self._inspect_parameter(p)
+                        for p in sig.parameters.values()
+                    ]
+                }
+
+        # If this is a classmethod or staticmethod wrapper, inspect the
+        # underlying function.
+        try:
+            func = obj.__func__
+        except AttributeError:
+            pass
+        else:
+            objdoc["func"] = self._inspect(func, lookup_path)
+
+        # If this is a property, inspect the underlying accessors.
+        if isinstance(obj, property):
+            def insp(obj):
+                return None if obj is None else self._inspect(obj, lookup_path)
+
+            objdoc["get"] = insp(obj.fget)
+            objdoc["set"] = insp(obj.fset)
+            objdoc["del"] = insp(obj.fdel)
+
+        return objdoc
+
+
+    def _inspect_parameter(self, param):
+        jso = {
+            "name"      : param.name,
+            "kind"      : str(param.kind),
+        }
+
+        annotation = param.annotation
+        if annotation is not param.empty:
+            jso["annotation"] = self._inspect(annotation)
+
+        default = param.default 
+        if default is not param.empty:
+            jso["default"] = self._inspect(default)
+
+        return jso
+
+
+    def inspect_module(self, modname):
+        """
+        Imports (if necessary) and inspects a module.
+
+        @return
+          Objdoc for the module.
+        """
+        try:
+            obj = import_(modname)
+        except ImportError:
+            logging.debug("skipping unimportable module {}".format(modname))
+            return None
+
+        return self._inspect(obj, Path(modname, None))
+        
+
+
+def inspect_modules(*modnames, referenced=0, source=False):
+    """
+    Imports and inspects modules.
+
+    @param referenced
+      Whether to inspect referenced modules.  If `False`, does not inspect
+      referenced modules.  If 1, inspects only modules referenced directly by
+      modules in `modnames`.  If `True`, inspects all directly and indirectly
+      referenced modules.
+    @param source
+      If true, include source in odocs.
+    """
+    # Set up an inspector for our modules.
+    inspector = Inspector(source=source)
+    def inspect(modnames):
+        return { m: inspector.inspect_module(m) for m in modnames }
     
-    annotation = param.annotation
-    if annotation is not param.empty:
-        jso["annotation"] = _inspect(annotation, None)
+    # Mapping from modname to module odoc.
+    objdocs = {}
 
-    default = param.default 
-    if default is not param.empty:
-        jso["default"] = _inspect(default, None)
+    # Inspect modules.
+    objdocs.update(inspect(modnames))
 
-    return jso
+    if referenced:
+        # Inspect referenced modules.
+        remaining = inspector.referenced_modnames - set(odoc)
+        while len(remaining) > 0:
+            objdocs.update(inspect(remaining))
+            if referenced == 1:
+                break
+
+    # Parse and process docstrings.
+    from . import docs
+    docs.enrich_modules(objdocs)
+
+    return {"modules": objdocs}
 
 
 #-------------------------------------------------------------------------------
+
+# FIXME: Elsewhere.
 
 _STDLIB_PATH = os.path.normpath(sysconfig.get_path("stdlib"))
 
@@ -503,49 +583,7 @@ def is_builtin(module_obj):
         return path.startswith(_STDLIB_PATH)
 
 
-def inspect_module(modname, *, builtins=False):
-    try:
-        obj = import_(modname)
-    except ImportError:
-        logging.debug("skipping unimportable module {}".format(modname))
-        return None
-
-    if builtins or not is_builtin(obj):
-        logging.debug("inspecting module {}".format(modname))
-        return _inspect(obj, Path(modname, None))
-    else:
-        logging.debug("skipping builtin module {}".format(modname))
-        return None
-
-
-def inspect_modules(modnames, *, refs=True, builtins=False, 
-                    include_source=False):
-    """
-    @param refs
-      If true, also inspect any directly or indirectly referenced modules.
-    """
-    # FIXME: Global state.
-    _ref_modules.clear()
-    module_docs = {}
-    global _include_source
-    _include_source = bool(include_source)
-
-    # Inspect all the requested modules.
-    for modname in modnames:
-        docs = inspect_module(modname, builtins=True)
-        # FIXME
-        if docs is not None:
-            module_docs[modname] = docs
-    # Inspect referenced modules.
-    while refs and len(_ref_modules - set(module_docs)) > 0:
-        for modname in _ref_modules - set(module_docs):
-            module_docs[modname] = inspect_module(modname, builtins=builtins)
-
-    from . import docs
-    docs.enrich_modules(module_docs)
-        
-    return {"modules": module_docs}
-
+#-------------------------------------------------------------------------------
 
 def main():
     from argparse import ArgumentParser
@@ -566,10 +604,10 @@ def main():
         "--no-references", dest="refs", default=True, action="store_false",
         help="don't inspect referenced modules")
     parser.add_argument(
-        "--source", dest="include_source", default=False, action="store_true",
+        "--source", dest="source", default=False, action="store_true",
         help="include source")
     parser.add_argument(
-        "--no-source", dest="include_source",  action="store_false",
+        "--no-source", dest="source",  action="store_false",
         help="don't include source")
     parser.add_argument(
         "modules", nargs="*", metavar="MODULE",
@@ -586,7 +624,7 @@ def main():
 
     docs = inspect_modules(
         args.modules, builtins=args.builtins, refs=args.refs, 
-        include_source=args.include_source)
+        source=args.source)
     json.dump(docs, sys.stdout, indent=1, sort_keys=True)
 
     # FIXME: Track all the ids we've inspected, and if an orphan object

@@ -317,13 +317,6 @@ def _print_name(qualname, name, pr):
         pr << ansi.bold(name)
 
 
-def _print_module(modname, pr):
-    if modname is not None:
-        pr << "in module "
-        with pr(**STYLES["modname"]):
-            pr << modname << NL
-
-
 # FIXME: Break this function up.
 def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
     """
@@ -341,6 +334,10 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
     qualname        = odoc.get("qualname")
     mangled_name    = odoc.get("mangled_name")
     module          = odoc.get("module")
+    modname         = (
+        parse_ref(module)[0] if module is not None
+        else lookup_path.modname
+    )
     type_name       = odoc.get("type_name")
     callable        = is_callable(odoc)
     signature       = get_signature(odoc)
@@ -370,10 +367,12 @@ def print_docs(sdoc, odoc, lookup_path=None, printer=Printer()):
     pr << NL
     rule()
 
-    # Show the name.
-    _print_module(
-        parse_ref(module)[0] if module is not None else lookup_path.modname,
-        pr)
+    # Show the module name.
+    if type_name != "module" and modname is not None:
+        pr << "in module "
+        with pr(**STYLES["modname"]):
+            pr << modname << NL
+
     pr << NL
 
     # Show the mangled name.
@@ -652,10 +651,10 @@ def _main():
         "--path", metavar="FILE", default=None,
         help="read JSON docs from FILE")
     parser.add_argument(
-        "--source", dest="include_source", default=False, action="store_true",
+        "--source", dest="source", default=False, action="store_true",
         help="include source")
     parser.add_argument(
-        "--no-source", dest="include_source",  action="store_false",
+        "--no-source", dest="source",  action="store_false",
         help="don't include source")
     args = parser.parse_args()
 
@@ -667,8 +666,7 @@ def _main():
         raise SystemExit(1)
 
     if args.path is None:
-        sdoc = inspector.inspect_modules(
-            [path.modname], include_source=args.include_source)
+        sdoc = inspector.inspect_modules(path.modname, source=args.source)
     else:
         # Read the docs file.
         with open(args.path) as file:
