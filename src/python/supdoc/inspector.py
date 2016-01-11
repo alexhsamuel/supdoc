@@ -535,7 +535,7 @@ def inspect_modules(*modnames, referenced=0, source=False):
       modules in `modnames`.  If `True`, inspects all directly and indirectly
       referenced modules.
     @param source
-      If true, include source in odocs.
+      If true, include source in objdocs.
     """
     # Mapping from modname to module objdoc.
     objdocs = {}
