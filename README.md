@@ -51,21 +51,21 @@ this:
 ```
 
 A key of `modules` is a fully-qualified Python module name.  The corresponding
-value is an odoc describing the Python module.
+value is an objdoc describing the Python module.
 
-An **odoc** is a JSON object ecoding summary and documentation for a Python
-object.  An odoc may document any type of Python object, such as a module,
-class, function, method, or scalar value.  An odoc may be recursive, i.e. 
-contain other odoc instances, to express composition of Python objects.
+An **objdoc** is a JSON object ecoding summary and documentation for a Python
+object.  An objdoc may document any type of Python object, such as a module,
+class, function, method, or scalar value.  An objdoc may be recursive, i.e. 
+contain other objdoc instances, to express composition of Python objects.
 
-With an sdoc, an odoc can be located given two pieces of information: its
+With an sdoc, an objdoc can be located given two pieces of information: its
 fully-qualified module name and its name path within the module.  The latter is
 the dotted series of names by which the object is found by successive calls to
 `getattr()`, starting with the module itself.  If the name path is omitted, this
 indicates the module object itself.  The name path is generally, but not always,
 the same as the object's qualname.
 
-A **ref** is a JSON object that refers to another odoc.  The syntax follows the
+A **ref** is a JSON object that refers to another objdoc.  The syntax follows the
 [JSON Reference draft
 standard](https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03).  It is
 looks as follows
@@ -80,13 +80,13 @@ The reference is always relative to the top of the sdoc.  The reference path is
 is `"modules"`, followed by the fully qualified module name, followed by
 components of the path within the module.
 
-A ref can be used anywhere in place of an odoc.
+A ref can be used anywhere in place of an objdoc.
 
 
-## odoc fields
+## objdoc fields
 
-Field names of an odoc and their semantics are given below.  _All_ fields in an
-odoc are optional; an implementation should be able to handle an instance with
+Field names of an objdoc and their semantics are given below.  _All_ fields in an
+objdoc are optional; an implementation should be able to handle an instance with
 any or all omitted.
 
 - `name`: The unqualified name of the object, generally the value of its
@@ -98,7 +98,7 @@ any or all omitted.
 - `type_name`: The name of the object's type, generally the `__name__` attribute
   of its type.
 
-- `type`: The object's type, an odoc or (most likely) ref.
+- `type`: The object's type, an objdoc or (most likely) ref.
 
 - `repr`: A string containing the object's `repr`.
 
@@ -141,7 +141,7 @@ The callable's parameters are given in declaration order.  Each includes the
   `inspect.Parameter`: `"KEYWORD_ONLY"`, `"POSITIONAL_ONLY"`,
   `"POSITIONAL_OR_KEYWORD"`, `"VAR_KEYWORD"`, OR `"VAR_POSITIONAL"`.
 
-- `default`: A odoc for the default value.
+- `default`: A objdoc for the default value.
 
 - `doc`: A string containing parameter documentation extracted from the
 callable's docstring.
@@ -149,12 +149,12 @@ callable's docstring.
 - `doc_type`: A string containing documentation about the parameter's type,
   extracted from the callable's docstring.
 
-- `annotation`: An odoc for the parameter annotation.
+- `annotation`: An objdoc for the parameter annotation.
 
 
 ## Docs
 
-An odoc's `docs` field containins a JSON object with information extracted from
+An objdoc's `docs` field containins a JSON object with information extracted from
 the object's docstring.  It looks like this:
 
 ```js
