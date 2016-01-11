@@ -90,11 +90,13 @@ def look_up_ref(sdoc, ref):
     """
     parts = ref["$ref"].split("/")
     assert parts[0] == "#", "ref must be absolute in current doc"
-    docs = sdoc
+    jso = sdoc
     for part in parts[1 :]:
-        if docs is None:
-            raise LookupError("can't look up {} in {}".format(part, "/".join(parts)))
-        docs = docs[part]
+        try:
+            jso = jso[part]
+        except KeyError:
+            raise LookupError("no {} in {}".format(part, "/".join(parts))) \
+                from None
     return docs
 
 
@@ -131,6 +133,8 @@ def look_up(sdoc, modname, name_path=None, refs=False):
     @param refs
       If true, resolve refs.  If the value is callable, call it whenever
       resolving a ref.
+    @raise LookupError
+      Failed to look up the module or the object in the module.
     """
     modules = sdoc["modules"]
     try:
@@ -666,7 +670,8 @@ def _main():
         raise SystemExit(1)
 
     if args.path is None:
-        sdoc = inspector.inspect_modules(path.modname, source=args.source)
+        sdoc = inspector.inspect_modules(
+            path.modname, referenced=0, source=args.source)
     else:
         # Read the docs file.
         with open(args.path) as file:

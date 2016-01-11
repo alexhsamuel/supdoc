@@ -4,14 +4,17 @@ from   contextlib import suppress
 import importlib
 import inspect
 import json
-import logging
 import os
 import sys
 import sysconfig
 import traceback
 import types
 
+import pln.log
+
 #-------------------------------------------------------------------------------
+
+LOG = pln.log.get()
 
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
@@ -349,23 +352,22 @@ class Inspector:
         @param obj
           The object to inspect.
         @param lookup_path
-          The path by which the object has been reached, by module import followed
-          by successive `getattr`.  It may not be the same as the name by which the
-          object knows itself.
+          The path by which the object has been reached, by module import
+          followed by successive `getattr`.  It may not be the same as the name
+          by which the object knows itself.
         @type lookup_path
           `Path`.
         @return
           The objdoc extracted from `obj`, or a ref to it.
         """
-        if isinstance(obj, types.ModuleType):
-            logging.info("inspecting module {}".format(obj.__name__))
-        logging.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
-
         path = Path.of(obj)
-
         if path is not None and lookup_path is not None and path != lookup_path:
             # Defined elsewhere.  Produce a ref.
             return self._inspect_ref(obj)
+
+        if isinstance(obj, types.ModuleType):
+            LOG.info("inspecting module {}".format(obj.__name__))
+        LOG.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
 
         objdoc = {}
 
@@ -375,7 +377,7 @@ class Inspector:
         try:
             obj_repr = repr(obj)
         except Exception:
-            log.warning("failed to get repr: {}".format(traceback.format_exc()))
+            LOG.warning("failed to get repr: {}".format(traceback.format_exc()))
         else:
             objdoc["repr"] = obj_repr[: MAX_REPR_LENGTH]
 
@@ -510,7 +512,7 @@ class Inspector:
         try:
             obj = import_(modname)
         except ImportError:
-            logging.debug("skipping unimportable module {}".format(modname))
+            LOG.debug("skipping unimportable module {}".format(modname))
             return None
 
         return self._inspect(obj, Path(modname, None))
@@ -529,22 +531,25 @@ def inspect_modules(*modnames, referenced=0, source=False):
     @param source
       If true, include source in odocs.
     """
-    # Set up an inspector for our modules.
-    inspector = Inspector(source=source)
-    def inspect(modnames):
-        return { m: inspector.inspect_module(m) for m in modnames }
-    
-    # Mapping from modname to module odoc.
+    # Mapping from modname to module objdoc.
     objdocs = {}
 
+    # Set up an inspector for our modules.
+    inspector = Inspector(source=source)
+    def inspect(modname):
+        if modname not in objdocs:
+            objdocs[modname] = inspector.inspect_module(modname)
+    
     # Inspect modules.
-    objdocs.update(inspect(modnames))
+    for modname in modnames:
+        inspect(modname)
 
     if referenced:
         # Inspect referenced modules.
-        remaining = inspector.referenced_modnames - set(odoc)
+        remaining = inspector.referenced_modnames - set(objdocs)
         while len(remaining) > 0:
-            objdocs.update(inspect(remaining))
+            for modname in remaining:
+                inspect(modname)
             if referenced == 1:
                 break
 
@@ -576,7 +581,7 @@ def is_builtin(module_obj):
     try:
         path = module_obj.__file__
     except AttributeError:
-        logging.warning("no __file__ for {!r}".format(module_obj))
+        LOG.warning("no __file__ for {!r}".format(module_obj))
         return False
     else:
         path = os.path.normpath(module_obj.__file__)
@@ -615,12 +620,14 @@ def main():
     args = parser.parse_args()
 
     if args.log_level is not None:
+        # FIXME: Put in pln.logging.
+        import logging
         try:
             level = getattr(logging, args.log_level.upper())
         except AttributeError:
             parser.error("invalid log level: {}".format(args.log_level))
         else:
-            logging.getLogger().setLevel(level)
+            LOG.setLevel(level)
 
     docs = inspect_modules(
         args.modules, builtins=args.builtins, refs=args.refs, 
@@ -633,4 +640,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
