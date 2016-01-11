@@ -276,8 +276,8 @@ class Inspector:
         Returns source code and line number range for `obj`.
 
         @return
-          The source code, and a semi-inclusive [start, end) pair of line
-          numbers in the source file.
+          The source code, and a [start, end) pair of line numbers in the source
+          file.
         @raise LookupError
           `obj` has no source, or the source cannot be obtained.
         """
@@ -297,7 +297,7 @@ class Inspector:
         Returns information about the source of `obj`.
 
         @return
-          A `dict` with source information.
+          A JSO object with source information.
         """
         result = {}
         
@@ -325,7 +325,7 @@ class Inspector:
         @param with_type
           If true, include a "type" field with a ref to `type(obj)`.
         @return
-          A dict with a "$ref" key.
+          A JSO object with a "$ref" key.
         """
         path = Path.of(obj)
         self.__ref_modnames.add(path.modname)
@@ -486,6 +486,12 @@ class Inspector:
 
 
     def _inspect_parameter(self, param):
+        """
+        Inspects a single parameter in a callable signature.
+
+        @return
+          A JSO object with information about `param`.
+        """
         jso = {
             "name"      : param.name,
             "kind"      : str(param.kind),
