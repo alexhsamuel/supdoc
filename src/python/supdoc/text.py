@@ -17,8 +17,6 @@ from   .objdoc import *
 
 #-------------------------------------------------------------------------------
 
-# FIXME: Look up refs consistently.
-
 # FIXME: A color for each of:
 # - modules
 # - types
@@ -114,6 +112,8 @@ def unmangle(name, parent_name):
 
 #-------------------------------------------------------------------------------
 
+# FIXME: Look up refs consistently.
+
 class ReprObj:
 
     def __init__(self, repr):
@@ -170,27 +170,6 @@ MEMBER_OF           = "\u220a"
 NOTE                = ansi.fg("dark_red")
 
 
-def is_callable(objdoc):
-    """
-    Returns true if the object is callable or wraps a callable.
-    """
-    return objdoc.get("callable") or objdoc.get("func", {}).get("callable")
-
-
-def get_signature(objdoc):
-    """
-    Returns the signature of a callable object or the wrapped callable.
-
-    @return
-      The signature, or `None` if none is available, for example for a built-in
-      or extension function or method.
-    """
-    with suppress(KeyError):
-        return objdoc["signature"]
-    with suppress(KeyError):
-        return objdoc["func"]["signature"]
-
-
 def _format_parameters(parameters):
     star = False
     for param in parameters.values():
@@ -206,18 +185,6 @@ def _format_parameters(parameters):
             star = True
         result = prefix + ansi.style(**STYLES["identifier"])(param.name)
         yield result
-
-
-def is_function_like(objdoc):
-    """
-    Returns true if `objdoc` is for a function or similar object.
-    """
-    return (
-        objdoc.get("callable") 
-        and objdoc.get("type_name") not in (
-            "type", 
-        )
-    )
 
 
 def _print_signature(sdoc, objdoc, pr):

@@ -4,6 +4,8 @@ Functions for working with objdoc and ref objects.
 
 #-------------------------------------------------------------------------------
 
+from   contextlib import suppress
+
 from   .inspector import Path
 
 #-------------------------------------------------------------------------------
@@ -81,5 +83,38 @@ def resolve_ref(sdoc, objdoc):
         return objdoc
     else:
         return look_up_ref(sdoc, objdoc)
+
+
+def is_callable(objdoc):
+    """
+    Returns true if the object is callable or wraps a callable.
+    """
+    return objdoc.get("callable") or objdoc.get("func", {}).get("callable")
+
+
+def is_function_like(objdoc):
+    """
+    Returns true if `objdoc` is for a function or similar object.
+    """
+    return (
+        objdoc.get("callable") 
+        and objdoc.get("type_name") not in (
+            "type", 
+        )
+    )
+
+
+def get_signature(objdoc):
+    """
+    Returns the signature of a callable object or the wrapped callable.
+
+    @return
+      The signature, or `None` if none is available, for example for a built-in
+      or extension function or method.
+    """
+    with suppress(KeyError):
+        return objdoc["signature"]
+    with suppress(KeyError):
+        return objdoc["func"]["signature"]
 
 
