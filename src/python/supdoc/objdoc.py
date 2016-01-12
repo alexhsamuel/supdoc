@@ -5,6 +5,8 @@ Functions for working with objdoc and ref objects.
 #-------------------------------------------------------------------------------
 
 from   contextlib import suppress
+from   inspect import Signature, Parameter
+
 
 from   .inspector import Path
 
@@ -116,5 +118,61 @@ def get_signature(objdoc):
         return objdoc["signature"]
     with suppress(KeyError):
         return objdoc["func"]["signature"]
+
+
+# FIXME: Hack.
+class ReprObj:
+
+    def __init__(self, repr):
+        self.__repr = repr
+
+
+    def __repr__(self):
+        return self.__repr
+
+
+
+def parameter_from_jso(jso, sdoc):
+    """
+    Reconstitutes a parameter from an objdoc parameter JSO.
+
+    @rtype
+      `Parameter`.
+    """
+    name = jso["name"]
+    kind = getattr(Parameter, jso["kind"])
+    try:
+        default = jso["default"]
+    except KeyError:
+        default = Parameter.empty
+    else:
+        if is_ref(default):
+            # FIXME
+            try:
+                default = look_up_ref(sdoc, default)
+            except:
+                pass
+        # FIXME
+        default = ReprObj(default.get("repr", "???"))
+    try:
+        annotation = jso["annotation"]
+    except KeyError:
+        annotation = Parameter.empty
+    else:
+        # FIXME
+        annotation = annotation["repr"]
+    return Parameter(name, kind, default=default, annotation=annotation)
+
+
+def signature_from_jso(jso, sdoc):
+    """
+    Reconstitutes a signature from an object signature JSO.
+
+    @rtype
+      `Signature`
+    """
+    # FIXME: Add the return annotation.
+    parameters = [ parameter_from_jso(o, sdoc) for o in jso.get("params", []) ]
+    return Signature(parameters)
 
 
