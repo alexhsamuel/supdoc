@@ -16,7 +16,7 @@ from   . import support
 
 #-------------------------------------------------------------------------------
 
-def foo(x, y="0"):
+def foo(x, y=0):
     x = int(x)
     y = int(y)
     logging.debug("invoking foo({}, {})".format(x, y))
