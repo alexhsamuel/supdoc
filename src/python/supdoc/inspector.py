@@ -9,6 +9,7 @@ import sys
 import sysconfig
 import traceback
 import types
+from   weakref import WeakKeyDictionary
 
 import pln.log
 
@@ -17,7 +18,7 @@ from   .objdoc import *
 #-------------------------------------------------------------------------------
 
 LOG = pln.log.get()
-LOG.setLevel(10)
+# LOG.setLevel(20)
 
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
@@ -192,6 +193,8 @@ class Inspector:
     def __init__(self, *, source):
         self.__source = bool(source)
         self.__ref_modnames = set()
+        # Cache from object to its objdoc.
+        self.__cache = WeakKeyDictionary()
 
 
     @property
@@ -297,9 +300,12 @@ class Inspector:
             # Defined elsewhere.  Produce a ref.
             return self._inspect_ref(obj)
 
+        # Use the cached objdoc, if available.
+        with suppress(KeyError, TypeError):
+            return self.__cache[obj]
+
         if isinstance(obj, types.ModuleType):
             LOG.info("inspecting module {}".format(obj.__name__))
-            assert obj.__name__ != "collections", (obj, lookup_path)
         LOG.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
 
         objdoc = {}
@@ -415,6 +421,11 @@ class Inspector:
             objdoc["set"] = insp(obj.fset)
             objdoc["del"] = insp(obj.fdel)
 
+        # Put this item in the cache.  Some objects are unhashable, though, so
+        # they can't be cached.  Oh well.
+        # FIXME: Is there a way around this?
+        with suppress(TypeError):
+            self.__cache[obj] = objdoc
         return objdoc
 
 
@@ -466,18 +477,13 @@ class Docs:
     def __init__(self, *, source=False):
         self.__source = bool(source)
         self.__inspector = Inspector(source=source)
-        self.__module_objdocs = {}
         
 
     def inspect_module(self, modname):
-        try:
-            objdoc = self.__module_objdocs[modname]
-        except KeyError:
-            objdoc = self.__inspector.inspect_module(modname)
-            self.__module_objdocs[modname] = objdoc
-        return objdoc
+        return self.__inspector.inspect_module(modname)
 
 
+    # FIXME: Do we need this?
     def inspect_modules(self, *modnames, referenced=0):
         """
         Imports and inspects modules.
@@ -541,7 +547,7 @@ class Docs:
         return self.get(parse_ref(ref))
 
 
-    def resolve(self, objdoc, recursive=True):
+    def resolve(self, objdoc, *, recursive=True):
         """
         Resolves `objdoc` if it is a ref, otherwise returns it.
 
