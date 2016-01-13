@@ -13,12 +13,13 @@ from   weakref import WeakKeyDictionary
 
 import pln.log
 
+from   .docs import parse_doc, attach_epydoc_to_signature
 from   .objdoc import *
 
 #-------------------------------------------------------------------------------
 
 LOG = pln.log.get()
-# LOG.setLevel(20)
+LOG.setLevel(10)
 
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
@@ -216,6 +217,8 @@ class Inspector:
         @raise LookupError
           `obj` has no source, or the source cannot be obtained.
         """
+        # FIXME: getsourcelines() is expensive.  Is it necessary?  Perhaps we
+        # don't have to call it on each object in a module?
         try:
             lines, start_num = inspect.getsourcelines(obj)
         except (OSError, TypeError, ValueError) as exc:
@@ -339,14 +342,6 @@ class Inspector:
             # Convert the module name into a ref.
             objdoc["module"] = make_ref(Path(modname, None))
 
-        # Get documentation, if it belongs to this object itself (not to the
-        # object's type).
-        doc = getattr(obj, "__doc__", None)
-        if (doc is not None 
-            and (isinstance(obj, type) 
-                 or doc != getattr(type(obj), "__doc__", None))):
-            objdoc["docs"] = {"doc": doc}
-
         try:
             dict = obj.__dict__
         except AttributeError:
@@ -420,6 +415,20 @@ class Inspector:
             objdoc["get"] = insp(obj.fget)
             objdoc["set"] = insp(obj.fset)
             objdoc["del"] = insp(obj.fdel)
+
+        # Get documentation, if it belongs to this object itself (not to the
+        # object's type).
+        doc = getattr(obj, "__doc__", None)
+        if (doc is not None 
+            and (isinstance(obj, type) 
+                 or doc != getattr(type(obj), "__doc__", None))):
+            objdoc["docs"] = obj_docs = {"doc": doc}
+
+            # Parse and process docs.
+            # FIXME: Wrap these two in a function?
+            obj_docs.update(parse_doc(doc))
+            attach_epydoc_to_signature(objdoc)
+
 
         # Put this item in the cache.  Some objects are unhashable, though, so
         # they can't be cached.  Oh well.

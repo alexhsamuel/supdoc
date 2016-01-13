@@ -22,8 +22,14 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
     @ivar modname
       The full module name.
     @ivar qualname
-      The qualname.
+      The qualname, or `None` for the module itself.
     """
+
+    def __new__(class_, modname, qualname):
+        if qualname == "":
+            raise ValueError("qualname may not be empty")
+        return super().__new__(class_, modname, qualname)
+
 
     @classmethod
     def of(class_, obj):
@@ -105,7 +111,7 @@ def parse_ref(ref):
     assert part0 == "#",        "ref must be absolute in current doc"
     assert part1 == "modules",  "ref must start with module"
     assert all( n == "dict" for n in parts[:: 2] )
-    qualname = ".".join(parts[1 :: 2])
+    qualname = None if len(parts) == 0 else ".".join(parts[1 :: 2])
     return Path(modname, qualname)
 
 
