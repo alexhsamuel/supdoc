@@ -19,7 +19,7 @@ from   .objdoc import *
 #-------------------------------------------------------------------------------
 
 LOG = pln.log.get()
-LOG.setLevel(10)
+# LOG.setLevel(10)
 
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
@@ -73,6 +73,35 @@ DOCSTRING_TYPES = (
 
 #-------------------------------------------------------------------------------
 
+# FIXME: Elsewhere.
+
+_STDLIB_PATH = os.path.normpath(sysconfig.get_path("stdlib"))
+
+_BUILTIN_IMPORTER = builtins.__spec__.loader
+
+def is_standard_library(module):
+    """
+    Returns true if `module` is from the Python standard library.
+
+    Standard library modules are either built-in or are imported from the
+    standard library location.
+
+    @type module
+      `types.ModuleType`.
+    """
+    if module.__spec__.loader is _BUILTIN_IMPORTER:
+        return True
+
+    try:
+        path = module_obj.__file__
+    except AttributeError:
+        LOG.warning("no __file__ for {!r}".format(module_obj))
+        return False
+    else:
+        path = os.path.normpath(module_obj.__file__)
+        return path.startswith(_STDLIB_PATH)
+
+
 def import_(name):
     """
     Imports a module.
@@ -102,6 +131,8 @@ def resolve(path):
     module = import_(path.modname)
     return module if path.qualname is None else look_up(path.qualname, module)
 
+
+#-------------------------------------------------------------------------------
 
 def split(name):
     """
@@ -569,34 +600,6 @@ class Docs:
                 break
         return objdoc
 
-
-
-#-------------------------------------------------------------------------------
-
-# FIXME: Elsewhere.
-
-_STDLIB_PATH = os.path.normpath(sysconfig.get_path("stdlib"))
-
-_BUILTIN_IMPORTER = builtins.__spec__.loader
-
-def is_builtin(module_obj):
-    """
-    @type module_obj
-      `module`.
-    @return
-      True if `module_obj` is a builtin module.
-    """
-    if module_obj.__spec__.loader is _BUILTIN_IMPORTER:
-        return True
-
-    try:
-        path = module_obj.__file__
-    except AttributeError:
-        LOG.warning("no __file__ for {!r}".format(module_obj))
-        return False
-    else:
-        path = os.path.normpath(module_obj.__file__)
-        return path.startswith(_STDLIB_PATH)
 
 
 #-------------------------------------------------------------------------------
