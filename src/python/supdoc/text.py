@@ -40,7 +40,7 @@ STYLES = {
 
 #-------------------------------------------------------------------------------
 
-# FIXME: Elsewhere.
+# FIXME: Remove.
 
 def look_up(sdoc, modname, name_path=None, refs=False):
     """
@@ -114,54 +114,7 @@ def unmangle(name, parent_name):
 
 # FIXME: Look up refs consistently.
 
-class ReprObj:
-
-    def __init__(self, repr):
-        self.__repr = repr
-
-
-    def __repr__(self):
-        return self.__repr
-
-
-
-from  inspect import Signature, Parameter
-
-def parameter_from_jso(jso, sdoc):
-    name = jso["name"]
-    kind = getattr(Parameter, jso["kind"])
-    try:
-        default = jso["default"]
-    except KeyError:
-        default = Parameter.empty
-    else:
-        if is_ref(default):
-            # FIXME
-            try:
-                default = look_up_ref(sdoc, default)
-            except:
-                pass
-        # FIXME
-        default = ReprObj(default.get("repr", "???"))
-    try:
-        annotation = jso["annotation"]
-    except KeyError:
-        annotation = Parameter.empty
-    else:
-        # FIXME
-        annotation = annotation["repr"]
-    return Parameter(name, kind, default=default, annotation=annotation)
-
-
-def signature_from_jso(jso, sdoc):
-    # FIXME: return annotation.
-    parameters = [ parameter_from_jso(o, sdoc) for o in jso.get("params", []) ]
-    return Signature(parameters)
-
-
-#-------------------------------------------------------------------------------
-
-BULLET              = ansi.fg(89)("\u203a ")
+BULLET              = ansi.fg(89)("\u203a") + " "
 ELLIPSIS            = "\u2026"
 MISSING             = "\u2047"
 MEMBER_OF           = "\u220a"
@@ -221,7 +174,7 @@ def _print_name(qualname, name, pr):
 
 
 # FIXME: Break this function up.
-def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
+def print_docs(docs, objdoc, lookup_path=None, printer=Printer()):
     """
     @param lookup_path
       The path under which this objdoc was found.
@@ -231,7 +184,7 @@ def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
     # FIXME
     while is_ref(objdoc):
         pr << NOTE("Reference!") << NL
-        objdoc = look_up_ref(sdoc, objdoc)
+        objdoc = look_up_ref(docs, objdoc)
 
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")
@@ -245,7 +198,7 @@ def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
     callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
     source          = objdoc.get("source")
-    docs            = objdoc.get("docs")
+    obj_docs        = objdoc.get("docs")
     dict            = objdoc.get("dict")
 
     def header(header):
@@ -261,7 +214,7 @@ def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
     # Show its name.
     _print_name(if_none(qualname, lookup_path.qualname), name, pr)
     # Show its callable signature, if it has one.
-    _print_signature(sdoc, objdoc, pr)
+    _print_signature(docs, objdoc, pr)
     # Show its type.
     if type_name is not None:
         with pr(**STYLES["type_name"]):
@@ -308,9 +261,9 @@ def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
             pr << NL << NL
 
     # Show documentation.
-    if docs is not None:
-        summary = docs.get("summary", "")
-        body    = docs.get("body", "")
+    if obj_docs is not None:
+        summary = obj_docs.get("summary", "")
+        body    = obj_docs.get("body", "")
 
         if summary or body:
             header("Documentation")
@@ -335,17 +288,17 @@ def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
         header("Property")
         pr << "get: "
         if getter is not None:
-            _print_member(sdoc, resolve_ref(sdoc, getter), None, parent, pr)
+            _print_member(docs, resolve_ref(docs, getter), None, parent, pr)
         else:
             pr << "none" << NL
         pr << "set: "
         if setter is not None:
-            _print_member(sdoc, resolve_ref(sdoc, setter), None, parent, pr)
+            _print_member(docs, resolve_ref(docs, setter), None, parent, pr)
         else:
             pr << "none" << NL
         pr << "del: "
         if deller is not None:
-            _print_member(sdoc, resolve_ref(sdoc, deller), None, parent, pr)
+            _print_member(docs, resolve_ref(docs, deller), None, parent, pr)
         else:
             pr << "none" << NL
         pr << NL 
@@ -385,27 +338,27 @@ def print_docs(sdoc, objdoc, lookup_path=None, printer=Printer()):
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
         header("Modules")
-        _print_members(sdoc, partition, name, pr, False)
+        _print_members(docs, partition, name, pr, False)
 
     partition = partitions.pop("types", {})
     if len(partition) > 0:
         header("Types")
-        _print_members(sdoc, partition, name, pr, False)
+        _print_members(docs, partition, name, pr, False)
 
     partition = partitions.pop("properties", {})
     if len(partition) > 0:
         header("Properties")
-        _print_members(sdoc, partition, name, pr, True)
+        _print_members(docs, partition, name, pr, True)
 
     partition = partitions.pop("functions", {})
     if len(partition) > 0:
         header("Functions" if type_name == "module" else "Methods")
-        _print_members(sdoc, partition, name, pr, True)
+        _print_members(docs, partition, name, pr, True)
 
     partition = partitions.pop("attributes", {})
     if len(partition) > 0:
         header("Attributes")
-        _print_members(sdoc, partition, name, pr, True)
+        _print_members(docs, partition, name, pr, True)
 
     assert len(partitions) == 0
 
@@ -434,13 +387,13 @@ def _partition_members(dict):
         
 
 # FIXME: WTF is this signature anyway?
-def _print_member(sdoc, objdoc, lookup_name, parent_name, pr, show_type=True):
+def _print_member(docs, objdoc, lookup_name, parent_name, pr, show_type=True):
     if is_ref(objdoc):
         # Find the full name from which this was imported.
         import_path = get_path(objdoc)
         # Read through the ref.
         try:
-            resolved = look_up_ref(sdoc, objdoc)
+            resolved = docs.resolve(objdoc)
         except LookupError:
             pass
         else:
@@ -455,9 +408,9 @@ def _print_member(sdoc, objdoc, lookup_name, parent_name, pr, show_type=True):
     repr            = objdoc.get("repr")
     callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
-    docs            = objdoc.get("docs", {})
-    summary         = docs.get("summary")
-    body            = docs.get("body")
+    obj_docs        = objdoc.get("docs", {})
+    summary         = obj_docs.get("summary")
+    body            = obj_docs.get("body")
 
     # Show the repr if this is not a callable or one of several other
     # types with uninteresting reprs.
@@ -474,7 +427,7 @@ def _print_member(sdoc, objdoc, lookup_name, parent_name, pr, show_type=True):
 
     # FIXME: Distinguish normal / static / class methods from functions.
 
-    _print_signature(sdoc, objdoc, pr)
+    _print_signature(docs, objdoc, pr)
     # FIXME: Common code with print_docs().
     if import_path is not None:
         pr << " \u27f8  "
@@ -530,11 +483,11 @@ def _print_member(sdoc, objdoc, lookup_name, parent_name, pr, show_type=True):
             pr << NL
 
 
-def _print_members(sdoc, dict, parent_name, pr, show_type=True):
+def _print_members(docs, dict, parent_name, pr, show_type=True):
     for lookup_name in sorted(dict):
         objdoc = dict[lookup_name]
         pr << BULLET
-        _print_member(sdoc, objdoc, lookup_name, parent_name, pr, show_type)
+        _print_member(docs, objdoc, lookup_name, parent_name, pr, show_type)
     pr << NL
 
 
@@ -569,12 +522,13 @@ def _main():
         raise SystemExit(1)
 
     if args.path is None:
-        sdoc = inspector.inspect_modules(
-            path.modname, referenced=0, source=args.source)
+        docs = inspector.Docs(source=args.source)
     else:
         # Read the docs file.
-        with open(args.path) as file:
-            sdoc = json.load(file)
+        # FIXME
+        # with open(args.path) as file:
+        #     sdoc = json.load(file)
+        raise NotImplementedException("docs file")
 
     if args.json:
         refs = False
@@ -584,7 +538,7 @@ def _main():
             print(NOTE("redirects to: " + full_name))
 
     try:
-        objdoc = look_up(sdoc, path.modname, path.qualname, refs=refs)
+        objdoc = docs.get(path)
     except LookupError as error:
         # FIXME
         print(error, file=sys.stderr)
@@ -597,8 +551,11 @@ def _main():
     else:
         # Leave a one-space border on the right.
         width = pln.terminal.get_width() - 1 
-        print_docs(sdoc, objdoc, path, Printer(indent=" ", width=width))
+        print_docs(docs, objdoc, path, Printer(indent=" ", width=width))
 
 
 if __name__ == "__main__":
     _main()
+
+
+

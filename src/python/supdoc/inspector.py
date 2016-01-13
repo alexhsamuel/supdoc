@@ -12,9 +12,12 @@ import types
 
 import pln.log
 
+from   .objdoc import *
+
 #-------------------------------------------------------------------------------
 
 LOG = pln.log.get()
+LOG.setLevel(10)
 
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
@@ -67,65 +70,6 @@ DOCSTRING_TYPES = (
     )
 
 #-------------------------------------------------------------------------------
-
-class Path(collections.namedtuple("Path", ("modname", "qualname"))):
-    """
-    A fully-qualified lookup path to an object.
-
-    Represents the path to find an object, first by importing a module and then
-    by successively using `getattr` to obtain subobjects.  `qualname` is the
-    dot-delimited path of names for `getattr`.
-
-    @ivar modname
-      The full module name.
-    @ivar qualname
-      The qualname.
-    """
-
-    @classmethod
-    def of(class_, obj):
-        """
-        Returns the path reported by an object.
-        """
-        if isinstance(obj, types.ModuleType):
-            try:
-                name = obj.__name__
-            except AttributeError:
-                return None
-            else:
-                if name is not None:
-                    return class_(name, None)
-
-        try:
-            modname = obj.__module__
-            qualname = obj.__qualname__
-        except AttributeError:
-            pass
-        else:
-            if modname is not None:
-                return class_(modname, qualname)
-
-        return None
-
-
-    def __str__(self):
-        return (
-            self.modname if self.qualname is None 
-            else self.modname + "." + self.qualname
-        )
-
-
-    def mangle(self):
-        if self.qualname is None:
-            raise ValueError("no qualname")
-        parts = self.qualname.split(".")
-        if len(parts) < 2 or not parts[-1].startswith("__"):
-            raise ValueError("not a private name")
-        else:
-            mangled = ".".join(parts[: -1]) + "._" + parts[-2] + parts[-1]
-            return self.__class__(self.modname, mangled)
-
-
 
 def import_(name):
     """
@@ -215,18 +159,6 @@ def split(name):
             raise NameError("can't find {}".format(name))
 
     return Path(modname, qualname), obj
-
-
-def _make_ref(path):
-    if path is None:
-        return None
-    else:
-        ref = "#/modules/" + path.modname
-        if path.qualname is not None:
-            ref += "/dict/" + "/dict/".join(path.qualname.split("."))
-        return {
-            "$ref"  : ref,
-        }
 
 
 def is_mangled(obj):
@@ -329,10 +261,10 @@ class Inspector:
         """
         path = Path.of(obj)
         self.__ref_modnames.add(path.modname)
-        ref = _make_ref(path)
+        ref = make_ref(path)
         if with_type:
             # Add information about its type.
-            ref["type"] = _make_ref(Path.of(type(obj)))
+            ref["type"] = make_ref(Path.of(type(obj)))
         return ref
 
 
@@ -367,12 +299,13 @@ class Inspector:
 
         if isinstance(obj, types.ModuleType):
             LOG.info("inspecting module {}".format(obj.__name__))
+            assert obj.__name__ != "collections", (obj, lookup_path)
         LOG.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
 
         objdoc = {}
 
         if Path.of(type(obj)) is not None:
-            objdoc["type"] = _make_ref(Path.of(type(obj)))
+            objdoc["type"] = make_ref(Path.of(type(obj)))
         objdoc["type_name"] = type(obj).__name__
         try:
             obj_repr = repr(obj)
@@ -398,7 +331,7 @@ class Inspector:
         modname = getattr(obj, "__module__", None)
         if modname is not None:
             # Convert the module name into a ref.
-            objdoc["module"] = _make_ref(Path(modname, None))
+            objdoc["module"] = make_ref(Path(modname, None))
 
         # Get documentation, if it belongs to this object itself (not to the
         # object's type).
@@ -525,45 +458,102 @@ class Inspector:
         
 
 
-def inspect_modules(*modnames, referenced=0, source=False):
-    """
-    Imports and inspects modules.
+#-------------------------------------------------------------------------------
 
-    @param referenced
-      Whether to inspect referenced modules.  If `False`, does not inspect
-      referenced modules.  If 1, inspects only modules referenced directly by
-      modules in `modnames`.  If `True`, inspects all directly and indirectly
-      referenced modules.
-    @param source
-      If true, include source in objdocs.
-    """
-    # Mapping from modname to module objdoc.
-    objdocs = {}
+class Docs:
+    # FIXME: Cache invalidation logic: check file mtime and reload?
 
-    # Set up an inspector for our modules.
-    inspector = Inspector(source=source)
-    def inspect(modname):
-        if modname not in objdocs:
-            objdocs[modname] = inspector.inspect_module(modname)
-    
-    # Inspect modules.
-    for modname in modnames:
-        inspect(modname)
+    def __init__(self, *, source=False):
+        self.__source = bool(source)
+        self.__inspector = Inspector(source=source)
+        self.__module_objdocs = {}
+        
 
-    if referenced:
-        # Inspect referenced modules.
-        remaining = inspector.referenced_modnames - set(objdocs)
-        while len(remaining) > 0:
-            for modname in remaining:
-                inspect(modname)
-            if referenced == 1:
+    def inspect_module(self, modname):
+        try:
+            objdoc = self.__module_objdocs[modname]
+        except KeyError:
+            objdoc = self.__inspector.inspect_module(modname)
+            self.__module_objdocs[modname] = objdoc
+        return objdoc
+
+
+    def inspect_modules(self, *modnames, referenced=0):
+        """
+        Imports and inspects modules.
+
+        @param referenced
+          Whether to inspect referenced modules.  If `False`, does not inspect
+          referenced modules.  If 1, inspects only modules referenced directly
+          by modules in `modnames`.  If `True`, inspects all directly and
+          indirectly referenced modules.
+        """
+        # Mapping from modname to module objdoc.
+        objdocs = {}
+
+        # Set up an inspector for our modules.
+        def inspect(modname):
+            if modname not in objdocs:
+                objdocs[modname] = self.inspect_module(modname)
+
+        # Inspect modules.
+        for modname in modnames:
+            inspect(modname)
+
+        if referenced:
+            # Inspect referenced modules.
+            remaining = self.referenced_modnames - set(objdocs)
+            while len(remaining) > 0:
+                for modname in remaining:
+                    inspect(modname)
+                if referenced == 1:
+                    break
+
+        # Parse and process docstrings.
+        from . import docs
+        docs.enrich_modules(objdocs)
+
+        return {"modules": objdocs}
+
+
+    def get(self, path):
+        """
+        Returns an objdoc for the object at `path`.
+        """
+        objdoc = self.inspect_module(path.modname)
+        if path.qualname is not None:
+            parts = path.qualname.split(".")
+            for i in range(len(parts)):
+                try:
+                    objdoc = objdoc["dict"][parts[i]]
+                except KeyError:
+                    missing_name = ".".join(parts[: i + 1])
+                    raise LookupError("no such name: {}".format(missing_name))
+
+        return objdoc
+
+
+    def resolve_ref(self, ref):
+        """
+        Returns the objdoc or ref referred to by `ref`.
+        """
+        assert is_ref(ref)
+        return self.get(parse_ref(ref))
+
+
+    def resolve(self, objdoc, recursive=True):
+        """
+        Resolves `objdoc` if it is a ref, otherwise returns it.
+
+        @param recursive
+          If true, keep resolving the result until it is not a ref.
+        """
+        while is_ref(objdoc):
+            objdoc = self.resolve_ref(objdoc)
+            if not recursive:
                 break
+        return objdoc
 
-    # Parse and process docstrings.
-    from . import docs
-    docs.enrich_modules(objdocs)
-
-    return {"modules": objdocs}
 
 
 #-------------------------------------------------------------------------------

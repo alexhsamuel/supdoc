@@ -5,10 +5,70 @@ Functions for working with objdoc and ref objects.
 #-------------------------------------------------------------------------------
 
 from   contextlib import suppress
+import collections
 from   inspect import Signature, Parameter
+import types
+
+#-------------------------------------------------------------------------------
+
+class Path(collections.namedtuple("Path", ("modname", "qualname"))):
+    """
+    A fully-qualified lookup path to an object.
+
+    Represents the path to find an object, first by importing a module and then
+    by successively using `getattr` to obtain subobjects.  `qualname` is the
+    dot-delimited path of names for `getattr`.
+
+    @ivar modname
+      The full module name.
+    @ivar qualname
+      The qualname.
+    """
+
+    @classmethod
+    def of(class_, obj):
+        """
+        Returns the path reported by an object.
+        """
+        if isinstance(obj, types.ModuleType):
+            try:
+                name = obj.__name__
+            except AttributeError:
+                return None
+            else:
+                if name is not None:
+                    return class_(name, None)
+
+        try:
+            modname = obj.__module__
+            qualname = obj.__qualname__
+        except AttributeError:
+            pass
+        else:
+            if modname is not None:
+                return class_(modname, qualname)
+
+        return None
 
 
-from   .inspector import Path
+    def __str__(self):
+        return (
+            self.modname if self.qualname is None 
+            else self.modname + "." + self.qualname
+        )
+
+
+    def mangle(self):
+        if self.qualname is None:
+            raise ValueError("no qualname")
+        parts = self.qualname.split(".")
+        if len(parts) < 2 or not parts[-1].startswith("__"):
+            raise ValueError("not a private name")
+        else:
+            mangled = ".".join(parts[: -1]) + "._" + parts[-2] + parts[-1]
+            return self.__class__(self.modname, mangled)
+
+
 
 #-------------------------------------------------------------------------------
 
@@ -19,19 +79,34 @@ def is_ref(obj):
     return "$ref" in obj
 
 
+def make_ref(path):
+    """
+    Builds a ref for `path`.
+
+    @type path
+      `Path`.
+    """
+    ref = "#/modules/" + path.modname
+    if path.qualname is not None:
+        ref += "/dict/" + "/dict/".join(path.qualname.split("."))
+    return {"$ref": ref}
+
+
 def parse_ref(ref):
     """
     Parses a ref.
 
-    @return
-      The fully-qualified module name and the name path.
+    @see
+      `make_ref()`.
+    @rtype
+      `Path`.
     """
-    parts = ref["$ref"].split("/")
-    assert parts[0] == "#",         "ref must be absolute in current doc"
-    assert len(parts) >= 3,         "ref must include module"
-    assert parts[1] == "modules",   "ref must start with module"
-    modname, name_path = parts[2], ".".join(parts[3 :])
-    return modname, name_path
+    part0, part1, modname, *parts = ref["$ref"].split("/")
+    assert part0 == "#",        "ref must be absolute in current doc"
+    assert part1 == "modules",  "ref must start with module"
+    assert all( n == "dict" for n in parts[:: 2] )
+    qualname = ".".join(parts[1 :: 2])
+    return Path(modname, qualname)
 
 
 def get_path(objdoc):
@@ -45,46 +120,10 @@ def get_path(objdoc):
       `Path`.
     """
     if is_ref(objdoc):
-        modname, name_path = parse_ref(objdoc)
-        if len(name_path) > 0:
-            parts = name_path.split(".")
-            assert all( n == "dict" for n in parts[:: 2] )
-            qualname = ".".join(parts[1 :: 2])
-        else:
-            qualname = None
+        return parse_ref(objdoc)
     else:
-        modname = objdoc.get("modname")
         # FIXME: Should we store and use the name path, in place of qualname?
-        qualname = objdoc.get("qualname")
-    return Path(modname, qualname)
-
-
-def look_up_ref(sdoc, ref):
-    """
-    Resolves a reference in its sdoc.
-    """
-    parts = ref["$ref"].split("/")
-    assert parts[0] == "#", "ref must be absolute in current doc"
-    jso = sdoc
-    for part in parts[1 :]:
-        try:
-            jso = jso[part]
-        except KeyError:
-            raise LookupError("no {} in {}".format(part, "/".join(parts))) \
-                from None
-    return docs
-
-
-def resolve_ref(sdoc, objdoc):
-    """
-    If `objdoc` is a reference, resolves it.
-    """
-    try:
-        objdoc["$ref"]
-    except KeyError:
-        return objdoc
-    else:
-        return look_up_ref(sdoc, objdoc)
+        return Path(objdoc.get("modname"), objdoc.get("qualname"))
 
 
 def is_callable(objdoc):
@@ -149,7 +188,7 @@ def parameter_from_jso(jso, sdoc):
         if is_ref(default):
             # FIXME
             try:
-                default = look_up_ref(sdoc, default)
+                default = docs.resolve(default)
             except:
                 pass
         # FIXME
