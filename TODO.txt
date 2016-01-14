@@ -6,7 +6,6 @@ Inspection
 Doc support
 * Inherited tag.
 * Label items in __all__.
-- Aliases (e.g. asyncore.poll3).
 
 Markup
 * Javadoc.
