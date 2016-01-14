@@ -151,8 +151,10 @@ def split(name):
     as follows:
 
     1. Attempt to import `"html.parser.HTMLParser.close"`.  This fails.
-    1. Attempt to import `"html.parser.HTMLParser"`.  This fails.
-    1. Attempt to import `"html.parser"`.  This succeeds.  In the resulting
+
+    2. Attempt to import `"html.parser.HTMLParser"`.  This fails.
+
+    3. Attempt to import `"html.parser"`.  This succeeds.  In the resulting
        module, look up `"HTMLParser.close"`, which succeeds.
 
     The result is thus `Path("html.parser", "HTMLParser.close")`.
