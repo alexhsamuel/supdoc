@@ -27,6 +27,7 @@ STYLES = {
     "docs"              : {"fg": "gray24", },
     "header"            : {"underline": True, "fg": 89, },
     "identifier"        : {"bold": True, },
+    "label"             : {"fg": 89, },
     "mangled_name"      : {"fg": "gray70", },
     "modname"           : {"fg": 17, },
     "path"              : {"fg": "gray60", },
@@ -242,6 +243,33 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
             # Show the doc body.
             if body:
                 pr.html(body)
+
+    # Summarize type.
+    if type_name == "type":
+        bases   = objdoc.get("bases")
+        mro     = objdoc.get("mro")
+        if bases is not None or mro is not None:
+            header("Class")
+            if bases is not None:
+                with pr(**STYLES["label"]):
+                    pr << "base types: " << NL
+                for base in bases:
+                    pr << BULLET
+                    with pr(**STYLES["type_name"]):
+                        pr << get_path(base) << NL
+            if mro is not None:
+                with pr(**STYLES["label"]):
+                    pr << "MRO: "
+                for first, mro_type in pln.itr.first(mro):
+                    path = get_path(mro_type)
+                    if not first:
+                        pr << " \u2192 "
+                    pr << (
+                        path.qualname if path.modname in (modname, "builtins")
+                        else str(path)
+                    )
+                pr << NL
+            pr << NL
 
     # Summarize property.
     if type_name == "property":

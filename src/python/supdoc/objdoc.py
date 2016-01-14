@@ -26,6 +26,8 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
     """
 
     def __new__(class_, modname, qualname):
+        if modname in ("", None):
+            raise ValueError("modname may not be empty")
         if qualname == "":
             raise ValueError("qualname may not be empty")
         return super().__new__(class_, modname, qualname)
@@ -129,7 +131,8 @@ def get_path(objdoc):
         return parse_ref(objdoc)
     else:
         # FIXME: Should we store and use the name path, in place of qualname?
-        return Path(objdoc.get("modname"), objdoc.get("qualname"))
+        modname = get_path(objdoc.get("module")).modname
+        return Path(modname, objdoc.get("qualname"))
 
 
 def is_callable(objdoc):
