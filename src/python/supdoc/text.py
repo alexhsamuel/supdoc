@@ -122,18 +122,29 @@ def _print_name(qualname, name, pr):
         pr << ansi.bold(name)
 
 
-def print_path(path, pr):
+def format_path(path, *, modname=None):
     """
     Prints a fully-qualified path.
 
+    Prints the path, including modname and qualname.  If the modname matches
+    the context `modname`, it is not shown.  Also, if the modname is "builtins",
+    it is not shown.
+
     @type path
       `Path`.
+    @param modname
+      The context module name. 
     """
-    with pr(**STYLES["identifier"]):
-        with pr(**STYLES["modname"]):
-            pr << path.modname
-        if path.qualname is not None:
-            pr << "." << path.qualname
+    result = (
+        "" if     path.modname in ("builtins", modname)
+              and path.qualname is not None
+        else ansi.style(**STYLES["modname"])(path.modname)
+    )
+    if path.qualname is not None:
+        if result != "":
+            result += "."
+        result += path.qualname
+    return ansi.style(**STYLES["identifier"])(result)
 
 
 # FIXME: Break this function up.
@@ -147,8 +158,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     from_path = lookup_path or get_path(objdoc)
     while is_ref(objdoc):
         path = parse_ref(objdoc)
-        print_path(from_path, pr)
-        pr << IMPORT_ARROW << NL
+        pr << format_path(from_path) << IMPORT_ARROW << NL
         objdoc = docsrc.resolve(objdoc)
         from_path = path
 
@@ -192,9 +202,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
 
     # Show the module name.
     if type_name != "module" and modname is not None:
-        pr << "in module "
-        with pr(**STYLES["modname"]):
-            pr << modname << NL
+        pr << "in module " << format_path(Path(modname, None)) << NL
 
     pr << NL
 
@@ -256,7 +264,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
                 for base in bases:
                     pr << BULLET
                     with pr(**STYLES["type_name"]):
-                        pr << get_path(base) << NL
+                        pr << format_path(get_path(base), modname=modname) << NL
             if mro is not None:
                 with pr(**STYLES["label"]):
                     pr << "MRO: "
@@ -264,10 +272,8 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
                     path = get_path(mro_type)
                     if not first:
                         pr << " \u2192 "
-                    pr << (
-                        path.qualname if path.modname in (modname, "builtins")
-                        else str(path)
-                    )
+                    with pr(**STYLES["type_name"]):
+                        pr << format_path(path, modname=modname)
                 pr << NL
             pr << NL
 
@@ -409,6 +415,8 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
         import_path = None
 
     name            = objdoc.get("name")
+    module          = objdoc.get("module")
+    modname         = None if module is None else parse_ref(module)[0]
     unmangled_name  = unmangle(lookup_name, parent_name)
     type_name       = objdoc.get("type_name")
     repr            = objdoc.get("repr")
@@ -436,8 +444,7 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
     _print_signature(docsrc, objdoc, pr)
     # FIXME: Common code with print_docs().
     if import_path is not None:
-        pr << IMPORT_ARROW
-        print_path(import_path, pr)
+        pr << IMPORT_ARROW << format_path(import_path, modname=modname)
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
@@ -463,6 +470,7 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
         if objdoc.get("del") is not None:
             tags.append("del")
         right += "/".join(tags) + " "
+
     # Show the type.
     if show_type and type_name is not None:
         right += ansi.style(**STYLES["type_name"])(type_name)
