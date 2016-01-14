@@ -28,7 +28,7 @@ associated with the parameters themselves.
 3. A JSON-based format for representing the API documentation for a code
 module.  
 
-4. A dynamic web UI for browsing the API documentation, responsible for
+4. User interfaces for browsing the API documentation, responsible for
 presentation aspects.
 
 
