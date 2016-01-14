@@ -142,7 +142,10 @@ def split(name):
     optionally an object's qualname in that module.  This method attempts to
     split it by importing a prefix `name` as a module and then resolving the
     rest in that module.  It starts with the longest possible prefix and
-    continues right-to-left.
+    continues right-to-left.  
+
+    If this does not succeed, also attempts resolving `name` in the `builtins`
+    module.
 
     For example, the name `"html.parser.HTMLParser.close"` is resolved
     as follows:
