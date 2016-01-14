@@ -38,8 +38,6 @@ STYLES = {
     "warning"           : {"fg": 130, },
 }
 
-# FIXME: Look up refs consistently.
-
 BULLET              = ansi.fg(89)("\u203a") + " "
 ELLIPSIS            = "\u2026"
 MISSING             = "\u2047"
@@ -48,54 +46,7 @@ IMPORT_ARROW        = " \u21d2 "
 
 #-------------------------------------------------------------------------------
 
-# FIXME: Remove.
-
-def look_up(sdoc, modname, name_path=None, refs=False):
-    """
-    Looks up a module or object in an sdoc.
-
-    Finds `modname`, then recursively finds `name_path` by traversing the
-    module's and then objects' dictionaries.
-
-    If `name_path` is `None`, returns the object itself.
-
-    @param modname
-      The fully qualified module name.
-    @type modname
-      `str`
-    @param name_path
-      The name path of the object in the module, or `None` for the module
-      itself.
-    @type name_path
-      `str` or `None`
-    @param refs
-      If true, resolve refs.  If the value is callable, call it whenever
-      resolving a ref.
-    @raise LookupError
-      Failed to look up the module or the object in the module.
-    """
-    modules = sdoc["modules"]
-    try:
-        objdoc = modules[modname]
-    except KeyError:
-        raise LookupError("no such module: {}".format(modname)) from None
-    if name_path is not None:
-        parts = name_path.split(".")
-        for i in range(len(parts)):
-            try:
-                objdoc = objdoc["dict"][parts[i]]
-            except KeyError:
-                missing_name = ".".join(parts[: i + 1])
-                raise LookupError("no such name: {}".format(missing_name))
-
-    # Resolve references.
-    while refs and is_ref(objdoc):
-        if callable(refs):
-            refs(*parse_ref(objdoc))
-        objdoc = look_up_ref(sdoc, objdoc)
-
-    return objdoc
-
+# FIXME: Elsewhere.
 
 def unmangle(name, parent_name):
     """
