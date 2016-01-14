@@ -452,6 +452,8 @@ def _print_members(docs, dict, parent_name, pr, show_type=True):
     pr << NL
 
 
+#-------------------------------------------------------------------------------
+
 def _main():
     parser = argparse.ArgumentParser()
     # FIXME: Share some arguments with supdoc.inspector.main().
