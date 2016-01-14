@@ -112,7 +112,7 @@ def _print_signature(sdoc, objdoc, pr):
 def _print_name(qualname, name, pr):
     if qualname is not None:
         if name is None:
-            _, name = qualname.rsplit(".", 1)
+            name = qualname.rsplit(".", 1)[1] if "." in qualname else qualname
         if qualname.endswith("." + name):
             pr << qualname[: -len(name)] << ansi.bold(name)
         else:
