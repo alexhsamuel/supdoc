@@ -5,81 +5,9 @@ Functions for working with objdoc and ref objects.
 #-------------------------------------------------------------------------------
 
 from   contextlib import suppress
-import collections
 from   inspect import Signature, Parameter
-import types
 
-#-------------------------------------------------------------------------------
-
-class Path(collections.namedtuple("Path", ("modname", "qualname"))):
-    """
-    A fully-qualified lookup path to an object.
-
-    Represents the path to find an object, first by importing a module and then
-    by successively using `getattr` to obtain subobjects.  `qualname` is the
-    dot-delimited path of names for `getattr`.
-
-    @ivar modname
-      The full module name.
-    @ivar qualname
-      The qualname, or `None` for the module itself.
-    """
-
-    def __new__(class_, modname, qualname):
-        if modname in ("", None):
-            raise ValueError("modname may not be empty")
-        if qualname == "":
-            raise ValueError("qualname may not be empty")
-        return super().__new__(class_, modname, qualname)
-
-
-    @classmethod
-    def of(class_, obj):
-        """
-        Returns the path reported by an object.
-
-        @return
-          The `Path` to `obj`, or `None` if none is reported.
-        """
-        if isinstance(obj, types.ModuleType):
-            try:
-                name = obj.__name__
-            except AttributeError:
-                return None
-            else:
-                if name is not None:
-                    return class_(name, None)
-
-        try:
-            modname = obj.__module__
-            qualname = obj.__qualname__
-        except AttributeError:
-            pass
-        else:
-            if modname is not None:
-                return class_(modname, qualname)
-
-        return None
-
-
-    def __str__(self):
-        return (
-            self.modname if self.qualname is None 
-            else self.modname + "." + self.qualname
-        )
-
-
-    def mangle(self):
-        if self.qualname is None:
-            raise ValueError("no qualname")
-        parts = self.qualname.split(".")
-        if len(parts) < 2 or not parts[-1].startswith("__"):
-            raise ValueError("not a private name")
-        else:
-            mangled = ".".join(parts[: -1]) + "._" + parts[-2] + parts[-1]
-            return self.__class__(self.modname, mangled)
-
-
+from   .path import *
 
 #-------------------------------------------------------------------------------
 

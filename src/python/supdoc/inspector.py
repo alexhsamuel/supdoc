@@ -15,6 +15,7 @@ import pln.log
 
 from   .docs import parse_doc, attach_epydoc_to_signature
 from   .objdoc import *
+from   .path import *
 
 #-------------------------------------------------------------------------------
 
@@ -102,138 +103,7 @@ def is_standard_library(module):
         return path.startswith(_STDLIB_PATH)
 
 
-def import_(name):
-    """
-    Imports a module.
-
-    @param name
-      The fully-qualified module name.
-    @rtype
-      module
-    @raise ImportError
-      The name could not be imported.
-    """
-    __import__(name)
-    return sys.modules[name]
-
-
-def look_up(name, obj):
-    """
-    Looks up a qualified name.
-    """
-    result = obj
-    for part in name.split("."):
-        result = getattr(result, part)
-    return result
-
-
-def resolve(path):
-    module = import_(path.modname)
-    return module if path.qualname is None else look_up(path.qualname, module)
-
-
-def can_resolve(path):
-    try:
-        resolve(path)
-    except (ImportError, AttributeError):
-        return False
-    else:
-        return True
-
-
-def get_legit_path(obj):
-    """
-    Returns the `Path` reported by `obj`, if the path resolved to `obj`; `None`
-    otherwise.
-    """
-    path = Path.of(obj)
-    if path is None:
-        return None
-    else:
-        # Got a path; now resolve it.
-        try:
-            target = resolve(path)
-        except (ImportError, AttributeError):
-            # Can't resolve the path at all.
-            return None
-        else:
-            # Check if the path resolved to something else.
-            return path if target is obj else None
-
-
 #-------------------------------------------------------------------------------
-
-def split(name):
-    """
-    Attempts to split a fully-qualified name into modname and qualname.
-
-    `name` is a fully-qualified name consisting of full module name and
-    optionally an object's qualname in that module.  This method attempts to
-    split it by importing a prefix `name` as a module and then resolving the
-    rest in that module.  It starts with the longest possible prefix and
-    continues right-to-left.  
-
-    If this does not succeed, also attempts resolving `name` in the `builtins`
-    module.
-
-    For example, the name `"html.parser.HTMLParser.close"` is resolved
-    as follows:
-
-    1. Attempt to import `"html.parser.HTMLParser.close"`.  This fails.
-
-    2. Attempt to import `"html.parser.HTMLParser"`.  This fails.
-
-    3. Attempt to import `"html.parser"`.  This succeeds.  In the resulting
-       module, look up `"HTMLParser.close"`, which succeeds.
-
-    The result is thus `Path("html.parser", "HTMLParser.close")`.
-
-    If name contains a colon "`:`", this is unconditionally assumed to be the
-    separator between the modname and the qualname, e.g. 
-    `"html.parser:HTMLParser.close"`.
-
-    @return
-      A `Path` object for the split name, and the object itself.
-    @raise NameError
-      `name` could not be resolved.
-    """
-    if ":" in name:
-        # Fixed separator between modname and qualname.
-        modname, qualname = name.split(":", 1)
-        if qualname == "":
-            qualname = None
-
-        try:
-            module = import_(modname)
-            obj = module if qualname is None else look_up(qualname, module)
-        except:
-            raise NameError("can't find {} in {}".format(qualname, modname))
-
-    else:
-        parts = name.split(".")
-        # Try successively shorter prefixes as the modname.
-        for i in range(len(parts), 0, -1):
-            modname = ".".join(parts[: i])
-            qualname = None if i == len(parts) else ".".join(parts[i :])
-            try:
-                module = import_(modname)
-                obj = module if qualname is None else look_up(qualname, module)
-            except:
-                continue
-            else:
-                break
-        else:
-            # Also try in builtins.
-            try:
-                obj = look_up(name, builtins)
-            except:
-                raise NameError("can't find {}".format(name))
-            else:
-                modname = "builtins"
-                qualname = name
-
-    return Path(modname, qualname), obj
-
 
 def is_mangled(obj):
     """
@@ -250,7 +120,7 @@ def is_mangled(obj):
         # Doesn't have a private name.
         return False
     try:
-        resolved_obj = resolve(mangled_path)
+        resolved_obj = get_obj(mangled_path)
     except (ImportError, AttributeError):
         # Nothing at the mangled path.
         return False

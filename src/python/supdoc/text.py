@@ -14,6 +14,7 @@ from   pln.terminal.printer import Printer, NL
 
 from   . import inspector
 from   .objdoc import *
+from   .path import *
 
 #-------------------------------------------------------------------------------
 
@@ -518,7 +519,7 @@ def _main():
 
     # Find the requested object.
     try:
-        path, obj = inspector.split(args.name)
+        path, obj = split(args.name)
     except NameError as error:
         print("bad NAME: {}".format(error), file=sys.stderr)
         raise SystemExit(1)
