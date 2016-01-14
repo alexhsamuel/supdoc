@@ -189,7 +189,14 @@ def split(name):
             else:
                 break
         else:
-            raise NameError("can't find {}".format(name))
+            # Also try in builtins.
+            try:
+                obj = look_up(name, builtins)
+            except:
+                raise NameError("can't find {}".format(name))
+            else:
+                modname = "builtins"
+                qualname = name
 
     return Path(modname, qualname), obj
 
