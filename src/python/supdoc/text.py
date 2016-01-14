@@ -269,11 +269,12 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
                 with pr(**STYLES["label"]):
                     pr << "MRO: "
                 for first, mro_type in pln.itr.first(mro):
-                    path = get_path(mro_type)
-                    if not first:
-                        pr << " \u2192 "
-                    with pr(**STYLES["type_name"]):
-                        pr << format_path(path, modname=modname)
+                    entry = format_path(get_path(mro_type), modname=modname)
+                    entry = ansi.style(**STYLES["type_name"])(entry)
+                    entry = entry if first else " \u2192 " + entry
+                    if not pr.fits(entry):
+                        pr << NL << "  "
+                    pr << entry
                 pr << NL
             pr << NL
 
