@@ -79,30 +79,6 @@ Testing
 - Create a larger test corpus.
 
 ================================================================================
-Done
-- Remove module list from top.
-- Create a module index page.
-- Rename moduleName -> fqName et seq.
-- Make json fully hierarchical.  List submodules in packages.
-- Package breadcrumbs.
-- Serve Bootstrap, AngularJS, etc locally.
-- Use Angular directives to set up Bootstrap stuff e.g. module link, class link.
-- Create a class page.
-- Create a function page.
-- Sort module list on index.
-- Make $scope.modname the module name, $scope.mod the object.
-* staticmethod, classmethod
-* Name.  supdoc!
-* github
-* Resurrect source.
-* properties
-* other values than types, functions
-- Style navigatable links.  Change pointer?
-- Load modules separately.
-* Mark protected, private contents.
-- distinguish / indicate imported modules and other types
-
-================================================================================
 Some markup seen in the wild:
 
 - double back-ticks for identifiers (abc.py)
