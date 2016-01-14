@@ -260,11 +260,12 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
             header("Class")
             if bases is not None:
                 with pr(**STYLES["label"]):
-                    pr << "base types: " << NL
+                    pr << "Base types:" 
                 for base in bases:
-                    pr << BULLET
+                    pr << " "
                     with pr(**STYLES["type_name"]):
-                        pr << format_path(get_path(base), modname=modname) << NL
+                        pr << format_path(get_path(base), modname=modname)
+                pr << NL
             if mro is not None:
                 with pr(**STYLES["label"]):
                     pr << "MRO: "
