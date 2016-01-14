@@ -38,6 +38,14 @@ STYLES = {
     "warning"           : {"fg": 130, },
 }
 
+# FIXME: Look up refs consistently.
+
+BULLET              = ansi.fg(89)("\u203a") + " "
+ELLIPSIS            = "\u2026"
+MISSING             = "\u2047"
+MEMBER_OF           = "\u220a"
+IMPORT_ARROW        = " \u21d2 "
+
 #-------------------------------------------------------------------------------
 
 # FIXME: Remove.
@@ -112,17 +120,6 @@ def unmangle(name, parent_name):
 
 #-------------------------------------------------------------------------------
 
-# FIXME: Look up refs consistently.
-
-BULLET              = ansi.fg(89)("\u203a") + " "
-ELLIPSIS            = "\u2026"
-MISSING             = "\u2047"
-MEMBER_OF           = "\u220a"
-
-# FIXME
-NOTE                = ansi.fg("dark_red")
-
-
 def _format_parameters(parameters):
     star = False
     for param in parameters.values():
@@ -173,6 +170,20 @@ def _print_name(qualname, name, pr):
         pr << ansi.bold(name)
 
 
+def print_path(path, pr):
+    """
+    Prints a fully-qualified path.
+
+    @type path
+      `Path`.
+    """
+    with pr(**STYLES["identifier"]):
+        with pr(**STYLES["modname"]):
+            pr << path.modname
+        if path.qualname is not None:
+            pr << "." << path.qualname
+
+
 # FIXME: Break this function up.
 def print_docs(docs, objdoc, lookup_path=None, printer=Printer()):
     """
@@ -181,10 +192,13 @@ def print_docs(docs, objdoc, lookup_path=None, printer=Printer()):
     """
     pr = printer  # For brevity.
 
-    # FIXME
+    from_path = lookup_path or get_path(objdoc)
     while is_ref(objdoc):
-        pr << NOTE("Reference!") << NL
-        objdoc = look_up_ref(docs, objdoc)
+        path = parse_ref(objdoc)
+        print_path(from_path, pr)
+        pr << IMPORT_ARROW << NL
+        objdoc = docs.resolve(objdoc)
+        from_path = path
 
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")
@@ -238,7 +252,7 @@ def print_docs(docs, objdoc, lookup_path=None, printer=Printer()):
             pr << mangled_name << NL 
         pr << NL
 
-    # Summarize the source / import location.
+    # Summarize the source.
     if source is not None:
         loc         = source.get("source_file") or source.get("file")
         source_text = source.get("source")
@@ -430,12 +444,8 @@ def _print_member(docs, objdoc, lookup_name, parent_name, pr, show_type=True):
     _print_signature(docs, objdoc, pr)
     # FIXME: Common code with print_docs().
     if import_path is not None:
-        pr << " \u27f8  "
-        with pr(**STYLES["identifier"]):
-            with pr(**STYLES["modname"]):
-                pr << import_path.modname
-            if import_path.qualname is not None:
-                pr << "." << import_path.qualname
+        pr << IMPORT_ARROW
+        print_path(import_path, pr)
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
@@ -529,13 +539,6 @@ def _main():
         # with open(args.path) as file:
         #     sdoc = json.load(file)
         raise NotImplementedException("docs file")
-
-    if args.json:
-        refs = False
-    else:
-        def refs(modname, name_path):
-            full_name = modname + "." + name_path if name_path else modname
-            print(NOTE("redirects to: " + full_name))
 
     try:
         objdoc = docs.get(path)
