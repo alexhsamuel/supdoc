@@ -282,7 +282,8 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     if type_name == "property":
         header("Property")
         for accessor_name in ("get", "set", "del"):
-            accessor = or_none(docsrc.resolve)(objdoc.get(accessor_name))
+            accessor = objdoc.get(accessor_name)
+            accessor = None if accessor is None else docsrc.resolve(accessor)
             with pr(**STYLES["label"]):
                 pr << "{}: ".format(accessor_name)
             if accessor is not None:
@@ -436,7 +437,7 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
-    if unmangled_name != lookup_name:
+    if unmangled_name != lookup_name and lookup_name is not None:
         with pr(**STYLES["mangled_name"]):
             pr << " \u224b "  # FIXME: Something better?
             with pr(**STYLES["identifier"]):
