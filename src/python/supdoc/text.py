@@ -257,7 +257,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
         bases   = objdoc.get("bases")
         mro     = objdoc.get("mro")
         if bases is not None or mro is not None:
-            header("Class")
+            header("Type")
             if bases is not None:
                 with pr(**STYLES["label"]):
                     pr << "Base types:" 
