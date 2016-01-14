@@ -349,7 +349,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
 
     partition = partitions.pop("types", {})
     if len(partition) > 0:
-        header("Types")
+        header("Types" if type_name == "module" else "Member Types")
         _print_members(docsrc, partition, name, pr, False)
 
     partition = partitions.pop("properties", {})
