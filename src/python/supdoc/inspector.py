@@ -132,6 +132,35 @@ def resolve(path):
     return module if path.qualname is None else look_up(path.qualname, module)
 
 
+def can_resolve(path):
+    try:
+        resolve(path)
+    except (ImportError, AttributeError):
+        return False
+    else:
+        return True
+
+
+def get_legit_path(obj):
+    """
+    Returns the `Path` reported by `obj`, if the path resolved to `obj`; `None`
+    otherwise.
+    """
+    path = Path.of(obj)
+    if path is None:
+        return None
+    else:
+        # Got a path; now resolve it.
+        try:
+            target = resolve(path)
+        except (ImportError, AttributeError):
+            # Can't resolve the path at all.
+            return None
+        else:
+            # Check if the path resolved to something else.
+            return path if target is obj else None
+
+
 #-------------------------------------------------------------------------------
 
 def split(name):
@@ -341,7 +370,7 @@ class Inspector:
         @return
           The objdoc extracted from `obj`, or a ref to it.
         """
-        path = Path.of(obj)
+        path = get_legit_path(obj)
         if path is not None and lookup_path is not None and path != lookup_path:
             # Defined elsewhere.  Produce a ref.
             return self._inspect_ref(obj)

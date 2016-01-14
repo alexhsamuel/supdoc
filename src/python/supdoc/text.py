@@ -6,7 +6,7 @@ import re
 import shutil
 import sys
 
-from   pln import if_none
+from   pln import if_none, or_none
 import pln.itr
 import pln.json
 from   pln.terminal import ansi
@@ -280,28 +280,15 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
 
     # Summarize property.
     if type_name == "property":
-        # FIXME: This is a mess.
-        getter  = objdoc.get("get")
-        setter  = objdoc.get("set")
-        deller  = objdoc.get("del")
-        parent  = None
-
         header("Property")
-        pr << "get: "
-        if getter is not None:
-            _print_member(docsrc, resolve_ref(docsrc, getter), None, parent, pr)
-        else:
-            pr << "none" << NL
-        pr << "set: "
-        if setter is not None:
-            _print_member(docsrc, resolve_ref(docsrc, setter), None, parent, pr)
-        else:
-            pr << "none" << NL
-        pr << "del: "
-        if deller is not None:
-            _print_member(docsrc, resolve_ref(docsrc, deller), None, parent, pr)
-        else:
-            pr << "none" << NL
+        for accessor_name in ("get", "set", "del"):
+            accessor = or_none(docsrc.resolve)(objdoc.get(accessor_name))
+            with pr(**STYLES["label"]):
+                pr << "{}: ".format(accessor_name)
+            if accessor is not None:
+                _print_member(docsrc, accessor, None, None, pr)
+            else:
+                pr << "none" << NL
         pr << NL 
 
     # Summarize parameters.
@@ -418,7 +405,7 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
     name            = objdoc.get("name")
     module          = objdoc.get("module")
     modname         = None if module is None else parse_ref(module)[0]
-    unmangled_name  = unmangle(lookup_name, parent_name)
+    unmangled_name  = if_none(unmangle(lookup_name, parent_name), name)
     type_name       = objdoc.get("type_name")
     repr            = objdoc.get("repr")
     callable        = is_callable(objdoc)

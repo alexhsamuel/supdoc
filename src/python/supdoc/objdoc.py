@@ -37,6 +37,9 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
     def of(class_, obj):
         """
         Returns the path reported by an object.
+
+        @return
+          The `Path` to `obj`, or `None` if none is reported.
         """
         if isinstance(obj, types.ModuleType):
             try:
