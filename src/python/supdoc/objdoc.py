@@ -177,7 +177,7 @@ class ReprObj:
 
 
 
-def parameter_from_jso(jso, sdoc):
+def parameter_from_jso(jso, docsrc):
     """
     Reconstitutes a parameter from an objdoc parameter JSO.
 
@@ -191,12 +191,7 @@ def parameter_from_jso(jso, sdoc):
     except KeyError:
         default = Parameter.empty
     else:
-        if is_ref(default):
-            # FIXME
-            try:
-                default = docs.resolve(default)
-            except:
-                pass
+        default = docsrc.resolve(default)
         # FIXME
         default = ReprObj(default.get("repr", "???"))
     try:
@@ -209,7 +204,7 @@ def parameter_from_jso(jso, sdoc):
     return Parameter(name, kind, default=default, annotation=annotation)
 
 
-def signature_from_jso(jso, sdoc):
+def signature_from_jso(jso, docsrc):
     """
     Reconstitutes a signature from an object signature JSO.
 
@@ -217,7 +212,10 @@ def signature_from_jso(jso, sdoc):
       `Signature`
     """
     # FIXME: Add the return annotation.
-    parameters = [ parameter_from_jso(o, sdoc) for o in jso.get("params", []) ]
+    parameters = [
+        parameter_from_jso(o, docsrc)
+        for o in jso.get("params", [])
+    ]
     return Signature(parameters)
 
 

@@ -37,8 +37,8 @@ presentation aspects.
 Since the term "doc" is heavily overloaded, we invent variants to describe the
 documents and documentation in supdoc.
 
-An **sdoc** is a top-level JSON document encoding content summary and
-documentation for one or more Python modules (or packages).  An sdoc looks like
+A **docsrc** is a top-level JSON document encoding content summary and
+documentation for one or more Python modules (or packages).  A docsrc looks like
 this:
 
 ```js
@@ -58,7 +58,7 @@ object.  An objdoc may document any type of Python object, such as a module,
 class, function, method, or scalar value.  An objdoc may be recursive, i.e. 
 contain other objdoc instances, to express composition of Python objects.
 
-With an sdoc, an objdoc can be located given two pieces of information: its
+With a docsrc, an objdoc can be located given two pieces of information: its
 fully-qualified module name and its name path within the module.  The latter is
 the dotted series of names by which the object is found by successive calls to
 `getattr()`, starting with the module itself.  If the name path is omitted, this
@@ -76,8 +76,8 @@ looks as follows
 }
 ```
 
-The reference is always relative to the top of the sdoc.  The reference path is
-is `"modules"`, followed by the fully qualified module name, followed by
+The reference is always relative to the top of the docsrc.  The reference path
+is is `"modules"`, followed by the fully qualified module name, followed by
 components of the path within the module.
 
 A ref can be used anywhere in place of an objdoc.

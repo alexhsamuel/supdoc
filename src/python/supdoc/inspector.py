@@ -511,7 +511,7 @@ class Inspector:
 
 #-------------------------------------------------------------------------------
 
-class Docs:
+class DocSource:
     # FIXME: Cache invalidation logic: check file mtime and reload?
 
     def __init__(self, *, source=False):
