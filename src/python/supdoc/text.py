@@ -122,7 +122,7 @@ def _print_name(qualname, name, pr):
     elif name is not None:
         pr << ansi.bold(name)
     else:
-        pr << ansi.style(**STYLES["warning"])("(no name)")
+        pr << ansi.style(**STYLES["warning"])("(unnamed object)")
 
 
 def format_path(path, *, modname=None):
