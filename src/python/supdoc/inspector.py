@@ -240,7 +240,10 @@ class Inspector:
         @return
           The objdoc extracted from `obj`, or a ref to it.
         """
-        path = get_legit_path(obj)
+        # Get the object's path.  If the path doesn't refer back to the object,
+        # though, ignore it.
+        path = None if is_imposter(obj) else Path.of(obj)
+
         if path is not None and lookup_path is not None and path != lookup_path:
             # Defined elsewhere.  Produce a ref.
             return self._inspect_ref(obj)

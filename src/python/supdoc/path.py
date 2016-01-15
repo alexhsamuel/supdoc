@@ -95,7 +95,7 @@ def import_(modname):
     @param modname
       The fully-qualified module name.
     @rtype
-      module
+      `types.ModuleType`.
     @raise ImportError
       The name could not be imported.
     """
@@ -135,6 +135,11 @@ def get_obj(path):
 
 
 def is_obj(path):
+    """
+    Returns true iff `path` refers to an object.
+
+    Imports the modname of `path` if necessary.
+    """
     try:
         get_obj(path)
     except (ImportError, AttributeError):
@@ -143,24 +148,23 @@ def is_obj(path):
         return True
 
 
-def get_legit_path(obj):
+def is_imposter(obj):
     """
-    Returns the `Path` reported by `obj`, if the path resolved to `obj`; `None`
-    otherwise.
+    Returns true iff `obj` has a name that does not refer back to it.
+
+    Constructs the path to `obj` with `Path.of()` and then checks whether that
+    path refers back to `obj`.
     """
     path = Path.of(obj)
     if path is None:
-        return None
+        return False
     else:
-        # Got a path; now resolve it.
         try:
-            target = get_obj(path)
+            # Check whether the path refers back to the right object.
+            return get_obj(path) is not obj
         except (ImportError, AttributeError):
-            # Can't resolve the path at all.
-            return None
-        else:
-            # Check if the path resolved to something else.
-            return path if target is obj else None
+            # Can't get the path that obj reports.
+            return True
 
 
 def split(name):
