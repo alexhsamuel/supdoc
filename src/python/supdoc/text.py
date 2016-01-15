@@ -166,11 +166,20 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")
     mangled_name    = objdoc.get("mangled_name")
+    # FIXME: Merge with logic in _print_name().
+    display_name = (
+             qualname if qualname is not None
+        else lookup_path.qualname if lookup_path is not None
+        else name
+    )
+
     module          = objdoc.get("module")
     modname         = (
-        parse_ref(module)[0] if module is not None
-        else lookup_path.modname
+             parse_ref(module)[0] if module is not None
+        else lookup_path.modname if lookup_path is not None
+        else None
     )
+
     type_name       = objdoc.get("type_name")
     callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
@@ -190,9 +199,11 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     rule()
 
     # Show its name.
-    _print_name(if_none(qualname, lookup_path.qualname), name, pr)
+    _print_name(display_name, name, pr)
+    
     # Show its callable signature, if it has one.
     _print_signature(docsrc, objdoc, pr)
+
     # Show its type.
     if type_name is not None:
         with pr(**STYLES["type_name"]):
