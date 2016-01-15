@@ -4,6 +4,7 @@ Logic for manipulating fully-qualified lookup paths to Python objects.
 
 #-------------------------------------------------------------------------------
 
+import builtins
 import collections
 import types
 import sys
@@ -230,7 +231,7 @@ def split(name):
             # Also try in builtins.
             try:
                 obj = getattr_qualname(name, builtins)
-            except:
+            except AttributeError:
                 raise NameError("can't find {}".format(name))
             else:
                 path = Path("builtins", name)
