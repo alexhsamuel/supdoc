@@ -1,16 +1,13 @@
-import re
-
 import html
 import logging
-import markdown
+import re
 import sys
 import xml.etree.ElementTree as ET
 
+import markdown
+
 import pln.itr
 from   pln.text import get_indent, get_common_indent, join_pars
-
-# FIXME
-from   . import base
 
 #-------------------------------------------------------------------------------
 
