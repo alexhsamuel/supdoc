@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 import pln.itr
 from   pln.text import get_indent, get_common_indent, join_pars
 
+# FIXME
 from   . import base
 
 #-------------------------------------------------------------------------------
