@@ -55,15 +55,23 @@ def get_path(objdoc):
     For an objdoc, this is taken from its modname and qualname, assuming they
     are present.  For a ref, it's parsed from the ref target.
 
+    If `objdoc` doesn't have a module and qualname, returns `None`.
+
     @rtype
-      `Path`.
+      `Path` or `None`.
     """
+    assert objdoc is not None
+    
     if is_ref(objdoc):
         return parse_ref(objdoc)
     else:
         # FIXME: Should we store and use the name path, in place of qualname?
-        modname = get_path(objdoc.get("module")).modname
-        return Path(modname, objdoc.get("qualname"))
+        module      = objdoc.get("module")
+        qualname    = objdoc.get("qualname")
+        if module is None or qualname is None:
+            return None
+        else:
+            return Path(get_path(module).modname, qualname)
 
 
 def is_callable(objdoc):
