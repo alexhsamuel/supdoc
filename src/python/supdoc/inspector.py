@@ -368,7 +368,8 @@ class Inspector:
         # Get documentation, if it belongs to this object itself (not to the
         # object's type).
         doc = getattr(obj, "__doc__", None)
-        if (doc is not None 
+        if (    doc is not None 
+            and isinstance(doc, str)
             and (isinstance(obj, type) 
                  or doc != getattr(type(obj), "__doc__", None))):
             objdoc["docs"] = obj_docs = {"doc": doc}
@@ -377,7 +378,6 @@ class Inspector:
             # FIXME: Wrap these two in a function?
             obj_docs.update(parse_doc(doc))
             attach_epydoc_to_signature(objdoc)
-
 
         # Put this item in the cache.  Some objects are unhashable, though, so
         # they can't be cached.  Oh well.
