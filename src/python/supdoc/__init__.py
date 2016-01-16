@@ -26,6 +26,7 @@ def supdoc(obj, *, json=False):
     `json` is true, dumps the JSON representation of the documentation instead.
     """
     docsrc = _get_docsrc()
+    # FIXME: For shame.
     objdoc = docsrc._DocSource__inspector._inspect(obj)
 
     if json:
