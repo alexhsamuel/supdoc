@@ -209,23 +209,17 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     # Show its callable signature, if it has one.
     _print_signature(docsrc, objdoc, pr)
 
-    # Show its type.
-    if type_name is not None:
-        with pr(**STYLES["type_name"]):
-            pr >> type_name
-
     pr << NL
     rule()
 
+    # Show its type.
+    if type is not None:
+        with pr(**STYLES["type_name"]):
+            pr << format_path(get_path(type)) << " "
     # Show the module name.
     if type_name != "module" and modname is not None:
         pr << "in module " << format_path(Path(modname, None)) << NL
-
-    if type is not None:
-        with pr(**STYLES["label"]):
-            pr << "type: "
-        with pr(**STYLES["type_name"]):
-            pr << format_path(get_path(type))
+    else:
         pr << NL
 
     pr << NL
