@@ -20,7 +20,7 @@ from   .path import *
 #-------------------------------------------------------------------------------
 
 LOG = pln.log.get()
-# LOG.setLevel(10)
+# LOG.setLevel(20)
 
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
@@ -259,7 +259,7 @@ class Inspector:
         objdoc = {}
 
         if Path.of(type(obj)) is not None:
-            objdoc["type"] = make_ref(Path.of(type(obj)))
+            objdoc["type"] = self._inspect_ref(type(obj), with_type=False)
         objdoc["type_name"] = type(obj).__name__
         try:
             obj_repr = repr(obj)
@@ -310,7 +310,17 @@ class Inspector:
                         lookup_path.modname, 
                         attr_name if lookup_path.qualname is None 
                             else lookup_path.qualname + '.' + attr_name)
-                dict_jso[attr_name] = self._inspect(attr_value, attr_path)
+
+                # Inspect the value, unless it's a module, in which case just
+                # put in a ref.
+                # FIXME: Should _inspect() always return a ref for a module?
+                dict_jso[attr_name] = (
+                    # self._inspect_ref(attr_value)
+                    make_ref(Path.of(attr_value))
+                    if isinstance(attr_value, types.ModuleType)
+                    else self._inspect(attr_value, attr_path)
+                )
+                
             objdoc["dict"] = dict_jso
 
         if isinstance(obj, (type, types.ModuleType, types.FunctionType)):
@@ -321,14 +331,18 @@ class Inspector:
         except AttributeError:
             pass
         else:
-            objdoc["bases"] = [ make_ref(Path.of(b)) for b in bases ]
+            objdoc["bases"] = [ 
+                self._inspect_ref(b, with_type=False) for b in bases 
+            ]
 
         try:
             mro = obj.__mro__
         except AttributeError:
             pass
         else:
-            objdoc["mro"] = [ make_ref(Path.of(c)) for c in mro ]
+            objdoc["mro"] = [ 
+                self._inspect_ref(c, with_type=False) for c in mro 
+            ]
 
         # If this is callable, get its signature; however, skip types, as we 
         # get their __init__ signature.
