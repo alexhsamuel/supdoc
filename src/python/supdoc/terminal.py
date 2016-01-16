@@ -218,8 +218,9 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
         with pr(**STYLES["type_name"]):
             pr << format_path(get_path(type)) << " "
     # Show the module name.
-    if type_name != "module" and modname is not None:
-        pr << "in module " << format_path(Path(modname, None)) << NL
+    if type_name != "module" and module is not None:
+        pr << "in module " 
+        pr << format_path(Path(parse_ref(module)[0], None)) << NL
     else:
         pr << NL
 
