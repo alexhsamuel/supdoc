@@ -28,14 +28,14 @@ from   .path import *
 
 STYLES = {
     "docs"              : {"fg": "gray24", },
-    "header"            : {"underline": True, "fg": 89, },
+    "header"            : {"underline": True, "fg": 0x82, },
     "identifier"        : {"bold": True, },
-    "label"             : {"fg": 89, },
+    "label"             : {"fg": 0x82, },
     "mangled_name"      : {"fg": "gray70", },
     "modname"           : {"fg": 17, },
     "path"              : {"fg": "gray60", },
     "repr"              : {"fg": "gray70", },
-    "rule"              : {"fg": "gray95", },
+    "rule"              : {"fg": 0xdf, },
     "source"            : {"fg": "#222845", },
     "summary"           : {"fg": "black", },
     "type_name"         : {"fg": 23, },
@@ -214,6 +214,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
 
     # Show its type.
     if type is not None:
+        pr << "Instance of "
         with pr(**STYLES["type_name"]):
             pr << format_path(get_path(type)) << " "
     # Show the module name.
