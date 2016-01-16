@@ -464,10 +464,6 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
     # FIXME: Distinguish normal / static / class methods from functions.
 
     _print_signature(docsrc, objdoc, pr)
-    # FIXME: Common code with print_docs().
-    if import_path is not None:
-        pr << IMPORT_ARROW << format_path(
-            import_path, modname=lookup_path.modname)
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
@@ -497,6 +493,11 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
     pr << NL
 
     with pr(indent="   "):
+        # Show where this was imported from.
+        if import_path is not None:
+            pr << "import" << IMPORT_ARROW << format_path(
+                import_path, modname=lookup_path.modname) << NL
+
         if show_repr:
             with pr(**STYLES["repr"]):
                 pr.elide("= " + repr)
