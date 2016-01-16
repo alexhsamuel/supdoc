@@ -282,7 +282,13 @@ class Inspector:
         else:
             objdoc["qualname"] = qualname
 
-        modname = getattr(obj, "__module__", None)
+        # Everything that actually is in a module, i.e. is code, such as as 
+        # class or function, is an instance of a builtin type.  Anything else
+        # that reports a __modname__ is probably getting it from its own type.
+        modname = (
+                 None if type(obj).__module__ != "builtins"
+            else getattr(obj, "__module__", None)
+        )
         if modname is not None:
             # Convert the module name into a ref.
             objdoc["module"] = make_ref(Path(modname, None))
