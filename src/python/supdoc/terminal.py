@@ -567,14 +567,18 @@ def _main():
         print(error, file=sys.stderr)
         raise SystemExit(1)
 
-    if args.sdoc:
-        pln.json.pprint(sdoc)
-    elif args.json:
-        pln.json.pprint(objdoc)
-    else:
-        # Leave a one-space border on the right.
-        width = pln.terminal.get_width() - 1 
-        print_docs(docsrc, objdoc, path, Printer(indent=" ", width=width))
+    try:
+        if args.sdoc:
+            pln.json.pprint(sdoc)
+        elif args.json:
+            pln.json.pprint(objdoc)
+        else:
+            # Leave a one-space border on the right.
+            width = pln.terminal.get_width() - 1 
+            print_docs(docsrc, objdoc, path, Printer(indent=" ", width=width))
+    except BrokenPipeError:
+        # Eat this; probably the user killed the pager attached to stdout.
+        pass
 
 
 if __name__ == "__main__":
