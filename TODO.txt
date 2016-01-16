@@ -2,6 +2,8 @@ Inspection
 * avoid callign inspect.getsourcelines() for every object; it's expensive
 - callable flag separate from signature
 - read through method descriptor
+- if signature is missing for an extension type, try to parse it from the
+  first line of the docstring
 
 Doc support
 * Inherited tag.
@@ -25,6 +27,7 @@ Text UI
 - distinguish builtin modules / contents from normal ones
 - distinguish standard library modules / contents from other ones
 - show/hide protected or private names
+- show/hide imports
 - command line --help
 - clean up styles
 - add a help() replacement
