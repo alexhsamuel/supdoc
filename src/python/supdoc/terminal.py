@@ -160,13 +160,14 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     """
     pr = printer  # For brevity.
 
-    from_path = lookup_path or get_path(objdoc)
+    from_path   = lookup_path or get_path(objdoc)
     while is_ref(objdoc):
         path = parse_ref(objdoc)
         pr << format_path(from_path) << IMPORT_ARROW << NL
         objdoc = docsrc.resolve(objdoc)
         from_path = path
 
+    path            = get_path(objdoc) or lookup_path
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")
     mangled_name    = objdoc.get("mangled_name")
@@ -308,7 +309,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
             with pr(**STYLES["label"]):
                 pr << "{}: ".format(accessor_name)
             if accessor is not None:
-                _print_member(docsrc, accessor, None, None, pr)
+                _print_member(docsrc, accessor, None, pr)
             else:
                 pr << "none" << NL
         pr << NL 
@@ -354,27 +355,27 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
         header("Modules")
-        _print_members(docsrc, partition, name, pr, False)
+        _print_members(docsrc, partition, path, pr, False)
 
     partition = partitions.pop("types", {})
     if len(partition) > 0:
         header("Types" if type_name == "module" else "Member Types")
-        _print_members(docsrc, partition, name, pr, False)
+        _print_members(docsrc, partition, path, pr, False)
 
     partition = partitions.pop("properties", {})
     if len(partition) > 0:
         header("Properties")
-        _print_members(docsrc, partition, name, pr, True)
+        _print_members(docsrc, partition, path, pr, True)
 
     partition = partitions.pop("functions", {})
     if len(partition) > 0:
         header("Functions" if type_name == "module" else "Methods")
-        _print_members(docsrc, partition, name, pr, True)
+        _print_members(docsrc, partition, path, pr, True)
 
     partition = partitions.pop("attributes", {})
     if len(partition) > 0:
         header("Attributes")
-        _print_members(docsrc, partition, name, pr, True)
+        _print_members(docsrc, partition, path, pr, True)
 
     assert len(partitions) == 0
 
@@ -414,7 +415,15 @@ def repr_is_uninteresting(objdoc):
 
 
 # FIXME: WTF is this signature anyway?
-def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
+def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
+    if lookup_path is None:
+        lookup_name     = None
+        parent_name     = None
+    else:
+        lookup_parts    = lookup_path.qualname.split(".")
+        lookup_name     = lookup_parts[-1]
+        parent_name     = None if len(lookup_parts) == 1 else lookup_parts[-2] 
+
     if is_ref(objdoc):
         # Find the full name from which this was imported.
         import_path = get_path(objdoc)
@@ -457,7 +466,8 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
     _print_signature(docsrc, objdoc, pr)
     # FIXME: Common code with print_docs().
     if import_path is not None:
-        pr << IMPORT_ARROW << format_path(import_path, modname=modname)
+        pr << IMPORT_ARROW << format_path(
+            import_path, modname=lookup_path.modname)
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
@@ -501,11 +511,12 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
             pr << NL
 
 
-def _print_members(docsrc, dict, parent_name, pr, show_type=True):
-    for lookup_name in sorted(dict):
-        objdoc = dict[lookup_name]
+def _print_members(docsrc, dict, parent_path, pr, show_type=True):
+    for name in sorted(dict):
+        objdoc = dict[name]
         pr << BULLET
-        _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type)
+        lookup_path = parent_path / name
+        _print_member(docsrc, objdoc, lookup_path, pr, show_type)
     pr << NL
 
 

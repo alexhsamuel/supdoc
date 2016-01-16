@@ -105,6 +105,30 @@ def is_standard_library(module):
 
 #-------------------------------------------------------------------------------
 
+_CODE_TYPES = {
+    "builtin_function_or_method",
+    "classmethod",
+    "classmethod_descriptor",
+    "function",
+    "method_descriptor",
+    "module",
+    "property",
+    "staticmethod",
+    "type",
+    "wrapper_descriptor",
+}
+
+def has_code(obj):
+    """
+    Returns true iff `obj` is associated with code.
+
+    An object with code lives in a module and may have a docstring.
+    """
+    # FIXME: This is probably not the best way to do it.
+    typ = type(obj)
+    return typ.__module__ == "builtins" and typ.__name__ in _CODE_TYPES
+
+
 def is_mangled(obj):
     """
     Returns true if `obj` has a mangled private name.
@@ -259,7 +283,7 @@ class Inspector:
         objdoc = {}
 
         if Path.of(type(obj)) is not None:
-            objdoc["type"] = self._inspect_ref(type(obj), with_type=False)
+            objdoc["type"] = self._inspect_ref(type(obj))
         objdoc["type_name"] = type(obj).__name__
         try:
             obj_repr = repr(obj)
@@ -285,10 +309,7 @@ class Inspector:
         # Everything that actually is in a module, i.e. is code, such as as 
         # class or function, is an instance of a builtin type.  Anything else
         # that reports a __modname__ is probably getting it from its own type.
-        modname = (
-                 None if type(obj).__module__ != "builtins"
-            else getattr(obj, "__module__", None)
-        )
+        modname = getattr(obj, "__module__", None) if has_code(obj) else None
         if modname is not None:
             # Convert the module name into a ref.
             objdoc["module"] = make_ref(Path(modname, None))
@@ -303,20 +324,16 @@ class Inspector:
             names = sorted( n for n in dict if n not in INTERNAL_NAMES )
             for attr_name in names:
                 attr_value = dict[attr_name]
-                if lookup_path is None:
-                    attr_path = None
-                else:
-                    attr_path = Path(
-                        lookup_path.modname, 
-                        attr_name if lookup_path.qualname is None 
-                            else lookup_path.qualname + '.' + attr_name)
+                attr_path = (
+                         None if lookup_path is None 
+                    else lookup_path / attr_name
+                )
 
                 # Inspect the value, unless it's a module, in which case just
                 # put in a ref.
                 # FIXME: Should _inspect() always return a ref for a module?
                 dict_jso[attr_name] = (
-                    # self._inspect_ref(attr_value)
-                    make_ref(Path.of(attr_value))
+                    self._inspect_ref(attr_value)
                     if isinstance(attr_value, types.ModuleType)
                     else self._inspect(attr_value, attr_path)
                 )
@@ -331,18 +348,14 @@ class Inspector:
         except AttributeError:
             pass
         else:
-            objdoc["bases"] = [ 
-                self._inspect_ref(b, with_type=False) for b in bases 
-            ]
+            objdoc["bases"] = [ self._inspect_ref(b) for b in bases ]
 
         try:
             mro = obj.__mro__
         except AttributeError:
             pass
         else:
-            objdoc["mro"] = [ 
-                self._inspect_ref(c, with_type=False) for c in mro 
-            ]
+            objdoc["mro"] = [ self._inspect_ref(c) for c in mro ]
 
         # If this is callable, get its signature; however, skip types, as we 
         # get their __init__ signature.
@@ -381,7 +394,7 @@ class Inspector:
 
         # Get documentation, if it belongs to this object itself (not to the
         # object's type).
-        doc = getattr(obj, "__doc__", None)
+        doc = getattr(obj, "__doc__", None) if has_code(obj) else None
         if (    doc is not None 
             and isinstance(doc, str)
             and (isinstance(obj, type) 

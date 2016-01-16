@@ -88,6 +88,20 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
             return self.__class__(self.modname, mangled)
 
 
+    def __truediv__(self, name):
+        """
+        Returns a subpath of `self` for attribute `name`.
+
+          >>> path = Path("mymod", "foo.bar")
+          >>> path / "baz"
+          Path('mymod', 'foo.bar.baz')
+
+        """
+        return self.__class__(
+            self.modname,
+            name if self.qualname is None else self.qualname + "." + name)
+
+
 
 #-------------------------------------------------------------------------------
 
