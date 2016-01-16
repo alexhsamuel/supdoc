@@ -78,6 +78,9 @@ class Master:
         return class_(foo(x, y))
 
 
+    INSTANCE = Master(42)
+
+
 
 class Child(Master):
 

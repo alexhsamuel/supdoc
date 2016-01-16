@@ -11,6 +11,8 @@ import sys
 
 import pln.py
 
+from   .exc import *
+
 #-------------------------------------------------------------------------------
 
 class Path(collections.namedtuple("Path", ("modname", "qualname"))):
@@ -98,22 +100,35 @@ def import_(modname):
     @rtype
       `types.ModuleType`.
     @raise ImportError
-      The name could not be imported.
+      `modname` could not be found.
+    @raise ImportFailure
+      The import of `modname` failed.
     """
-    __import__(modname)
+    try:
+        __import__(modname)
+    except ImportError:
+        raise
+    except:
+        raise ImportFailure(modname)
     return sys.modules[modname]
 
 
-def getattr_qualname(name, obj):
+def getattr_qualname(qualname, obj):
     """
     Looks up a qualified name in (nested) attributes of `obj`.
 
-    Splits qualified `name` at dots, and successively looks up parts as 
-    attributes in `obj`.
+    Splits `qualname` at dots, and successively looks up parts as attributes in
+    `obj`.
+
+    @raise QualnameError
+      `qualname` could not be found in `obj`.
     """
     result = obj
-    for part in name.split("."):
-        result = getattr(result, part)
+    for part in qualname.split("."):
+        try:
+            result = getattr(result, part)
+        except AttributeError:
+            raise QualnameError(qualname)
     return result
 
 
@@ -124,8 +139,10 @@ def get_obj(path):
     Imports the modname of `path`, if necessary.
 
     @raise ImportError
+      The specified module could not be found.
+    @raise ImportFailure
       The specified module could not be imported.
-    @raise AttributeError
+    @raise QualnameError
       The specified qualname could not be found.
     """
     module = import_(path.modname)
@@ -199,7 +216,7 @@ def split(name):
 
     @return
       A `Path` object for the split name, and the object itself.
-    @raise NameError
+    @raise FullNameError
       `name` could not be resolved.
     """
     if ":" in name:
@@ -212,7 +229,7 @@ def split(name):
         try:
             obj = get_obj(path)
         except:
-            raise NameError("can't find {} in {}".format(qualname, modname))
+            raise FullNameError("can't find {} in {}".format(qualname, modname))
 
     else:
         parts = name.split(".")
@@ -223,7 +240,7 @@ def split(name):
                 None if i == len(parts) else ".".join(parts[i :]))
             try:
                 obj = get_obj(path)
-            except (ImportError, AttributeError):
+            except (ImportError, QualnameError):
                 continue
             else:
                 break
@@ -231,8 +248,8 @@ def split(name):
             # Also try in builtins.
             try:
                 obj = getattr_qualname(name, builtins)
-            except AttributeError:
-                raise NameError("can't find {}".format(name))
+            except QualnameError:
+                raise FullNameError("can't find {}".format(name)) from None
             else:
                 path = Path("builtins", name)
 

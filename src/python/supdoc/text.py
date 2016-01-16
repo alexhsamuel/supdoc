@@ -5,6 +5,7 @@ import json
 import re
 import shutil
 import sys
+import traceback
 
 from   pln import if_none, or_none
 import pln.itr
@@ -13,6 +14,7 @@ from   pln.terminal import ansi
 from   pln.terminal.printer import Printer, NL
 
 from   . import inspector
+from   .exc import *
 from   .objdoc import *
 from   .path import *
 
@@ -182,6 +184,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
         else None
     )
 
+    type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
     callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
@@ -217,6 +220,13 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     # Show the module name.
     if type_name != "module" and modname is not None:
         pr << "in module " << format_path(Path(modname, None)) << NL
+
+    if type is not None:
+        with pr(**STYLES["label"]):
+            pr << "type: "
+        with pr(**STYLES["type_name"]):
+            pr << format_path(get_path(type))
+        pr << NL
 
     pr << NL
 
@@ -533,8 +543,16 @@ def _main():
     # Find the requested object.
     try:
         path, obj = split(args.name)
-    except NameError as error:
-        print("bad NAME: {}".format(error), file=sys.stderr)
+    except FullNameError as error:
+        print("can't find name: {}".format(args.name), file=sys.stderr)
+        raise SystemExit(1)
+    except ImportFailure as error:
+        print(
+            "error importing module: {}:".format(error.modname),
+            file=sys.stderr)
+        cause = error.__context__
+        traceback.print_exception(
+            type(cause), cause, cause.__traceback__, file=sys.stderr)
         raise SystemExit(1)
 
     if args.path is None:
