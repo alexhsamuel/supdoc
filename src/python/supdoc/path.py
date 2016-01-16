@@ -180,7 +180,7 @@ def is_imposter(obj):
         try:
             # Check whether the path refers back to the right object.
             return get_obj(path) is not obj
-        except (ImportError, AttributeError):
+        except (ImportError, QualnameError):
             # Can't get the path that obj reports.
             return True
 
