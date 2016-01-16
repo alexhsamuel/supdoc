@@ -548,7 +548,7 @@ def _main():
         raise SystemExit(1)
     except ImportFailure as error:
         print(
-            "error importing module: {}:".format(error.modname),
+            "error importing module: {}:\n".format(error.modname),
             file=sys.stderr)
         cause = error.__context__
         traceback.print_exception(
