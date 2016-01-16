@@ -396,8 +396,13 @@ _PARTITIONS = {
 def _partition_members(dict):
     partitions = {}
     for name, objdoc in dict.items():
-        type_path = ".".join(get_path(objdoc["type"]))
-        partition_name = _PARTITIONS.get(str(type_path), "attributes")
+        type = objdoc.get("type")
+        if type is None:
+            # Missing type...?
+            partition_name = "attributes"
+        else:
+            type_path = ".".join(get_path(objdoc["type"]))
+            partition_name = _PARTITIONS.get(str(type_path), "attributes")
         partitions.setdefault(partition_name, {})[name] = objdoc
     return partitions
         
