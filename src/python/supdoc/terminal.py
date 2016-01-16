@@ -444,12 +444,10 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
     # Show the repr if this is not a callable or one of several other
     # types with uninteresting reprs.
     show_repr = (
-        repr is not None 
+            repr is not None 
         and signature is None 
         and type_name not in ("module", "property", "type", )
     )
-    long_repr = show_repr and (
-        len(repr) > pr.width - pr.column - len(type_name) - 8)
 
     with pr(**STYLES["identifier"]):
         pr << unmangled_name
@@ -468,11 +466,6 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
             pr << " \u224b "  # FIXME: Something better?
             with pr(**STYLES["identifier"]):
                 pr << lookup_name 
-
-    # For less common types, show the repr.
-    if show_repr and not long_repr and not is_function_like(objdoc):
-        with pr(**STYLES["repr"]):
-            pr << " = " << repr
 
     right = ""
     # For properties, show which get/set/del operations are available.
@@ -494,7 +487,7 @@ def _print_member(docsrc, objdoc, lookup_name, parent_name, pr, show_type=True):
     pr << NL
 
     with pr(indent="   "):
-        if long_repr:
+        if show_repr:
             with pr(**STYLES["repr"]):
                 pr.elide("= " + repr)
             pr << NL
