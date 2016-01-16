@@ -572,7 +572,7 @@ def _main():
 
     try:
         objdoc = docsrc.get(path)
-    except LookupError as error:
+    except QualnameError as error:
         # FIXME
         print(error, file=sys.stderr)
         raise SystemExit(1)

@@ -63,6 +63,9 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
             qualname = obj.__qualname__
         except AttributeError:
             pass
+        except KeyError:
+            # Some classes with __getattr__() rudely raise KeyError!
+            pass
         else:
             if modname is not None:
                 return class_(modname, qualname)

@@ -294,14 +294,14 @@ class Inspector:
 
         try:
             name = obj.__name__
-        except AttributeError:
+        except (AttributeError, KeyError):
             pass
         else:
             objdoc["name"] = name
 
         try:
             qualname = obj.__qualname__
-        except AttributeError:
+        except (AttributeError, KeyError):
             pass
         else:
             objdoc["qualname"] = qualname
@@ -345,14 +345,14 @@ class Inspector:
 
         try:
             bases = obj.__bases__
-        except AttributeError:
+        except (AttributeError, KeyError):
             pass
         else:
             objdoc["bases"] = [ self._inspect_ref(b) for b in bases ]
 
         try:
             mro = obj.__mro__
-        except AttributeError:
+        except (AttributeError, KeyError):
             pass
         else:
             objdoc["mro"] = [ self._inspect_ref(c) for c in mro ]
@@ -378,7 +378,7 @@ class Inspector:
         # underlying function.
         try:
             func = obj.__func__
-        except AttributeError:
+        except (AttributeError, KeyError):
             pass
         else:
             objdoc["func"] = self._inspect(func, lookup_path)
@@ -510,6 +510,9 @@ class DocSource:
     def get(self, path):
         """
         Returns an objdoc for the object at `path`.
+
+        @raise QualnameError
+          The qualname of `path` could not be found in the module objdoc.
         """
         objdoc = self.inspect_module(path.modname)
         if path.qualname is not None:
@@ -519,7 +522,7 @@ class DocSource:
                     objdoc = objdoc["dict"][parts[i]]
                 except KeyError:
                     missing_name = ".".join(parts[: i + 1])
-                    raise LookupError("no such name: {}".format(missing_name))
+                    raise QualnameError("no such name: {}".format(missing_name))
 
         return objdoc
 
