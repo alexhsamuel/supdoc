@@ -38,6 +38,10 @@ class Master:
         Master.__total_value += value
 
 
+    def __repr__(self):
+        return "{}(value={})".format(self.__class__.__name__, self.__value)
+
+
     @property
     def value(self):
         """
@@ -78,8 +82,8 @@ class Master:
         return class_(foo(x, y))
 
 
-    INSTANCE = Master(42)
 
+Master.INSTANCE = Master(42)
 
 
 class Child(Master):
