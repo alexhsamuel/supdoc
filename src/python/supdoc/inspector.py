@@ -321,16 +321,14 @@ class Inspector:
         except AttributeError:
             pass
         else:
-            objdoc["bases"] = [ self._inspect(b, None) for b in bases ]
+            objdoc["bases"] = [ make_ref(Path.of(b)) for b in bases ]
 
         try:
             mro = obj.__mro__
         except AttributeError:
             pass
         else:
-            objdoc["mro"] = [
-                self._inspect(c, None) for c in mro if c is not obj
-            ]
+            objdoc["mro"] = [ make_ref(Path.of(c)) for c in mro ]
 
         # If this is callable, get its signature; however, skip types, as we 
         # get their __init__ signature.
