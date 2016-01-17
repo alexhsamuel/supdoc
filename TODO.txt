@@ -35,8 +35,10 @@ Text UI
 - inherited members?
 - Style class in pln.terminal.ansi
 ! help for an **object**!
+- consider using https://pypi.python.org/pypi/blessings/
 - clear screen, then restore full screen on exit?
 - wire it up to less or $PAGER automatically
+- test colorama on Windows
 
 UI
 * Object display based on doc components, rather than on type.
