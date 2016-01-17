@@ -17,6 +17,22 @@ from   . import support
 #-------------------------------------------------------------------------------
 
 def foo(x, y=0):
+    """
+    Computes the canonical _foo number_ of `x` and `y`.
+
+    The _foo number_ is defined as:
+
+      foo(x, y) = x^2 e^y
+
+    @type x
+      Converted to `int`.
+    @type y
+      Converted to `int`.
+    @return
+      The canonical _foo number_ of `x` and `y`.
+    @rtype
+      `float`.
+    """
     x = int(x)
     y = int(y)
     logging.debug("invoking foo({}, {})".format(x, y))

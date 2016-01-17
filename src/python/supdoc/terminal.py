@@ -314,8 +314,8 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
                 pr << "none" << NL
         pr << NL 
 
-    # Summarize parameters.
     if signature is not None and len(signature) > 0:
+        # Summarize parameters.
         header("Parameters")
         for param in signature["params"]:
             name        = param["name"]
@@ -341,7 +341,24 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
 
             pr << NL
                 
-    # FIXME: Summarize return value and raises.
+        # Show the return type type and documentation.
+        return_ = signature.get("return")
+        if return_ is not None:
+            doc         = return_.get("doc")
+            doc_type    = return_.get("doc_type")
+
+            header("Return Value")
+
+            if doc is not None:
+                pr << MEMBER_OF << " "
+                with pr(**STYLES["type_name"]):
+                    pr.html(doc_type) << NL
+
+            if doc is not None:
+                with pr(**STYLES["docs"]):
+                    pr.html(doc) << NL
+
+            pr << NL
 
     # Show the repr.
     if repr is not None and not repr_is_uninteresting(objdoc):

@@ -69,10 +69,11 @@ def find_javadoc(lines):
         else:
             doc_lines.append(line)
     if tag is not None:
+        # Finish the last tag.
         javadoc.append(dict(
             tag =tag, 
             arg =arg, 
-            text=" ".join(text)
+            text=parse_formatting(" ".join(text))
         ))
     
     return doc_lines, javadoc
@@ -99,7 +100,6 @@ def parse_formatting(text):
     # text = BOLD_REGEX.sub(r'<b>\1</b>', text)
 
     return text
-
 
 
 def parse_doc(source):
@@ -183,6 +183,8 @@ def attach_epydoc_to_signature(doc):
 
     for entry in javadoc:
         tag = entry["tag"]
+
+        # Attach parameter annotations: @param and @type.
         if tag in {"param", "type"}:
             name = entry["arg"]
             try:
@@ -191,7 +193,15 @@ def attach_epydoc_to_signature(doc):
                 markup_error(
                     "no matching parameter for @{} {}".format(tag, name))
             else:
-                param["doc" if tag == "param" else "doc_type"] = entry["text"]
+                key = "doc" if tag == "param" else "doc_type"
+                param[key] = entry["text"]
+
+        # Attach return type annotations: @return and @rtype.
+        if tag in {"return", "rtype"}:
+            ret = signature.setdefault("return", {})
+            key = "doc" if tag == "return" else "doc_type"
+            # If an annotation was given more than once, we use the last.
+            ret[key] = entry["text"]
 
 
 #-------------------------------------------------------------------------------

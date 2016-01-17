@@ -22,7 +22,7 @@ Markup
 Text UI
 - distinguish method, staticmethod, classmethod from functions
   - handle or change the "func" field
-- show return type annotation and javadoc
+- show return type annotation (from signature, not javadoc)
 - distinguish extension types / functions / modules
 - distinguish builtin modules / contents from normal ones
 - distinguish standard library modules / contents from other ones
