@@ -35,6 +35,7 @@ Text UI
 - inherited members?
 - Style class in pln.terminal.ansi
 ! help for an **object**!
+- clear screen, then restore full screen on exit?
 
 UI
 * Object display based on doc components, rather than on type.
