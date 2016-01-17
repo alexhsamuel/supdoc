@@ -36,6 +36,7 @@ Text UI
 - Style class in pln.terminal.ansi
 ! help for an **object**!
 - clear screen, then restore full screen on exit?
+- wire it up to less or $PAGER automatically
 
 UI
 * Object display based on doc components, rather than on type.
