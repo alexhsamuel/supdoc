@@ -84,8 +84,13 @@ def find_javadoc(lines):
 DOUBLE_BACKTICK_REGEX   = re.compile(r"``(.+?)``")
 SINGLE_BACKTICK_REGEX   = re.compile(r"`(.+?)`")
 
-ITALIC_REGEX            = re.compile(r"_(.+?)_")
-BOLD_REGEX              = re.compile(r"\*(.+?)\*")
+# For underscore-delimited text, require a space before the opening underscore
+# but no space after it, vice versa for the closing underscore.  Also limit the
+# length of the enclosed text.
+UNDERSCORE_REGEX        = re.compile(r"(\s)_([^\s].{,128}[^\s])_(\s)")
+# Likewise for single- and double-asterisk.
+DOUBLE_ASTERISK_REGEX   = re.compile(r"(\s)\*\*([^\s].{,128}[^\s])\*\*(\s)")
+ASTERISK_REGEX          = re.compile(r"(\s)\*([^\s].{,128}[^\s])\*(\s)")
 
 def parse_formatting(text):
     # Look for ``-delimited strings.
@@ -95,9 +100,9 @@ def parse_formatting(text):
 
     # text = markdown.markdown(text, output_format="html5")
 
-    # FIXME: These are too lenient.
-    # text = ITALIC_REGEX.sub(r'<i>\1</i>', text)
-    # text = BOLD_REGEX.sub(r'<b>\1</b>', text)
+    text = UNDERSCORE_REGEX.sub(r'\1<i>\2</i>\3', text)
+    text = DOUBLE_ASTERISK_REGEX.sub(r'\1<b>\2</b>\3', text)
+    text = ASTERISK_REGEX.sub(r'\1<i>\2</i>\3', text)
 
     return text
 
