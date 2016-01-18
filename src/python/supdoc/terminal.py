@@ -73,6 +73,56 @@ def unmangle(name, parent_name):
         return name
 
 
+_NICE_TYPE_NAMES = {
+    Path("builtins", "builtin_function_or_method")  : "extension function",
+    Path("builtins", "classmethod")                 : "class method",
+    Path("builtins", "getset_descriptor")           : "extension property",
+    Path("builtins", "method_descriptor")           : "extention method",
+    Path("builtins", "wrapper_descriptor")          : "special method",
+    Path("builtins", "staticmethod")                : "static method",
+}
+
+
+def format_nice_type_name(objdoc):
+    """
+    Returns a human-friendly type name for `objdoc`.
+    """
+    try:
+        type_ = objdoc["type"]
+    except KeyError:
+        return None
+    path = get_path(type_)
+
+    # Special handling for properties.
+    if path == Path("builtins", "property"):
+        tags = []
+        if objdoc.get("get") is not None:
+            tags.append("get")
+        if objdoc.get("set") is not None:
+            tags.append("set")
+        if objdoc.get("del") is not None:
+            tags.append("del")
+        result = "/".join(tags) + " property"
+
+    # Special handling for functions.
+    elif path == Path("builtins", "function"):
+        if objdoc.get("name") == "<lambda>":
+            result = "lambda function"
+        else:
+            result = "function"
+
+    else:
+        try:
+            result = _NICE_TYPE_NAMES[path]
+        except KeyError:
+            # FIXME: Use format_path().
+            result = (
+                  "instance of " 
+                + ansi.style(**STYLES["identifier"])(path))
+
+    return ansi.style(**STYLES["type_name"])(result)
+
+
 #-------------------------------------------------------------------------------
 
 def _format_parameters(parameters):
@@ -462,6 +512,7 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
     modname         = None if module is None else parse_ref(module)[0]
     unmangled_name  = if_none(unmangle(lookup_name, parent_name), name)
     type_name       = objdoc.get("type_name")
+    type_           = objdoc.get("type")
     repr            = objdoc.get("repr")
     callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
@@ -492,23 +543,10 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
             with pr(**STYLES["identifier"]):
                 pr << lookup_name 
 
-    right = ""
-    # For properties, show which get/set/del operations are available.
-    if type_name == "property":
-        tags = []
-        if objdoc.get("get") is not None:
-            tags.append("get")
-        if objdoc.get("set") is not None:
-            tags.append("set")
-        if objdoc.get("del") is not None:
-            tags.append("del")
-        right += "/".join(tags) + " "
-
-    # Show the type.
-    if show_type and type_name is not None:
-        right += ansi.style(**STYLES["type_name"])(type_name)
-    if right:
-        pr >> right
+    if show_type:
+        nice_type = format_nice_type_name(objdoc)
+        if nice_type is not None:
+            pr >> nice_type
     pr << NL
 
     with pr(indent="   "):

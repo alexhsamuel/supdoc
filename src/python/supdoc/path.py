@@ -80,6 +80,14 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
         )
 
 
+    @property
+    def name(self):
+        """
+        The unqualified name (the last part of the qualified name).
+        """
+        return self.qualname.rsplit(".", 1)[-1]
+
+
     def mangle(self):
         if self.qualname is None:
             raise ValueError("no qualname")

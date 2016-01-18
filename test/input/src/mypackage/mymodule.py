@@ -39,6 +39,8 @@ def foo(x, y=0):
     return support.foo(x, y)
 
 
+bar = lambda x, y: 2 * x + y
+
 #-------------------------------------------------------------------------------
 
 class Master:
