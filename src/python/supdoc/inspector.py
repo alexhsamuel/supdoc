@@ -284,6 +284,7 @@ class Inspector:
 
         if Path.of(type(obj)) is not None:
             objdoc["type"] = self._inspect_ref(type(obj))
+        # FIXME: Get rid of this; we shouldn't need it.
         objdoc["type_name"] = type(obj).__name__
         try:
             obj_repr = repr(obj)
