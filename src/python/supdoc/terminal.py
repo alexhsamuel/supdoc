@@ -75,6 +75,7 @@ def unmangle(name, parent_name):
 
 #-------------------------------------------------------------------------------
 
+# FIXME: No good; can't restore style.  Go back to _print_parameters().
 def _format_parameters(parameters):
     star = False
     for param in parameters.values():
