@@ -397,6 +397,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     assert len(partitions) == 0
 
 
+# FIXME: Use paths.
 _PARTITIONS = {
     "builtins.builtin_function_or_method"   : "functions",
     "builtins.classmethod"                  : "functions",
