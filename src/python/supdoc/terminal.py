@@ -127,6 +127,7 @@ def _print_name(qualname, name, pr):
         pr << ansi.style(**STYLES["warning"])("(unnamed object)")
 
 
+# FIXME: Can't restore previous style.  Replace with print_path(). 
 def format_path(path, *, modname=None):
     """
     Prints a fully-qualified path.
