@@ -530,8 +530,6 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
     with pr(**STYLES["identifier"]):
         pr << unmangled_name
 
-    # FIXME: Distinguish normal / static / class methods from functions.
-
     _print_signature(docsrc, objdoc, pr)
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
