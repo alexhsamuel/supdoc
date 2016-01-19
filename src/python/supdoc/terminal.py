@@ -202,8 +202,45 @@ def format_path(path, *, modname=None):
     return ansi.style(**STYLES["identifier"])(result)
 
 
+def get_dict(objdoc, private):
+    """
+    @param private
+      If true, include all names; otherwise, exclude private names.
+    """
+    dict = objdoc.get("dict")
+    if dict is None:
+        return None
+
+    if not private:
+        # Remove private members.
+        if objdoc.get("type_name") == "module":
+            # Was the set of all public names specified explicitly?
+            try:
+                all_names = objdoc["all_names"]
+            except KeyError:
+                # If not, remove names that start with an underscore.
+                dict = { 
+                    n: v for n, v in dict.items() if not n.startswith("_")
+                }
+            else:
+                # If so, filter by it.
+                dict = { 
+                    n: v for n, v in dict.items() if n in all_names 
+                }
+        else:
+            # For other things, remove private but not special names.
+            dict = { 
+                n: v for n, v in dict.items() 
+                if not n.startswith("_")
+                   or (n.startswith("__") and n.endswith("__"))
+            }
+    
+    return dict
+
+
 # FIXME: Break this function up.
-def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
+def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer(), 
+               private=True):
     """
     @param lookup_path
       The path under which this objdoc was found.
@@ -242,7 +279,6 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     source          = objdoc.get("source")
     repr            = objdoc.get("repr")
     docs            = objdoc.get("docs")
-    dict            = objdoc.get("dict")
 
     def header(header):
         with pr(**STYLES["header"]):
@@ -417,7 +453,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
             pr << repr << NL << NL
 
     # Summarize contents.
-    partitions = _partition_members(dict or {})
+    partitions = _partition_members(get_dict(objdoc, private) or {})
 
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
@@ -593,6 +629,9 @@ def _main():
         "--path", metavar="FILE", default=None,
         help="read JSON docs from FILE")
     parser.add_argument(
+        "--private", default=False, action="store_true",
+        help="show private module/class members")
+    parser.add_argument(
         "--source", dest="source", default=False, action="store_true",
         help="include source")
     parser.add_argument(
@@ -639,7 +678,9 @@ def _main():
         else:
             # Leave a one-space border on the right.
             width = pln.terminal.get_width() - 1 
-            print_docs(docsrc, objdoc, path, Printer(indent=" ", width=width))
+            print_docs(
+                docsrc, objdoc, path, Printer(indent=" ", width=width),
+                private=args.private)
     except BrokenPipeError:
         # Eat this; probably the user killed the pager attached to stdout.
         pass
