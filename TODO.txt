@@ -24,7 +24,6 @@ Text UI
 - distinguish extension types / functions / modules
 - distinguish builtin modules / contents from normal ones
 - distinguish standard library modules / contents from other ones
-- show/hide protected or private names
 - show/hide imports
 - command line --help
 - clean up styles
