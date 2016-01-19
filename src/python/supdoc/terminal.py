@@ -264,10 +264,10 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer()):
     rule()
 
     # Show its type.
-    if type is not None:
-        pr << "Instance of "
+    nice_type_name = format_nice_type_name(objdoc, lookup_path)
+    if nice_type_name is not None:
         with pr(**STYLES["type_name"]):
-            pr << format_path(get_path(type)) << " "
+            pr << nice_type_name << " "
     # Show the module name.
     if type_name != "module" and module is not None:
         pr << "in module " 
