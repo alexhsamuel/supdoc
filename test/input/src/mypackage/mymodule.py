@@ -100,6 +100,9 @@ class Master:
         return class_(foo(x, y))
 
 
+    UTILITY = support.Utility()
+
+
 
 Master.INSTANCE = Master(42)
 

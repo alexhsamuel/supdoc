@@ -83,7 +83,7 @@ _NICE_TYPE_NAMES = {
 }
 
 
-def format_nice_type_name(objdoc):
+def format_nice_type_name(objdoc, lookup_path):
     """
     Returns a human-friendly type name for `objdoc`.
     """
@@ -115,10 +115,9 @@ def format_nice_type_name(objdoc):
         try:
             result = _NICE_TYPE_NAMES[path]
         except KeyError:
-            # FIXME: Use format_path().
             result = (
                   "instance of " 
-                + ansi.style(**STYLES["identifier"])(path))
+                + format_path(path, modname=lookup_path.modname))
 
     return ansi.style(**STYLES["type_name"])(result)
 
@@ -544,7 +543,7 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
                 pr << lookup_name 
 
     if show_type:
-        nice_type = format_nice_type_name(objdoc)
+        nice_type = format_nice_type_name(objdoc, lookup_path)
         if nice_type is not None:
             pr >> nice_type
     pr << NL
