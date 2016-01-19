@@ -286,12 +286,17 @@ class Inspector:
             objdoc["type"] = self._inspect_ref(type(obj))
         # FIXME: Get rid of this; we shouldn't need it.
         objdoc["type_name"] = type(obj).__name__
-        try:
-            obj_repr = repr(obj)
-        except Exception:
-            LOG.warning("failed to get repr: {}".format(traceback.format_exc()))
-        else:
-            objdoc["repr"] = obj_repr[: MAX_REPR_LENGTH]
+
+        # Add the repr, unless it's the default repr.
+        is_default_repr = type(obj).__repr__ is object.__repr__
+        if not is_default_repr:
+            try:
+                obj_repr = repr(obj)
+            except Exception:
+                LOG.warning(
+                    "failed to get repr: {}".format(traceback.format_exc()))
+            else:
+                objdoc["repr"] = obj_repr[: MAX_REPR_LENGTH]
 
         try:
             name = obj.__name__
