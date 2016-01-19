@@ -85,12 +85,17 @@ def is_function_like(objdoc):
     """
     Returns true if `objdoc` is for a function or similar object.
     """
-    return (
-        objdoc.get("callable") 
-        and objdoc.get("type_name") not in (
-            "type", 
-        )
-    )
+    try:
+        func = objdoc["func"]
+    except KeyError:
+        return (
+            objdoc.get("callable") 
+            and objdoc.get("type_name") not in (
+                "type", 
+            )
+        ) 
+    else:
+        return is_function_like(func)
 
 
 def get_signature(objdoc):
