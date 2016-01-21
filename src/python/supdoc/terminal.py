@@ -38,7 +38,7 @@ STYLES = {
     "source"            : {"fg": "#222845", },
     "summary"           : {"fg": "black", },
     "type_name"         : {"fg": 23, },
-    "warning"           : {"fg": 130, },
+    "warning"           : {"fg": 0x7c, },
 }
 
 BULLET              = ansi.fg(89)("\u203a") + " "
@@ -204,7 +204,7 @@ def format_path(path, *, modname=None):
 def get_dict(objdoc, private):
     """
     @param private
-      If true, include all names; otherwise, exclude private names.
+      If true, includes all names; otherwise, excludes private names.
     """
     dict = objdoc.get("dict")
     if dict is None:
@@ -239,10 +239,14 @@ def get_dict(objdoc, private):
 
 # FIXME: Break this function up.
 def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer(), 
-               private=True):
+               private=True, imports=True):
     """
     @param lookup_path
       The path under which this objdoc was found.
+    @param private
+      If true, shows all names in `dict`; otherwise, excludes private names.
+    @param imports
+      If true, shows imported names in modules; otherwise, excludes them.
     """
     pr = printer  # For brevity.
 
@@ -457,22 +461,22 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer(),
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
         header("Modules")
-        _print_members(docsrc, partition, path, pr, False)
+        _print_members(docsrc, partition, path, pr, False, imports=imports)
 
     partition = partitions.pop("types", {})
     if len(partition) > 0:
         header("Types" if type_name == "module" else "Member Types")
-        _print_members(docsrc, partition, path, pr, False)
+        _print_members(docsrc, partition, path, pr, False, imports=imports)
 
     partition = partitions.pop("properties", {})
     if len(partition) > 0:
         header("Properties")
-        _print_members(docsrc, partition, path, pr, True)
+        _print_members(docsrc, partition, path, pr, True, imports=imports)
 
     partition = partitions.pop("functions", {})
     if len(partition) > 0:
         header("Functions" if type_name == "module" else "Methods")
-        _print_members(docsrc, partition, path, pr, True)
+        _print_members(docsrc, partition, path, pr, True, imports=imports)
 
     partition = partitions.pop("attributes", {})
     if len(partition) > 0:
@@ -480,6 +484,15 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer(),
         _print_members(docsrc, partition, path, pr, True)
 
     assert len(partitions) == 0
+    if not private or not imports:
+        omitted = []
+        if not imports:
+            omitted.append("imported")
+        if not private:
+            omitted.append("private")
+        with pr(**STYLES["warning"]):
+            pr << " and ".join(omitted).capitalize() + " members omitted." << NL
+            pr << NL
 
 
 # FIXME: Use paths.
@@ -601,12 +614,13 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
             pr << NL
 
 
-def _print_members(docsrc, dict, parent_path, pr, show_type=True):
+def _print_members(docsrc, dict, parent_path, pr, show_type=True, imports=True):
     for name in sorted(dict):
         objdoc = dict[name]
-        pr << BULLET
-        lookup_path = parent_path / name
-        _print_member(docsrc, objdoc, lookup_path, pr, show_type)
+        if imports or not is_ref(objdoc):
+            pr << BULLET
+            lookup_path = parent_path / name
+            _print_member(docsrc, objdoc, lookup_path, pr, show_type)
     pr << NL
 
 

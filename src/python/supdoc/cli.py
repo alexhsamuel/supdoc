@@ -34,6 +34,12 @@ def _main():
         "name", metavar="NAME",
         help="fully-qualified module or object name")
     parser.add_argument(
+        "--imports", dest="imports", default=False, action="store_true",
+        help="show imported mambers")
+    parser.add_argument(
+        "--no-imports", dest="imports", action="store_false",
+        help="don't show imported members")
+    parser.add_argument(
         "--objdoc", default=False, action="store_true",
         help="dump object documentation as JSON")
     parser.add_argument(
@@ -94,7 +100,7 @@ def _main():
             width = pln.terminal.get_width() - 1 
             print_docs(
                 docsrc, objdoc, path, Printer(indent=" ", width=width),
-                private=args.private)
+                private=args.private, imports=args.imports)
     except BrokenPipeError:
         # Eat this; probably the user killed the pager attached to stdout.
         pass
