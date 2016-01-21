@@ -105,6 +105,10 @@ any or all omitted.
 - `dict`: The contents of the object's `__dict__`.  Note that this does not
   contain names from predecessors in the object's MRO.
 
+- `all_names`: An array of names of `dict` entries that make up the public
+  interface.  This is generally set for modules only, taken from the `__all__`
+  variable.
+
 - `signature`: For a callable object, the object's signature; see below.
 
 - `docs`: The object's documentation, generally extracted from its docstring; 
