@@ -34,8 +34,8 @@ def _main():
         "name", metavar="NAME",
         help="fully-qualified module or object name")
     parser.add_argument(
-        "--json", default=False, action="store_true",
-        help="dump JSON docs")
+        "--objdoc", default=False, action="store_true",
+        help="dump object documentation as JSON")
     parser.add_argument(
         "--sdoc", default=False, action="store_true",
         help="dump JSON sdoc")
@@ -87,7 +87,7 @@ def _main():
     try:
         if args.sdoc:
             pln.json.pprint(sdoc)
-        elif args.json:
+        elif args.objdoc:
             pln.json.pprint(objdoc)
         else:
             # Leave a one-space border on the right.
