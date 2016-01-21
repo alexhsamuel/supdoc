@@ -27,7 +27,7 @@ MAX_REPR_LENGTH = 65536
 
 # Identifiers that are implementation details.
 INTERNAL_NAMES = {
-    "__all__",  # FIXME: Indicate this somehow.
+    "__all__",
     "__builtins__",
     "__cached__",
     "__dict__",
@@ -319,6 +319,13 @@ class Inspector:
         if modname is not None:
             # Convert the module name into a ref.
             objdoc["module"] = make_ref(Path(modname, None))
+
+        try:
+            all_names = obj.__all__
+        except AttributeError:
+            pass
+        else:
+            objdoc["all_names"] = [ str(n) for n in all_names ]
 
         try:
             dict = obj.__dict__
