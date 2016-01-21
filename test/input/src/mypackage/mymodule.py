@@ -14,6 +14,8 @@ import sys
 import mypackage.support
 from   . import support
 
+__all__ = ("foo", "Master", "Child", )
+
 #-------------------------------------------------------------------------------
 
 def foo(x, y=0):
@@ -39,7 +41,7 @@ def foo(x, y=0):
     return support.foo(x, y)
 
 
-bar = lambda x, y: 2 * x + y
+_bar = lambda x, y: 2 * x + y
 
 #-------------------------------------------------------------------------------
 
