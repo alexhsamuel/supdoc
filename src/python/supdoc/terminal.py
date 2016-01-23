@@ -100,26 +100,17 @@ def format_nice_type_name(objdoc, lookup_path):
             tags.append("set")
         if objdoc.get("del") is not None:
             tags.append("del")
-        result = "/".join(tags) + " property"
+        return "/".join(tags) + " property"
 
     # Special handling for functions.
     elif path == Path("builtins", "function"):
         if objdoc.get("name") == "<lambda>":
-            result = "lambda function"
+            return "lambda function"
         else:
-            result = "function"
+            return "function"
 
     else:
-        try:
-            result = _NICE_TYPE_NAMES[path]
-        except KeyError:
-            lookup_modname = (
-                None if lookup_path is None else lookup_path.modname)
-            result = (
-                  "instance of " 
-                + format_path(path, modname=lookup_modname))
-
-    return ansi.style(**STYLES["type_name"])(result)
+        return _NICE_TYPE_NAMES.get(path, None)
 
 
 #-------------------------------------------------------------------------------
@@ -289,9 +280,11 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
         else lookup_path.modname if lookup_path is not None
         else None
     )
+    lookup_modname  = None if lookup_path is None else lookup_path.modname
 
     type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
+    type_path       = get_path(type)
     callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
     source          = objdoc.get("source")
@@ -318,16 +311,20 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
     rule()
 
     # Show its type.
+    instance_of = (
+        "instance of " + format_path(type_path, modname=lookup_modname))
     nice_type_name = format_nice_type_name(objdoc, lookup_path)
-    if nice_type_name is not None:
-        with pr(**STYLES["type_name"]):
-            pr << nice_type_name << " "
+    with pr(**STYLES["type_name"]):
+        if nice_type_name is None:
+            pr << instance_of
+        else:
+            pr << nice_type_name << " (" << instance_of << ")"
+        pr << NL
+
     # Show the module name.
     if type_name != "module" and module is not None:
         pr << "in module " 
         pr << format_path(Path(parse_ref(module)[0], None)) << NL
-    else:
-        pr << NL
 
     pr << NL
 
@@ -605,8 +602,11 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
 
     if show_type:
         nice_type = format_nice_type_name(objdoc, lookup_path)
-        if nice_type is not None:
+        if nice_type is None:
+            nice_type = ansi.bold(type_name)
+        with pr(**STYLES["type_name"]):
             pr >> nice_type
+
     pr << NL
 
     with pr(indent="   "):
