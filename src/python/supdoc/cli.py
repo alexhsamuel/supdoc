@@ -99,7 +99,7 @@ def _main():
             # Leave a one-space border on the right.
             width = pln.terminal.get_width() - 1 
             print_docs(
-                docsrc, objdoc, path, Printer(indent=" ", width=width),
+                docsrc, objdoc, path, 
                 private=args.private, imports=args.imports)
     except BrokenPipeError:
         # Eat this; probably the user killed the pager attached to stdout.

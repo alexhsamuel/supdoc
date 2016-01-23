@@ -4,7 +4,6 @@ import json
 import re
 import shutil
 import sys
-import traceback
 
 from   pln import if_none, or_none
 import pln.itr
@@ -239,9 +238,8 @@ def get_dict(objdoc, private):
     return dict
 
 
-# FIXME: Break this function up.
-def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer(), 
-               private=True, imports=True):
+def print_docs(docsrc, objdoc, lookup_path=None, *, 
+               private=True, imports=True, file=None, width=None):
     """
     @param lookup_path
       The path under which this objdoc was found.
@@ -250,6 +248,21 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer(),
     @param imports
       If true, shows imported names in modules; otherwise, excludes them.
     """
+    if file is None:
+        file = sys.stdout
+    if width is None:
+        # Substract one to leave a one-space border on the right.
+        width = pln.terminal.get_width() - 1
+
+    printer = Printer(file.write, indent=" ", width=width)
+    try:
+        _print_docs(docsrc, objdoc, lookup_path, printer, private, imports)
+    finally:
+        file.flush()
+
+
+# FIXME: Break this function up.
+def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
     pr = printer  # For brevity.
 
     from_path   = lookup_path or get_path(objdoc)
@@ -620,8 +633,8 @@ def _print_members(docsrc, dict, parent_path, pr, show_type=True, imports=True):
     for name in sorted(dict):
         objdoc = dict[name]
         if imports or not is_ref(objdoc):
-            pr << BULLET
             lookup_path = parent_path / name
+            pr << BULLET
             _print_member(docsrc, objdoc, lookup_path, pr, show_type)
     pr << NL
 

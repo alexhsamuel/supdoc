@@ -33,9 +33,7 @@ def supdoc(obj, *, json=False):
         _json.dump(objdoc, sys.stdout, indent=2)
         print()
     else:
-        width = pln.terminal.get_width() - 1 
-        printer = Printer(indent=" ", width=width)
-        terminal.print_docs(docsrc, objdoc, printer=printer)
+        terminal.print_docs(docsrc, objdoc)
 
 
 
