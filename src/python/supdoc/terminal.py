@@ -438,7 +438,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, printer=Printer(),
 
             header("Return Value")
 
-            if doc is not None:
+            if doc_type is not None:
                 pr << MEMBER_OF << " "
                 with pr(**STYLES["type_name"]):
                     pr.html(doc_type) << NL
