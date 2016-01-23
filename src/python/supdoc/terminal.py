@@ -114,9 +114,11 @@ def format_nice_type_name(objdoc, lookup_path):
         try:
             result = _NICE_TYPE_NAMES[path]
         except KeyError:
+            lookup_modname = (
+                None if lookup_path is None else lookup_path.modname)
             result = (
                   "instance of " 
-                + format_path(path, modname=lookup_path.modname))
+                + format_path(path, modname=lookup_modname))
 
     return ansi.style(**STYLES["type_name"])(result)
 
