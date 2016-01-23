@@ -20,6 +20,8 @@ Markup
 - Link Python library modules to docs.
 
 Text UI
+- don't hide imports in non-module objdocs
+- show number of private / imported members hidden
 - show return type annotation (from signature, not javadoc)
 - distinguish extension types / functions / modules
 - distinguish builtin modules / contents from normal ones
