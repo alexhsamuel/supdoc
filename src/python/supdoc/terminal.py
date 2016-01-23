@@ -633,7 +633,9 @@ def _print_members(docsrc, dict, parent_path, pr, show_type=True, imports=True):
     for name in sorted(dict):
         objdoc = dict[name]
         if imports or not is_ref(objdoc):
-            lookup_path = parent_path / name
+            # FIXME: Even if parent_path is None, we need to pass the local
+            # name, in case the object doesn't know its own name.
+            lookup_path = None if parent_path is None else parent_path / name
             pr << BULLET
             _print_member(docsrc, objdoc, lookup_path, pr, show_type)
     pr << NL
