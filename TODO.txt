@@ -26,6 +26,7 @@ Text UI
 - distinguish extension types / functions / modules
 - distinguish builtin modules / contents from normal ones
 - distinguish standard library modules / contents from other ones
+- show explicitly whether a parameter is positional, keyword, etc.
 - command line --help
 - clean up styles
 - add a help() replacement
