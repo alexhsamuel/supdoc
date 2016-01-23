@@ -1,6 +1,5 @@
 Inspection
 * avoid callign inspect.getsourcelines() for every object; it's expensive
-- read through method descriptor
 - if signature is missing for an extension type, try to parse it from the
   first line of the docstring
 
