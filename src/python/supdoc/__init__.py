@@ -18,7 +18,7 @@ def _get_docsrc():
     return inspector.DocSource()
 
 
-def supdoc(obj, *, json=False):
+def help(obj, *, json=False):
     """
     Prints documentation for `obj`.
 
