@@ -1,14 +1,15 @@
-import json as _json
 import sys
 
 from   . import inspector
 from   . import terminal
+import pln.json
 from   pln.memo import memoize
 import pln.terminal
 from   pln.terminal.printer import Printer
 
 __all__ = (
-    "supdoc", 
+    "dump_objdoc",
+    "help", 
     )
 
 #-------------------------------------------------------------------------------
@@ -18,22 +19,34 @@ def _get_docsrc():
     return inspector.DocSource()
 
 
-def help(obj, *, json=False):
+def dump_objdoc(obj):
     """
-    Prints documentation for `obj`.
-
-    Inspects `obj` for documentation and formats it for the terminal.  If 
-    `json` is true, dumps the JSON representation of the documentation instead.
+    Dumps JSON documentation extracted from `obj`.
     """
     docsrc = _get_docsrc()
     # FIXME: For shame.
     objdoc = docsrc._DocSource__inspector._inspect(obj)
 
-    if json:
-        _json.dump(objdoc, sys.stdout, indent=2)
-        print()
-    else:
-        terminal.print_docs(docsrc, objdoc)
+    pln.json.pprint(objdoc)
+    print()
 
+
+def help(obj, *, private=False, imports=False):
+    """
+    Prints documentation for `obj`.
+
+    Inspects `obj` for documentation and formats it for the terminal.  
+
+    @param private
+      If true, includes private/internal names.
+    @param imports
+      If true, includes imported names.
+    """
+    docsrc = _get_docsrc()
+    # FIXME: For shame.
+    objdoc = docsrc._DocSource__inspector._inspect(obj)
+
+    print()
+    terminal.print_docs(docsrc, objdoc, private=private, imports=imports)
 
 
