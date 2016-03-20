@@ -52,8 +52,9 @@ def get_path(objdoc):
     """
     Returns the path for an objdoc or ref.
 
-    For an objdoc, this is taken from its modname and qualname, assuming they
-    are present.  For a ref, it's parsed from the ref target.
+    For an objdoc, this is taken from its module and qualname, assuming they are
+    present, except for a module, where its simply the name.  For a ref, it's
+    parsed from the ref target.
 
     If `objdoc` doesn't have a module and qualname, returns `None`.
 
@@ -64,6 +65,8 @@ def get_path(objdoc):
     
     if is_ref(objdoc):
         return parse_ref(objdoc)
+    elif objdoc.get("type_name") == "module":
+        return Path(objdoc.get("name"), None)
     else:
         # FIXME: Should we store and use the name path, in place of qualname?
         module      = objdoc.get("module")
