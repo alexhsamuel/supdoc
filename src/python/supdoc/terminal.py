@@ -612,8 +612,10 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
     with pr(indent="   "):
         # Show where this was imported from.
         if import_path is not None:
-            pr << "import" << IMPORT_ARROW << format_path(
-                import_path, modname=lookup_path.modname) << NL
+            path = format_path(
+                import_path, 
+                modname=None if lookup_path is None else lookup_path.modname)
+            pr << "import" << IMPORT_ARROW << path << NL
 
         if show_repr:
             with pr(**STYLES["repr"]):
