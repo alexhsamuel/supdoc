@@ -14,8 +14,8 @@ import argparse
 import sys
 import traceback
 
-import pln.terminal
-from   pln.terminal.printer import Printer
+import aslib.terminal
+from   aslib.terminal.printer import Printer
 
 from   . import inspector
 from   .exc import *
@@ -92,12 +92,12 @@ def _main():
 
     try:
         if args.sdoc:
-            pln.json.pprint(sdoc)
+            aslib.json.pprint(sdoc)
         elif args.objdoc:
-            pln.json.pprint(objdoc)
+            aslib.json.pprint(objdoc)
         else:
             # Leave a one-space border on the right.
-            width = pln.terminal.get_width() - 1 
+            width = aslib.terminal.get_width() - 1 
             print_docs(
                 docsrc, objdoc, path, 
                 private=args.private, imports=args.imports)

@@ -5,11 +5,11 @@ import re
 import shutil
 import sys
 
-from   pln import if_none, or_none
-import pln.itr
-import pln.json
-from   pln.terminal import ansi
-from   pln.terminal.printer import Printer, NL
+from   aslib import if_none, or_none
+import aslib.itr
+import aslib.json
+from   aslib.terminal import ansi
+from   aslib.terminal.printer import Printer, NL
 
 from   . import inspector
 from   .exc import *
@@ -243,7 +243,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, *,
         file = sys.stdout
     if width is None:
         # Substract one to leave a one-space border on the right.
-        width = pln.terminal.get_width() - 1
+        width = aslib.terminal.get_width() - 1
 
     printer = Printer(file.write, indent=" ", width=width)
     try:
@@ -391,7 +391,7 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
             if mro is not None:
                 with pr(**STYLES["label"]):
                     pr << "MRO: "
-                for first, mro_type in pln.itr.first(mro):
+                for first, mro_type in aslib.itr.first(mro):
                     entry = format_path(get_path(mro_type), modname=modname)
                     entry = ansi.style(**STYLES["type_name"])(entry)
                     entry = entry if first else " \u2192 " + entry

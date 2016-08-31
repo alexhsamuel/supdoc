@@ -2,10 +2,10 @@ import sys
 
 from   . import inspector
 from   . import terminal
-import pln.json
-from   pln.memo import memoize
-import pln.terminal
-from   pln.terminal.printer import Printer
+import aslib.json
+from   aslib.memo import memoize
+import aslib.terminal
+from   aslib.terminal.printer import Printer
 
 __all__ = (
     "dump_objdoc",
@@ -27,7 +27,7 @@ def dump_objdoc(obj):
     # FIXME: For shame.
     objdoc = docsrc._DocSource__inspector._inspect(obj)
 
-    pln.json.pprint(objdoc)
+    aslib.json.pprint(objdoc)
     print()
 
 

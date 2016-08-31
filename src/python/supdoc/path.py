@@ -9,7 +9,7 @@ import collections
 import types
 import sys
 
-import pln.py
+import aslib.py
 
 from   .exc import *
 
@@ -38,7 +38,7 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
 
 
     def __repr__(self):
-        return pln.py.format_ctor(self, self.modname, self.qualname)
+        return aslib.py.format_ctor(self, self.modname, self.qualname)
 
 
     @classmethod

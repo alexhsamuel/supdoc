@@ -11,7 +11,7 @@ import traceback
 import types
 from   weakref import WeakKeyDictionary
 
-import pln.log
+import aslib.log
 
 from   .docs import parse_doc, attach_epydoc_to_signature
 from   .objdoc import *
@@ -19,7 +19,7 @@ from   .path import *
 
 #-------------------------------------------------------------------------------
 
-LOG = pln.log.get()
+LOG = aslib.log.get()
 # LOG.setLevel(20)
 
 # Maximum length of an object repr to store.
@@ -278,6 +278,7 @@ class Inspector:
 
         if isinstance(obj, types.ModuleType):
             LOG.info("inspecting module {}".format(obj.__name__))
+        print("=>", obj)
         LOG.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
 
         objdoc = {}
@@ -595,7 +596,7 @@ def main():
     args = parser.parse_args()
 
     if args.log_level is not None:
-        # FIXME: Put in pln.logging.
+        # FIXME: Put in aslib.logging.
         import logging
         try:
             level = getattr(logging, args.log_level.upper())
