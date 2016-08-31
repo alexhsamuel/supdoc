@@ -278,7 +278,6 @@ class Inspector:
 
         if isinstance(obj, types.ModuleType):
             LOG.info("inspecting module {}".format(obj.__name__))
-        print("=>", obj)
         LOG.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
 
         objdoc = {}
