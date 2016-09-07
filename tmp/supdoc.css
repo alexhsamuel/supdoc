@@ -58,20 +58,23 @@ pre > .doctest {
 }
 
 .doctest {
-    margin-bottom: 4px;
-    border-left: 8px solid #fcf8fc;
-    padding-left: 8px;
+    margin-bottom: 8px;
+    padding-left: 1.5em;
 }
 
 .doctest .prompt {
-    color: #b0b0d0;
+    color: #d0d0d0;
     font-weight: bold;
 }
 
 .doctest pre {
-    margin: 0;
+    margin: 2px;
 }
 
 .doctest .src {
     font-weight: bold;
 }
+
+.doctest .out {
+}
+
