@@ -1,3 +1,4 @@
+import doctest
 import html
 import logging
 import re
@@ -13,6 +14,23 @@ from   aslib.text import get_indent, get_common_indent, join_pars
 
 def markup_error(description):
     logging.warning(description)
+
+
+#-------------------------------------------------------------------------------
+
+def convert_doctests(docstring):
+    pos = 0
+    converted = ""
+    while True:
+        match = doctest.DocTestParser._EXAMPLE_RE.search(docstring, pos)
+        if match is None:
+            converted += docstring[pos :]
+            return converted
+        else:
+            converted += docstring[pos : match.start()]
+            source, indent, want = match.groups()
+            converted += indent + "```python\n" + source + "\n" + want + indent + "```\n\n"
+            pos = match.end()
 
 
 #-------------------------------------------------------------------------------
@@ -216,7 +234,8 @@ def markdown_to_et(text):
     Parses as Markdown to `ElementTree`.
     """
     # Process as Markdown.
-    html = markdown.markdown(text, output_format="html5")
+    html = markdown.markdown(
+        text, output_format="html5", extensions=("codehilite", "fenced_code", ))
 
     # Parse it back.  
     # FIXME: Teach markup to emit ElementTree directly?
@@ -239,6 +258,8 @@ def parse_doc_markdown(docstring):
 
     FIXME
     """
+    docstring = convert_doctests(docstring)  # FIXME: Not great.
+
     # Remove common indentation.
     _, lines = get_common_indent(docstring.splitlines(), ignore_first=True)
 

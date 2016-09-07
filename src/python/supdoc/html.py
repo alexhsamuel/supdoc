@@ -1,5 +1,9 @@
 import argparse
 
+import pygments
+import pygments.lexers
+import pygments.formatters
+
 from   . import inspector, path
 from   . import terminal  # FIXME
 from   .htmlgen import *
@@ -172,7 +176,10 @@ def format_source(source):
             div.append(" lines {}-{}".format(start + 1, end + 1))
 
     if source_text is not None:
-        div.append(PRE(source_text, cls="source"))
+        # div.append(PRE(source_text, cls="source"))
+        lexer = pygments.lexers.get_lexer_by_name("python")
+        formatter = pygments.formatters.get_formatter_by_name("html", cssclass="source")
+        div.append(pygments.highlight(source_text, lexer, formatter))
 
     return div
 

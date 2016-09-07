@@ -83,9 +83,13 @@ class C:
     over the lazy dogs.
 
     >>> C.staticmethod()
+    This runs a static method.
     >>> C.classmethod()
+    This runs a class method
+    for class C.
     >>> c = C()
-    >>> c.method()
+    >>> c.method("world")
+    Hello, world!
     >>> c.x
 
     """
@@ -95,21 +99,22 @@ class C:
         self.__x = x
 
 
-    def method(self):
+    def method(self, name):
         "This is C.method()."
-        pass
+        return "Hello, {}!".format(name)
 
 
     @classmethod
     def classmethod(class_):
         "This is C.classmethod()."
-        pass
+        print("This runs a class method")
+        print("for class {}.".format(class_.__name__))
 
 
     @staticmethod
     def staticmethod():
         "This is C.staticmethod()."
-        pass
+        return "This runs a static method."
 
 
     def __private_method(self):

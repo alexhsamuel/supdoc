@@ -1,5 +1,6 @@
 /* @import 'https://fonts.googleapis.com/css?family=Roboto|Roboto+Condensed|Roboto+Mono'; */
 @import 'https://fonts.googleapis.com/css?family=Droid+Sans+Mono|Noto+Sans';
+@import 'pygments.css';
 
 body {
     /* font-family: 'Noto Sans', sans-serif; */
@@ -21,6 +22,10 @@ pre {
 code {
     font-family: 'Droid Sans Mono', 'Andale Mono', 'Consolas', monospace;
     font-size: 100%;
+}
+
+pre > .doctest {
+    border-left: 4px solid red;
 }
 
 .identifier {
