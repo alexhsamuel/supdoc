@@ -209,8 +209,10 @@ def generate(docsrc, objdoc, lookup_path):
     body = BODY()
 
     signature = format_signature(docsrc, objdoc) if is_function_like(objdoc) else ""
-    body.append(H1(CODE(display_name, signature, cls="identifier")))
+    body.append(DIV(CODE(display_name, signature, cls="identifier"), cls="name"))
     
+    details = DIV(cls="details")
+
     # Show its type.
     type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
@@ -219,19 +221,22 @@ def generate(docsrc, objdoc, lookup_path):
     nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
     if nice_type_name is not None:
         instance_of = (nice_type_name, " (", *instance_of, ")")
-    body.append(DIV(*instance_of))
+    details.append(DIV(*instance_of))
 
     # Show the module name.
     if type_name != "module" and module is not None:
-        body.append(DIV(
+        details.append(DIV(
             "in module ",
             format_path(Path(parse_ref(module)[0], None))
         ))
 
     # Show the mangled name.
     if mangled_name is not None:
-        body.append(DIV(
+        details.append(DIV(
             "external name ", CODE(mangled_name, cls="identifier")))
+
+    body.append(details)
+    body.append(DIV(cls="clear"))  # FIXME: Do this with :after?
 
     # Show documentation.
     docs = objdoc.get("docs")
