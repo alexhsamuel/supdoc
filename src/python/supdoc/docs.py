@@ -177,7 +177,7 @@ def parse_doc(source):
     return result
 
 
-def attach_epydoc_to_signature(doc):
+def attach_javadoc_to_signature(doc):
     try:
         signature   = doc["signature"]
         javadoc     = doc["docs"]["javadoc"]
@@ -283,7 +283,7 @@ def enrich(odoc, modules={}):
     else:
         docs.update(parse_doc_markdown(doc))
         # docs.update(parse_doc(doc))
-        attach_epydoc_to_signature(odoc)
+        attach_javadoc_to_signature(odoc)
 
     # FIXME
     for val in odoc.get("dict", {}).values():
