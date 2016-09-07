@@ -241,6 +241,10 @@ def parse_doc_markdown(docstring):
     """
     # Remove common indentation.
     _, lines = get_common_indent(docstring.splitlines(), ignore_first=True)
+
+    # Filter and parse Javadoc tags.
+    lines, javadoc = find_javadoc(lines)
+
     docstring = "\n".join(lines)
 
     # Replace 'doc' with the de-indented version, since that's nicer.
@@ -260,6 +264,10 @@ def parse_doc_markdown(docstring):
 
     # Reassemble the HTML source.
     result["body"] = "\n".join( tostring(e) for e in et )
+
+    # Add javadoc.
+    if len(javadoc) > 0:
+        result["javadoc"] = javadoc
 
     return result
 

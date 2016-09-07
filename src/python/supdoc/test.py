@@ -7,8 +7,8 @@ def toplevel_function(x, y, z=10, *, w=None, **kw_args):
     """
     Computes a very important quantity.
 
-    This is a top-level function.  It adds 'x' and 'y' and 'z', and adds
-    the sum of any additional keyword arguments' values.  'w' is ignored.
+    This is a top-level function.  It adds `x` and `y` and `z`, and adds
+    the sum of any additional keyword arguments' values.  `w` is ignored.
 
         >>> func(3, 4, 5, w=6, q=10)
         22
@@ -40,6 +40,26 @@ def toplevel_function(x, y, z=10, *, w=None, **kw_args):
       - mangosteins
       - kiwis
 
+    @param x
+      The first argument.  This is required.
+    @type x
+      number
+    @param y
+      The second argument.  This is also required.
+    @type y
+      number
+    @param z
+      The third argument. 
+
+      This argument is **not** required.  If no value is passed, as either a
+      positional or a keyword argument, the default value of `10` will be used.
+    @keywords
+      Additional keyword arguments.  Their values must all be numerical,
+      as they are added together.  
+
+      The keyword arguments' names are ignored.
+    @rtype
+      `float`
     """
     return x + y + z + sum(kw_args.values())
 
