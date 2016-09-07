@@ -84,6 +84,42 @@ def format_docs(docs):
     return div
 
 
+def format_type_summary(objdoc, modname=None):
+    div = DIV(H2("Type"))
+
+    bases   = objdoc.get("bases")
+    mro     = objdoc.get("mro")
+
+    if bases is not None:
+        div.append(DIV(
+            "Base types: ", 
+            *( format_path(get_path(base), modname=modname)
+               for base in bases )))
+    if mro is not None:
+        mro_div = DIV("MRO: ")
+        for first, mro_type in aslib.itr.first(mro):
+            if not first:
+                mro_div.append(" \u2192 ")
+            mro_div.append(format_path(get_path(mro_type), modname=modname))
+        div.append(mro_div)
+
+    return div
+
+
+def format_property_summary(docsrc, objdoc):
+    div = DIV(H2("Property"))
+
+    for accessor_name in ("get", "set", "del"):
+        accessor = objdoc.get(accessor_name)
+        accessor = None if accessor is None else docsrc.resolve(accessor)
+        div.append(DIV(
+            accessor_name + ": ",
+            "none" if accessor is None 
+            else _print_member(docsrc, accessor, None)))
+
+    return div
+
+
 def format_parameter_docs(signature):
     div = DIV(H2("Parameters"), cls="parameters")
     ul = UL()
@@ -194,6 +230,14 @@ def generate(docsrc, objdoc, lookup_path):
     docs = objdoc.get("docs")
     if docs is not None:
         body.append(format_docs(docs))
+
+    # Summarize type.
+    if type_name == "type":
+        body.append(format_type_summary(objdoc, modname))
+
+    # Summarize property.
+    if type_name == "property":
+        body.append(format_property(objdoc))
 
     signature = get_signature(objdoc)
     if signature is not None and len(signature) > 0:

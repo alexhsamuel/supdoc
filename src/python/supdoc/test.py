@@ -74,19 +74,19 @@ class C:
     for test methods, which are normal methods, classmethods, staticmethods,
     properties, and so forth.
 
-    Use it like this::
+    Use it like this:
 
-      c = C()
-      c.method()
+        c = C()
+        c.method()
 
     This is the second paragraph of the docstring.  The quick brown fox jumped
     over the lazy dogs.
 
-      >>> C.staticmethod()
-      >>> C.classmethod()
-      >>> c = C()
-      >>> c.method()
-      >>> c.x
+    >>> C.staticmethod()
+    >>> C.classmethod()
+    >>> c = C()
+    >>> c.method()
+    >>> c.x
 
     """
 
