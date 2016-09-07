@@ -18,23 +18,6 @@ def markup_error(description):
 
 #-------------------------------------------------------------------------------
 
-def convert_doctests(docstring):
-    pos = 0
-    converted = ""
-    while True:
-        match = doctest.DocTestParser._EXAMPLE_RE.search(docstring, pos)
-        if match is None:
-            converted += docstring[pos :]
-            return converted
-        else:
-            converted += docstring[pos : match.start()]
-            source, indent, want = match.groups()
-            converted += indent + "```python\n" + source + "\n" + want + indent + "```\n\n"
-            pos = match.end()
-
-
-#-------------------------------------------------------------------------------
-
 JAVADOC_ARG_TAGS = frozenset({
     "param",
     "type",
@@ -234,8 +217,14 @@ def markdown_to_et(text):
     Parses as Markdown to `ElementTree`.
     """
     # Process as Markdown.
+    from . import markdown_doctest
     html = markdown.markdown(
-        text, output_format="html5", extensions=("codehilite", "fenced_code", ))
+        text, output_format="html5", 
+        extensions=(
+            "codehilite", 
+            "fenced_code", 
+            markdown_doctest.Extension(),
+        ))
 
     # Parse it back.  
     # FIXME: Teach markup to emit ElementTree directly?
@@ -255,11 +244,7 @@ def markdown_to_et(text):
 def parse_doc_markdown(docstring):
     """
     Parses a docstring as Markdown.
-
-    FIXME
     """
-    docstring = convert_doctests(docstring)  # FIXME: Not great.
-
     # Remove common indentation.
     _, lines = get_common_indent(docstring.splitlines(), ignore_first=True)
 

@@ -57,3 +57,21 @@ pre > .doctest {
     background: #f8fcfc;
 }
 
+.doctest {
+    margin-bottom: 4px;
+    border-left: 8px solid #fcf8fc;
+    padding-left: 8px;
+}
+
+.doctest .prompt {
+    color: #b0b0d0;
+    font-weight: bold;
+}
+
+.doctest pre {
+    margin: 0;
+}
+
+.doctest .src {
+    font-weight: bold;
+}

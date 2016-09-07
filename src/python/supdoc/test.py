@@ -87,10 +87,14 @@ class C:
     >>> C.classmethod()
     This runs a class method
     for class C.
-    >>> c = C()
-    >>> c.method("world")
+    >>> c = C(42)
+    >>> for _ in range(3):
+    ...    c.method("world")
+    Hello, world!
+    Hello, world!
     Hello, world!
     >>> c.x
+    42
 
     """
 
