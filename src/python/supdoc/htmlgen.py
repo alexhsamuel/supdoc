@@ -42,6 +42,7 @@ class Element:
         for child in self.__children:
             if isinstance(child, Element):
                 yield from child.format(indent + 1)
+                space = True
             else:
                 yield " " * (indent + 1) + child
         yield " " * indent + end
@@ -82,6 +83,7 @@ def make_element(tag):
 _ELEMENT_NAMES = (
     "a",
     "body",
+    "code",
     "dd",
     "div",
     "dl",

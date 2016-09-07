@@ -13,7 +13,7 @@ from   weakref import WeakKeyDictionary
 
 import aslib.log
 
-from   .docs import parse_doc, attach_epydoc_to_signature
+from   .docs import parse_doc, parse_doc_markdown, attach_epydoc_to_signature
 from   .objdoc import *
 from   .path import *
 
@@ -416,7 +416,7 @@ class Inspector:
 
             # Parse and process docs.
             # FIXME: Wrap these two in a function?
-            obj_docs.update(parse_doc(doc))
+            obj_docs.update(parse_doc_markdown(doc))
             attach_epydoc_to_signature(objdoc)
 
         # Put this item in the cache.  Some objects are unhashable, though, so

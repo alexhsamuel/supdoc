@@ -273,8 +273,8 @@ def enrich(odoc, modules={}):
     except KeyError:
         pass
     else:
-        # docs.update(parse_doc_markdown(doc))
-        docs.update(parse_doc(doc))
+        docs.update(parse_doc_markdown(doc))
+        # docs.update(parse_doc(doc))
         attach_epydoc_to_signature(odoc)
 
     # FIXME

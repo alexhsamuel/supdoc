@@ -4,9 +4,14 @@ from   . import inspector, path
 from   . import terminal  # FIXME
 from   .htmlgen import *
 from   .objdoc import *
+from   aslib import itr
 import aslib.json
 
 #-------------------------------------------------------------------------------
+
+def format_modname(modname):
+    return CODE(modname, cls="module")
+
 
 def format_path(path, *, modname=None):
     """
@@ -21,12 +26,14 @@ def format_path(path, *, modname=None):
     @param modname
       The context module name. 
     """
+    span = CODE()
     if path.qualname is None or path.modname not in ("builtins", modname):
-        yield SPAN(path.modname, cls="module")
+        span.append(format_modname(path.modname))
         if path.qualname is not None:
-            yield "."
+            span.append(".")
     if path.qualname is not None:
-        yield SPAN(path.qualname, cls="identifier")
+        span.append(CODE(path.qualname, cls="identifier"))
+    return span
 
 
 def format_parameters(parameters):
@@ -42,20 +49,58 @@ def format_parameters(parameters):
         elif param.kind is Parameter.VAR_KEYWORD:
             prefix = "**"
             star = True
-        result = SPAN(prefix, param.name, cls="parameter")
+        result = CODE(prefix, param.name, cls="parameter")
         yield result
 
 
 def format_signature(docsrc, objdoc):
     sig = get_signature(objdoc)
-    span = SPAN("(", cls="signature")
+    span = CODE("(", cls="signature")
     if sig is None:
         span.append(SPAN("??", cls="missing"))
     else:
         sig = signature_from_jso(sig, docsrc)
-        span.extend(format_parameters(sig.parameters))
+        for first, param in itr.first(format_parameters(sig.parameters)):
+            if not first:
+                span.append(", ")
+            span.append(param)
     span.append(")")
     return span
+
+
+def format_docs(docs):
+    div = DIV(H2("Documentation"), cls="docs")
+
+    summary = docs.get("summary", "")
+    body    = docs.get("body", "")
+
+    # Show the doc summary.
+    if summary:
+        div.append(DIV(summary, cls="summary"))
+    # Show the doc body.
+    if body:
+        div.append(DIV(body))
+
+    return div
+
+
+def format_source(source):
+    div = DIV(H2("Source"))
+
+    loc         = source.get("source_file") or source.get("file")
+    source_text = source.get("source")
+
+    if loc is not None:
+        div.append(SPAN(loc, cls="path"))
+        lines = source.get("lines")
+        if lines is not None:
+            start, end = lines
+            div.append(" lines {}-{}".format(start + 1, end + 1))
+
+    if source_text is not None:
+        div.append(PRE(source_text, cls="source"))
+
+    return div
 
 
 def generate(docsrc, objdoc, lookup_path):
@@ -83,13 +128,13 @@ def generate(docsrc, objdoc, lookup_path):
     body = BODY()
 
     signature = format_signature(docsrc, objdoc) if is_function_like(objdoc) else ""
-    body.append(H1(SPAN(display_name, signature, cls="identifier")))
+    body.append(H1(CODE(display_name, signature, cls="identifier")))
     
     # Show its type.
     type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
     type_path       = get_path(type)
-    instance_of = ("instance of ", *format_path(type_path, modname=lookup_modname))
+    instance_of = ("instance of ", format_path(type_path, modname=lookup_modname))
     nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
     if nice_type_name is not None:
         instance_of = (nice_type_name, " (", *instance_of, ")")
@@ -99,37 +144,23 @@ def generate(docsrc, objdoc, lookup_path):
     if type_name != "module" and module is not None:
         body.append(DIV(
             "in module ",
-            *format_path(Path(parse_ref(module)[0], None))
+            format_path(Path(parse_ref(module)[0], None))
         ))
 
-    # # Show the mangled name.
-    # if mangled_name is not None:
-    #     pr << "external name "
-    #     with pr(**STYLES["mangled_name"]):
-    #         pr << mangled_name << NL 
-    #     pr << NL
+    # Show the mangled name.
+    if mangled_name is not None:
+        body.append(DIV(
+            "external name ", CODE(mangled_name, cls="identifier")))
 
-    # # Summarize the source.
-    # if source is not None:
-    #     loc         = source.get("source_file") or source.get("file")
-    #     source_text = source.get("source")
+    # Show documentation.
+    docs = objdoc.get("docs")
+    if docs is not None:
+        body.append(format_docs(docs))
 
-    #     if loc is not None or source_text is not None:
-    #         header("Source")
-
-    #     if loc is not None:
-    #         with pr(**STYLES["path"]):
-    #             pr << loc
-    #         lines = source.get("lines")
-    #         if lines is not None:
-    #             start, end = lines
-    #             pr >> " lines {}-{}".format(start + 1, end + 1)
-    #         pr << NL << NL
-
-    #     if source_text is not None:
-    #         with pr(indent="\u2506 ", **STYLES["source"]):
-    #             pr.elide(source_text)
-    #         pr << NL << NL
+    # Summarize the source.
+    source = objdoc.get("source")
+    if source is not None:
+        body.append(format_source(source))
 
     # yield from HTML(head, body).format()
     yield HTML(head, body)
