@@ -1,0 +1,54 @@
+/* @import 'https://fonts.googleapis.com/css?family=Roboto|Roboto+Condensed|Roboto+Mono'; */
+@import 'https://fonts.googleapis.com/css?family=Droid+Sans+Mono|Noto+Sans';
+
+body {
+    /* font-family: 'Noto Sans', sans-serif; */
+    font-family: 'Geneva', 'Trebuchet MS', sans-serif;
+    font-size: 14px;
+    padding: 12px 32px;
+}
+
+h1, h2, h3, h4, h5, h6, h7, h8 {
+    font-family: 'Gill Sans', sans-serif;
+    font-weight: 600;
+}
+
+pre {
+    font-family: 'Droid Sans Mono', 'Andale Mono', 'Consolas', monospace;
+    font-size: 100%;
+}
+
+code {
+    font-family: 'Droid Sans Mono', 'Andale Mono', 'Consolas', monospace;
+    font-size: 100%;
+}
+
+.identifier {
+    color: #d02020;
+}
+
+.module {
+    color: #400040;
+}
+
+.path {
+    font-weight: 100;
+    text-decoration: underline;
+}
+
+.docs {
+    margin: 12px 0;
+    border: 1px solid #a0a0a0;
+    padding: 0 12px;
+}
+
+.docs pre {
+    margin-left: 24px;
+}
+
+.source {
+    font-size: 75%;
+    padding: 12px;
+    background: #f8fcfc;
+}
+
