@@ -1,4 +1,3 @@
-@import 'https://fonts.googleapis.com/css?family=Catamaran|Roboto+Mono';
 @import 'fonts.css';
 @import 'pygments.css';
 
@@ -27,7 +26,7 @@ h1, h2, h3, h4, h5, h6, h7, h8 {
 
 pre {
     font-family: 'Roboto Mono', monospace;
-    font-size: 94%;
+    font-size: 90;
 }
 
 code {
@@ -76,7 +75,7 @@ pre > .doctest {
 
 .doctest .prompt {
     color: #d0d0d0;
-    font-weight: 900;
+    font-weight: 400;
 }
 
 .doctest pre {
@@ -84,9 +83,10 @@ pre > .doctest {
 }
 
 .doctest .src {
-    font-weight: 900;
+    font-weight: 400;
 }
 
 .doctest .out {
+    font-weight: 300;
 }
 

@@ -178,7 +178,8 @@ def format_source(source):
     if source_text is not None:
         # div.append(PRE(source_text, cls="source"))
         lexer = pygments.lexers.get_lexer_by_name("python")
-        formatter = pygments.formatters.get_formatter_by_name("html", cssclass="source")
+        formatter = pygments.formatters.get_formatter_by_name(
+            "html", cssclass="source")
         div.append(pygments.highlight(source_text, lexer, formatter))
 
     return div
@@ -205,11 +206,14 @@ def generate(docsrc, objdoc, lookup_path):
     )
     lookup_modname  = None if lookup_path is None else lookup_path.modname
 
-    head = HEAD(LINK(rel="stylesheet", type="text/css", href="supdoc.css"))
+    head = HEAD(LINK(
+        rel="stylesheet", type="text/css", href="static/supdoc.css"))
     body = BODY()
 
-    signature = format_signature(docsrc, objdoc) if is_function_like(objdoc) else ""
-    body.append(DIV(CODE(display_name, signature, cls="identifier"), cls="name"))
+    signature = \
+        format_signature(docsrc, objdoc) if is_function_like(objdoc) else ""
+    body.append(
+        DIV(CODE(display_name, signature, cls="identifier"), cls="name"))
     
     details = DIV(cls="details")
 
@@ -217,7 +221,8 @@ def generate(docsrc, objdoc, lookup_path):
     type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
     type_path       = get_path(type)
-    instance_of = ("instance of ", format_path(type_path, modname=lookup_modname))
+    instance_of = \
+        ("instance of ", format_path(type_path, modname=lookup_modname))
     nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
     if nice_type_name is not None:
         instance_of = (nice_type_name, " (", *instance_of, ")")
