@@ -1,10 +1,9 @@
-/* @import 'https://fonts.googleapis.com/css?family=Roboto|Roboto+Condensed|Roboto+Mono'; */
-@import 'https://fonts.googleapis.com/css?family=Droid+Sans+Mono|Noto+Sans';
+@import 'https://fonts.googleapis.com/css?family=Catamaran|Roboto+Mono';
+@import 'fonts.css';
 @import 'pygments.css';
 
 body {
-    /* font-family: 'Noto Sans', sans-serif; */
-    font-family: 'Geneva', 'Trebuchet MS', sans-serif;
+    font-family: 'Catamaran', sans-serif;
     font-size: 14px;
     padding: 12px 32px;
 }
@@ -27,13 +26,13 @@ h1, h2, h3, h4, h5, h6, h7, h8 {
 }
 
 pre {
-    font-family: 'Droid Sans Mono', 'Andale Mono', 'Consolas', monospace;
-    font-size: 100%;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 94%;
 }
 
 code {
-    font-family: 'Droid Sans Mono', 'Andale Mono', 'Consolas', monospace;
-    font-size: 100%;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 94%;
 }
 
 pre > .doctest {
@@ -77,7 +76,7 @@ pre > .doctest {
 
 .doctest .prompt {
     color: #d0d0d0;
-    font-weight: bold;
+    font-weight: 900;
 }
 
 .doctest pre {
@@ -85,7 +84,7 @@ pre > .doctest {
 }
 
 .doctest .src {
-    font-weight: bold;
+    font-weight: 900;
 }
 
 .doctest .out {
