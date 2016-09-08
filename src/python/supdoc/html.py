@@ -8,6 +8,7 @@ from   . import inspector, path
 from   . import terminal  # FIXME
 from   .htmlgen import *
 from   .objdoc import *
+from   aslib import if_none
 from   aslib import itr
 import aslib.json
 
@@ -162,6 +163,100 @@ def format_parameter_docs(signature):
     return div
 
 
+# FIXME: WTF is this signature anyway?
+def format_member(docsrc, objdoc, lookup_path, show_type=True):
+    if lookup_path is None:
+        lookup_name     = None
+        parent_name     = None
+    else:
+        lookup_parts    = lookup_path.qualname.split(".")
+        lookup_name     = lookup_parts[-1]
+        parent_name     = None if len(lookup_parts) == 1 else lookup_parts[-2] 
+
+    if is_ref(objdoc):
+        # Find the full name from which this was imported.
+        import_path = get_path(objdoc)
+        # Read through the ref.
+        try:
+            resolved = docsrc.resolve(objdoc)
+        except LookupError:
+            pass
+        else:
+            if resolved is not None:
+                objdoc = resolved
+    else:
+        import_path = None
+
+    name            = objdoc.get("name")
+    module          = objdoc.get("module")
+    modname         = None if module is None else parse_ref(module)[0]
+    unmangled_name  = if_none(terminal.unmangle(lookup_name, parent_name), name)
+    type_name       = objdoc.get("type_name")
+    type_           = objdoc.get("type")
+    repr            = objdoc.get("repr")
+    callable        = is_callable(objdoc)
+    signature       = get_signature(objdoc)
+    docs            = objdoc.get("docs", {})
+    summary         = docs.get("summary")
+    body            = docs.get("body")
+
+    # Show the repr if this is not a callable or one of several other
+    # types with uninteresting reprs.
+    show_repr = (
+            repr is not None 
+        and signature is None 
+        and type_name not in ("module", "property", "type", )
+    )
+
+    div = DIV(CODE(unmangled_name, cls="identifier"))
+    if is_function_like(objdoc):
+        div.append(format_signature(docsrc, objdoc))
+        
+    # If this is a mangled name, we showed the unmangled name earlier.  Now
+    # show the mangled name too.
+    if unmangled_name != lookup_name and lookup_name is not None:
+        div.append(" \u224b ")
+        div.append(CODE(lookup_name, cls="identifier"))
+
+    if show_type:
+        nice_type = terminal.format_nice_type_name(objdoc, lookup_path)
+        if nice_type is None:
+            nice_type = type_name
+        div.append(DIV(CODE(nice_type, cls="type")))
+
+    # Show where this was imported from.
+    if import_path is not None:
+        path = format_path(
+            import_path, 
+            modname=None if lookup_path is None else lookup_path.modname)
+        div.append(DIV("import \u21d2 ", path))
+
+    if show_repr:
+        div.append(DIV("= ", CODE(repr)))
+
+    if summary is not None:
+        docs = DIV(summary, cls="docs")
+        if body:
+            # Don't print the body, but indicate that there are more docs.
+            docs.append("\u2026")
+        div.append(docs)
+
+    return div
+
+
+def format_members(docsrc, dict, parent_path, show_type=True, imports=True):
+    ul = UL()
+    for name in sorted(dict):
+        objdoc = dict[name]
+        if imports or not is_ref(objdoc):
+            # FIXME: Even if parent_path is None, we need to pass the local
+            # name, in case the object doesn't know its own name.
+            lookup_path = None if parent_path is None else parent_path / name
+            ul.append(LI(
+                format_member(docsrc, objdoc, lookup_path, show_type)))
+    return ul
+
+
 def format_source(source):
     div = DIV(H2("Source"))
 
@@ -258,6 +353,56 @@ def generate(docsrc, objdoc, lookup_path):
     signature = get_signature(objdoc)
     if signature is not None and len(signature) > 0:
         body.append(format_parameter_docs(signature))
+
+    #----------------------------------------
+    # Summarize contents.
+
+    # FIXME
+    private = False
+    imports = False
+
+    partitions = terminal._partition_members(terminal.get_dict(objdoc, private) or {})
+
+    contents = DIV(cls="contents")
+
+    partition = partitions.pop("modules", {})
+    if len(partition) > 0:
+        contents.extend((
+            H2("Modules"),
+            format_members(docsrc, partition, path, False, imports=imports)
+        ))
+
+    partition = partitions.pop("types", {})
+    if len(partition) > 0:
+        contents.extend((
+            H2("Types" if type_name == "module" else "Member Types"),
+            format_members(docsrc, partition, path, False, imports=imports)
+        ))
+
+    partition = partitions.pop("properties", {})
+    if len(partition) > 0:
+        contents.extend((
+            H2("Properties"),
+            format_members(docsrc, partition, path, True, imports=imports)
+        ))
+
+    partition = partitions.pop("functions", {})
+    if len(partition) > 0:
+        contents.extend((
+            H2("Functions" if type_name == "module" else "Methods"),
+            format_members(docsrc, partition, path, True, imports=imports)
+        ))
+
+    partition = partitions.pop("attributes", {})
+    if len(partition) > 0:
+        contents.extend((
+            H2("Attributes"),
+            format_members(docsrc, partition, path, True)
+        ))
+
+    body.append(contents)
+
+    #----------------------------------------
 
     # Summarize the source.
     source = objdoc.get("source")
