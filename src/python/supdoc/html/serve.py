@@ -18,10 +18,3 @@ def get_docs(modname, qualname):
     return "<!DOCTYPE html>" + str(docs)
 
 
-if __name__ == "__main__":
-    import logging
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    app.run()
-
-

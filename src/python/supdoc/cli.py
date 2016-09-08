@@ -27,7 +27,7 @@ __all__ = ()
 
 #-------------------------------------------------------------------------------
 
-def _main():
+def main():
     parser = argparse.ArgumentParser()
     # FIXME: Share some arguments with supdoc.inspector.main().
     parser.add_argument(
@@ -107,7 +107,6 @@ def _main():
 
 
 if __name__ == "__main__":
-    _main()
-
+    main()
 
 

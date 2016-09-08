@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import aslib.log
+import supdoc.html.serve
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--debug", action="store_true", default=False,
+    help="run Flask in debug mode")
+parser.add_argument(
+    "--host", "-H", metavar="ADDR", default="localhost",
+    help="serve HTTP on ADDR")
+parser.add_argument(
+    "--port", "-P", metavar="PORT", type=int, default=5000,
+    help="serve HTTP on PORT")
+aslib.log.add_option(parser)
+args = parser.parse_args()
+
+supdoc.html.serve.app.run(host=args.host, port=args.port, debug=args.debug)
+
