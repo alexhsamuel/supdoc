@@ -236,7 +236,6 @@ def generate(docsrc, objdoc, lookup_path):
             "external name ", CODE(mangled_name, cls="identifier")))
 
     body.append(details)
-    body.append(DIV(cls="clear"))  # FIXME: Do this with :after?
 
     # Show documentation.
     docs = objdoc.get("docs")

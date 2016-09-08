@@ -26,10 +26,6 @@ h1, h2, h3, h4, h5, h6, h7, h8 {
     float: left;
 }
 
-.clear {
-    clear: both;
-}
-
 pre {
     font-family: 'Droid Sans Mono', 'Andale Mono', 'Consolas', monospace;
     font-size: 100%;
@@ -58,6 +54,7 @@ pre > .doctest {
 }
 
 .docs {
+    clear: left;
     margin: 12px 0;
     border: 1px solid #a0a0a0;
     padding: 0 12px;
