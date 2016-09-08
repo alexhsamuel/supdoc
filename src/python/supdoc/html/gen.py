@@ -4,10 +4,10 @@ import pygments
 import pygments.lexers
 import pygments.formatters
 
-from   . import inspector, path
-from   . import terminal  # FIXME
-from   .htmlgen import *
-from   .objdoc import *
+from   .tags import *
+from   .. import inspector, path
+from   .. import terminal  # FIXME
+from   ..objdoc import *
 from   aslib import if_none
 from   aslib import itr
 import aslib.json
