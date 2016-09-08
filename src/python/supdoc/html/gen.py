@@ -281,8 +281,6 @@ def format_source(source):
 
 
 def generate(docsrc, objdoc, lookup_path):
-    yield "<!DOCTYPE html>"
-    
     path            = get_path(objdoc) or lookup_path
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")
@@ -302,7 +300,7 @@ def generate(docsrc, objdoc, lookup_path):
     lookup_modname  = None if lookup_path is None else lookup_path.modname
 
     head = HEAD(LINK(
-        rel="stylesheet", type="text/css", href="static/supdoc.css"))
+        rel="stylesheet", type="text/css", href="/static/supdoc.css"))
     body = BODY()
 
     signature = \
@@ -410,7 +408,7 @@ def generate(docsrc, objdoc, lookup_path):
         body.append(format_source(source))
 
     # yield from HTML(head, body).format()
-    yield HTML(head, body)
+    return HTML(head, body)
 
 
 def main():
@@ -424,10 +422,9 @@ def main():
 
     docsrc = inspector.DocSource(source=True)
     objdoc = docsrc.get(lookup_path)
-    # aslib.json.pprint(objdoc)  # FIXME
 
-    for line in generate(docsrc, objdoc, lookup_path):
-        print(line)
+    print("<!DOCTYPE html>")
+    print(generate(docsrc, objdoc, lookup_path))
 
 
 if __name__ == "__main__":
