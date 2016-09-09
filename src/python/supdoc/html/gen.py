@@ -379,6 +379,13 @@ def generate(docsrc, objdoc, lookup_path):
         details.append(DIV(
             "external name ", CODE(mangled_name, cls="identifier")))
 
+    # FIXME: Use a better icon.
+    details.append(DIV(A(
+        SPAN("JSON", cls="mini-icon"), 
+        href=make_url(lookup_path) + "?format=json"),
+        style="margin: 8px 0; "
+    ))
+
     body.append(details)
 
     main = DIV(cls="main box")

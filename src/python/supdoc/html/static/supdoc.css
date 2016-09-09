@@ -116,3 +116,11 @@ pre > .doctest {
     font-weight: 300;
 }
 
+.mini-icon {
+    padding: 0 8px;
+    border-radius: 4px;
+    color: white;
+    background: #c0c0c0;
+    font-weight: 700;
+}
+
