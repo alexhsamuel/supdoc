@@ -122,7 +122,7 @@ def format_signature(docsrc, objdoc):
 
 
 def format_docs(docs):
-    div = DIV(H2("Documentation"), cls="docs")
+    div = DIV(cls="docs")
 
     summary = docs.get("summary", "")
     body    = docs.get("body", "")
@@ -264,53 +264,49 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         and type_name not in ("module", "property", "type", )
     )
 
-    div = DIV(format_name(
-        lookup_path, relative_to=context_path, name=unmangled_name))
+    dt = DT(
+        format_name(lookup_path, relative_to=context_path, name=unmangled_name))
     if is_function_like(objdoc):
-        div.append(format_signature(docsrc, objdoc))
+        dt.append(format_signature(docsrc, objdoc))
         
-    # If this is a mangled name, we showed the unmangled name earlier.  Now
-    # show the mangled name too.
-    if unmangled_name != lookup_name and lookup_name is not None:
-        div.append(" \u224b ")
-        div.append(CODE(lookup_name, cls="identifier"))
-
     if show_type:
         nice_type = terminal.format_nice_type_name(objdoc, lookup_path)
         if nice_type is None:
             nice_type = type_name
-        div.append(DIV(CODE(nice_type, cls="type")))
+        dt.extend((" &mdash;&mdash; ", CODE(nice_type, cls="type")))
+
+    dd = DD(cls="rest")
 
     # Show where this was imported from.
     if import_path is not None:
         path = format_name(import_path, relative_to=lookup_path)
-        div.append(DIV("import \u21d2 ", path))
+        dd.append(DIV("import \u21d2 ", path))
 
     if show_repr and repr is not None:
-        div.append(DIV("= ", CODE(escape(repr))))
+        dd.append(DIV("= ", CODE(escape(repr))))
 
     if summary is not None:
-        docs = DIV(summary, cls="docs")
+        docs = DIV(summary)
         if body:
             # Don't print the body, but indicate that there are more docs.
             docs.append("\u2026")
-        div.append(docs)
+        dd.append(docs)
 
-    return div
+    return dt, dd
 
 
 def format_members(docsrc, dict, parent_path, show_type=True, imports=True):
-    ul = UL()
+    div = DL(cls="members")
     for name in sorted(dict):
         objdoc = dict[name]
         if imports or not is_ref(objdoc):
             # FIXME: Even if parent_path is None, we need to pass the local
             # name, in case the object doesn't know its own name.
             lookup_path = None if parent_path is None else parent_path / name
-            ul.append(LI(format_member(
+            div.extend(format_member(
                 docsrc, objdoc, lookup_path, 
-                context_path=parent_path, show_type=show_type)))
-    return ul
+                context_path=parent_path, show_type=show_type))
+    return div
 
 
 def format_source(source):
@@ -345,6 +341,9 @@ def generate(docsrc, objdoc, lookup_path):
              qualname if qualname is not None
         else name
     )
+    type            = objdoc.get("type")
+    type_name       = objdoc.get("type_name")
+    type_path       = get_path(type)
     
     module          = objdoc.get("module")
     modname         = (
@@ -358,15 +357,9 @@ def generate(docsrc, objdoc, lookup_path):
         rel="stylesheet", type="text/css", href="/static/supdoc.css"))
     body = BODY()
 
-    body.append(
-        DIV(CODE(display_name, cls="identifier"), cls="name"))
-    
-    details = DIV(cls="details")
+    details = DIV(cls="details box")
 
     # Show its type.
-    type            = objdoc.get("type")
-    type_name       = objdoc.get("type_name")
-    type_path       = get_path(type)
     instance_of = (
         "instance of ", 
         format_name(type_path, relative_to=Path(lookup_modname)),
@@ -387,23 +380,30 @@ def generate(docsrc, objdoc, lookup_path):
             "external name ", CODE(mangled_name, cls="identifier")))
 
     body.append(details)
-    body.append(DIV(cls="clear"))
+
+    main = DIV(cls="main box")
+
+    main.append(DIV(CODE(display_name, cls="identifier"), cls="name"))
 
     # Show documentation.
     docs = objdoc.get("docs")
     if docs is not None:
-        body.append(format_docs(docs))
+        main.append(format_docs(docs))
 
     # Summarize type.
     if type_name == "type":
-        body.append(format_type_summary(objdoc, modname))
+        main.append(format_type_summary(objdoc, modname))
 
     # Summarize property.
     if type_name == "property":
-        body.append(format_property(objdoc))
+        main.append(format_property(objdoc))
 
     if is_function_like(objdoc):
-        body.append(format_signature_summary(docsrc, objdoc))
+        main.append(format_signature_summary(docsrc, objdoc))
+
+    body.append(main)
+
+    # body.append(DIV(cls="clear"))
 
     #----------------------------------------
     # Summarize contents.

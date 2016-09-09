@@ -24,17 +24,26 @@ h1, h2, h3, h4, h5, h6, h7, h8 {
     font-weight: 600;
 }
 
+.box {
+    border: 1px solid #a0a0a0;
+    padding: 12px 12px;
+}
+
 .name {
     font-family: 'Gill Sans', sans-serif;
     font-weight: 700;
     font-size: 300%;
-    float: left;
     margin-right: 24px;
 }
 
 .details {
-    float: left;
+    float: right;
+    height: 100%;
 }
+
+/* .members { */
+/*     padding-left: 16px; */
+/* } */
 
 pre {
     font-family: 'Roboto Mono', monospace;
@@ -66,8 +75,13 @@ pre > .doctest {
 
 .docs {
     margin: 12px 0;
-    border: 1px solid #a0a0a0;
-    padding: 0 12px;
+    line-height: 120%;
+    color: #606060;
+}
+
+.summary {
+    font-size: 125%;
+    font-weight: 700;
 }
 
 .docs pre {
