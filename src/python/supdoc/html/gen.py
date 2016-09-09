@@ -1,4 +1,5 @@
 import argparse
+from   html import escape
 
 import pygments
 import pygments.lexers
@@ -37,9 +38,9 @@ def format_identifier(path, *, full="auto", context=None):
     if path.qualname is None:
         element = CODE(path.modname, cls="module")
     elif (   modname == "builtins"
-        or not full
-        or (    full == "auto" 
-            and context is not None and context.modname != path.modname)):
+          or not full
+          or (    full == "auto" 
+              and context is not None and context.modname == path.modname)):
         element = CODE(path.qualname)
     else:
         element = SPAN(
@@ -171,7 +172,7 @@ def format_parameter_docs(signature):
         li = LI()
         li.append(CODE(name, cls="identifier"))
         if default is not None:
-            li.extend((" = ", CODE(default["repr"])))
+            li.extend((" = ", CODE(escape(default["repr"]))))
 
         if doc_type is not None:
             li.append(DIV("type: ", CODE(doc_type)))
@@ -265,8 +266,8 @@ def format_member(docsrc, objdoc, lookup_path, show_type=True):
             context=None if lookup_path is None else lookup_path)
         div.append(DIV("import \u21d2 ", path))
 
-    if show_repr:
-        div.append(DIV("= ", CODE(repr)))
+    if show_repr and repr is not None:
+        div.append(DIV("= ", CODE(escape(repr))))
 
     if summary is not None:
         docs = DIV(summary, cls="docs")
@@ -368,6 +369,7 @@ def generate(docsrc, objdoc, lookup_path):
             "external name ", CODE(mangled_name, cls="identifier")))
 
     body.append(details)
+    body.append(DIV(cls="clear"))
 
     # Show documentation.
     docs = objdoc.get("docs")
@@ -390,7 +392,7 @@ def generate(docsrc, objdoc, lookup_path):
     # Summarize contents.
 
     # FIXME
-    private = False
+    private = True
     imports = False
 
     partitions = terminal._partition_members(terminal.get_dict(objdoc, private) or {})
