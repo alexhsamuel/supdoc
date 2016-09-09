@@ -333,6 +333,14 @@ def format_source(source):
 
 
 def generate(docsrc, objdoc, lookup_path):
+    # If this is a ref, follow it.
+    from_path   = lookup_path or get_path(objdoc)
+    while is_ref(objdoc):
+        path = parse_ref(objdoc)
+        # FIXME: pr << format_path(from_path) << IMPORT_ARROW << NL
+        objdoc = docsrc.resolve(objdoc)
+        from_path = path
+
     path            = get_path(objdoc) or lookup_path
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")
