@@ -11,7 +11,7 @@ from   .. import terminal  # FIXME
 from   ..objdoc import *
 from   ..path import Path
 from   aslib import if_none
-from   aslib import itr, py
+from   aslib import itr, log, py
 import aslib.json
 
 #-------------------------------------------------------------------------------
@@ -24,10 +24,14 @@ def make_url(path):
     return "/{}/{}".format(path.modname, path.qualname or "")
 
 
+@log.log_call(log.info)
 def format_name(path, *, name=None, relative_to=None):
     modname, qualname = path
     if name is not None:
-        qualname = qualname.rsplit(".", 1)[0] + "." + name
+        qualname = (
+            qualname.rsplit(".", 1)[0] + "." + name if "." in qualname
+            else name
+        )
     
     if relative_to is None:
         pass
@@ -209,7 +213,9 @@ def format_parameter_docs(signature):
 
 
 # FIXME: WTF is this signature anyway?
-def format_member(docsrc, objdoc, lookup_path, show_type=True):
+@log.log_call(log.info)
+def format_member(docsrc, objdoc, lookup_path, *, context_path=None, 
+                  show_type=True):
     if lookup_path is None:
         lookup_name     = None
         parent_name     = None
@@ -253,9 +259,8 @@ def format_member(docsrc, objdoc, lookup_path, show_type=True):
         and type_name not in ("module", "property", "type", )
     )
 
-    import logging
     div = DIV(format_name(
-        lookup_path, relative_to=None, name=unmangled_name))
+        lookup_path, relative_to=context_path, name=unmangled_name))
     if is_function_like(objdoc):
         div.append(format_signature(docsrc, objdoc))
         
@@ -273,9 +278,7 @@ def format_member(docsrc, objdoc, lookup_path, show_type=True):
 
     # Show where this was imported from.
     if import_path is not None:
-        path = format_idenifier(
-            import_path, 
-            context=None if lookup_path is None else lookup_path)
+        path = format_name(import_path, relative_to=lookup_path)
         div.append(DIV("import \u21d2 ", path))
 
     if show_repr and repr is not None:
@@ -299,8 +302,9 @@ def format_members(docsrc, dict, parent_path, show_type=True, imports=True):
             # FIXME: Even if parent_path is None, we need to pass the local
             # name, in case the object doesn't know its own name.
             lookup_path = None if parent_path is None else parent_path / name
-            ul.append(LI(
-                format_member(docsrc, objdoc, lookup_path, show_type)))
+            ul.append(LI(format_member(
+                docsrc, objdoc, lookup_path, 
+                context_path=parent_path, show_type=show_type)))
     return ul
 
 
@@ -334,7 +338,6 @@ def generate(docsrc, objdoc, lookup_path):
     mangled_name    = objdoc.get("mangled_name")
     display_name = (
              qualname if qualname is not None
-        else lookup_path.qualname if lookup_path is not None
         else name
     )
     
@@ -405,7 +408,7 @@ def generate(docsrc, objdoc, lookup_path):
 
     # FIXME
     private = True
-    imports = False
+    imports = True
 
     partitions = terminal._partition_members(terminal.get_dict(objdoc, private) or {})
 
