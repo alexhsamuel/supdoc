@@ -174,40 +174,46 @@ def format_property_summary(docsrc, objdoc):
     return div
 
 
-def format_parameter_docs(signature):
-    div = DIV(H2("Parameters"), cls="parameters")
-    ul = UL()
-    for param in signature["params"]:
-        name        = param["name"]
-        default     = param.get("default")
-        doc_type    = param.get("doc_type")
-        doc         = param.get("doc")
+def format_signature_summary(docsrc, objdoc):
+    div = DIV(
+        H2("Signature"), 
+        CODE(objdoc["name"]), format_signature(docsrc, objdoc), 
+        cls="signature")
+    signature = get_signature(objdoc)
 
-        li = LI()
-        li.append(CODE(name, cls="identifier"))
-        if default is not None:
-            li.extend((" = ", CODE(escape(default["repr"]))))
+    if signature is None:
+        div.append(SPAN("no parameter information available", cls="missing"))
 
-        if doc_type is not None:
-            li.append(DIV("type: ", CODE(doc_type)))
+    else:
+        def format_param(param):
+            name        = param["name"]
+            default     = param.get("default")
+            doc_type    = param.get("doc_type")
+            doc         = param.get("doc")
 
-        if doc is not None:
-            li.append(DIV(doc))
+            li = LI()
+            li.append(CODE(name, cls="identifier"))
+            if default is not None:
+                li.extend((" = ", CODE(escape(default["repr"]))))
+            if doc_type is not None:
+                li.append(DIV("type: ", CODE(doc_type)))
+            if doc is not None:
+                li.append(DIV(doc))
+            return li
 
-        ul.append(li)
-    div.append(ul)
+        div.append(UL(*( format_param(p) for p in signature["params"] )))
 
-    # Show the return type type and documentation.
-    ret = signature.get("return")
-    if ret is not None:
-        doc         = ret.get("doc")
-        doc_type    = ret.get("doc_type")
+        # Show the return type type and documentation.
+        ret = signature.get("return")
+        if ret is not None:
+            doc         = ret.get("doc")
+            doc_type    = ret.get("doc_type")
 
-        div.append(H2("Return type"))
-        if doc_type is not None:
-            div.append(DIV(doc_type))
-        if doc is not None:
-            div.append(doc)
+            div.append(H3("Return type"))
+            if doc_type is not None:
+                div.append(DIV(doc_type))
+            if doc is not None:
+                div.append(doc)
 
     return div
 
@@ -353,10 +359,8 @@ def generate(docsrc, objdoc, lookup_path):
         rel="stylesheet", type="text/css", href="/static/supdoc.css"))
     body = BODY()
 
-    signature = \
-        format_signature(docsrc, objdoc) if is_function_like(objdoc) else ""
     body.append(
-        DIV(CODE(display_name, signature, cls="identifier"), cls="name"))
+        DIV(CODE(display_name, cls="identifier"), cls="name"))
     
     details = DIV(cls="details")
 
@@ -399,9 +403,8 @@ def generate(docsrc, objdoc, lookup_path):
     if type_name == "property":
         body.append(format_property(objdoc))
 
-    signature = get_signature(objdoc)
-    if signature is not None and len(signature) > 0:
-        body.append(format_parameter_docs(signature))
+    if is_function_like(objdoc):
+        body.append(format_signature_summary(docsrc, objdoc))
 
     #----------------------------------------
     # Summarize contents.
