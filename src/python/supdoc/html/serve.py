@@ -16,7 +16,6 @@ docsrc = inspector.DocSource(source=True)
 @app.route("/<modname>/", methods=("GET", ))
 @app.route("/<modname>/<qualname>", methods=("GET", ))
 def get_docs(modname, qualname=None):
-    log.info("modname={!r} qualname={!r}".format(modname, qualname))
     fmt = flask.request.args.get("format", "html")
 
     path = Path(modname, qualname)
