@@ -24,33 +24,43 @@ def make_url(path):
     return "/{}/{}".format(path.modname, path.qualname or "")
 
 
-def format_identifier(path, *, full="auto", context=None):
-    """
-    Formats an identifier.
+def format_name(path, *, name=None, relative_to=None):
+    modname, qualname = path
+    if name is not None:
+        qualname = qualname.rsplit(".", 1)[0] + "." + name
+    
+    if relative_to is None:
+        pass
+    elif relative_to.modname != modname:
+        # In a different module.
+        pass
+    elif qualname is None:
+        # It's the module itself; show it fully.
+        pass
+    elif relative_to.qualname is None:
+        # Relative to the module: show qualname only.
+        modname = None
+    elif qualname.startswith(relative_to.qualname + "."):
+        # Sub-qualname; omit the common prefix.
+        modname = None
+        qualname = qualname[len(relative_to.qualname) + 1 :]
 
-    @type path
-      `Path`
-    @param context
-      The module name of the current context.
-    """
-    modname, name = path
+    if modname == "builtins":
+        modname = None
 
-    if path.qualname is None:
-        element = CODE(path.modname, cls="module")
-    elif (   modname == "builtins"
-          or not full
-          or (    full == "auto" 
-              and context is not None and context.modname == path.modname)):
-        element = CODE(path.qualname)
+    if modname is None:
+        element = CODE(qualname, cls="qualname")
+    elif qualname is None:
+        element = CODE(modname, cls="modname")
     else:
-        element = SPAN(
-            CODE(path.modname, cls="module"),
-            ".",
-            CODE(path.qualname))
+        element = CODE(
+            CODE(modname, cls="modname"), ".",
+            CODE(qualname, cls="qualname"),
+        )
 
     return A(element, href=make_url(path), cls="identifier")
-    
-    
+
+
 # FIXME: Remove.
 def format_path(path, *, modname=None):
     """
@@ -132,7 +142,7 @@ def format_type_summary(objdoc, modname=None):
     if bases is not None:
         div.append(DIV(
             "Base types: ", 
-            *( format_identifier(get_path(base), context=Path(modname))
+            *( format_name(get_path(base), relative_to=Path(modname))
                for base in bases )))
     if mro is not None:
         mro_div = DIV("MRO: ")
@@ -140,7 +150,7 @@ def format_type_summary(objdoc, modname=None):
             if not first:
                 mro_div.append(" \u2192 ")
             mro_div.append(
-                format_identifier(get_path(mro_type), context=Path(modname)))
+                format_name(get_path(mro_type), relative_to=Path(modname)))
         div.append(mro_div)
 
     return div
@@ -243,7 +253,9 @@ def format_member(docsrc, objdoc, lookup_path, show_type=True):
         and type_name not in ("module", "property", "type", )
     )
 
-    div = DIV(CODE(unmangled_name, cls="identifier"))
+    import logging
+    div = DIV(format_name(
+        lookup_path, relative_to=None, name=unmangled_name))
     if is_function_like(objdoc):
         div.append(format_signature(docsrc, objdoc))
         
@@ -349,8 +361,10 @@ def generate(docsrc, objdoc, lookup_path):
     type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
     type_path       = get_path(type)
-    instance_of = \
-        ("instance of ", format_identifier(type_path, context=Path(lookup_modname)))
+    instance_of = (
+        "instance of ", 
+        format_name(type_path, relative_to=Path(lookup_modname)),
+    )
     nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
     if nice_type_name is not None:
         instance_of = (nice_type_name, " (", *instance_of, ")")
@@ -358,10 +372,8 @@ def generate(docsrc, objdoc, lookup_path):
 
     # Show the module name.
     if type_name != "module" and module is not None:
-        details.append(DIV(
-            "in module ",
-            format_identifier(Path(parse_ref(module)[0], None))
-        ))
+        details.append(
+            DIV("in module ", format_name(Path(parse_ref(module)[0]))))
 
     # Show the mangled name.
     if mangled_name is not None:

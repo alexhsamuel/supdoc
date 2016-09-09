@@ -1,6 +1,10 @@
 @import 'fonts.css';
 @import 'pygments.css';
 
+.clear {
+    clear: both;
+}
+
 body {
     font-family: 'Catamaran', sans-serif;
     font-size: 14px;
@@ -32,6 +36,7 @@ pre {
 code {
     font-family: 'Roboto Mono', monospace;
     font-size: 94%;
+    letter-spacing: -0.05em;
 }
 
 pre > .doctest {
@@ -52,7 +57,6 @@ pre > .doctest {
 }
 
 .docs {
-    clear: left;
     margin: 12px 0;
     border: 1px solid #a0a0a0;
     padding: 0 12px;
