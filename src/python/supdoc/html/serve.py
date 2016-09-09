@@ -20,7 +20,7 @@ def get_docs(modname, qualname):
 
     if fmt == "html":
         docs = gen.generate(docsrc, objdoc, path)
-        return "<!DOCTYPE html>" + str(docs)
+        return "<!DOCTYPE html>\n" + str(docs)
     elif fmt == "json":
         return flask.jsonify(objdoc)
     else:
