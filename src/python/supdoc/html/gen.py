@@ -219,7 +219,6 @@ def format_signature_summary(docsrc, objdoc):
 
 
 # FIXME: WTF is this signature anyway?
-@log.log_call(log.info)
 def format_member(docsrc, objdoc, lookup_path, *, context_path=None, 
                   show_type=True):
     if lookup_path is None:
