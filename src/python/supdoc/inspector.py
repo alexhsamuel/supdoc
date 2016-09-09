@@ -535,7 +535,8 @@ class DocSource:
                     objdoc = objdoc["dict"][parts[i]]
                 except KeyError:
                     missing_name = ".".join(parts[: i + 1])
-                    raise QualnameError("no such name: {}".format(missing_name))
+                    raise QualnameError(
+                        "no such name: {} in: {}".format(missing_name, path))
 
         return objdoc
 

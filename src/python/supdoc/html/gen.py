@@ -236,7 +236,7 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         # Read through the ref.
         try:
             resolved = docsrc.resolve(objdoc)
-        except LookupError:
+        except (LookupError, QualnameError):
             pass
         else:
             if resolved is not None:
