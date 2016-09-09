@@ -29,7 +29,7 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
       The qualname, or `None` for the module itself.
     """
 
-    def __new__(class_, modname, qualname):
+    def __new__(class_, modname, qualname=None):
         if modname in ("", None):
             raise ValueError("modname may not be empty")
         if qualname == "":

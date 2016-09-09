@@ -8,8 +8,9 @@ from   .tags import *
 from   .. import inspector, path
 from   .. import terminal  # FIXME
 from   ..objdoc import *
+from   ..path import Path
 from   aslib import if_none
-from   aslib import itr
+from   aslib import itr, py
 import aslib.json
 
 #-------------------------------------------------------------------------------
@@ -18,6 +19,38 @@ def format_modname(modname):
     return CODE(modname, cls="module")
 
 
+def make_url(path):
+    return "/{}/{}".format(path.modname, path.qualname or "")
+
+
+def format_identifier(path, *, full="auto", context=None):
+    """
+    Formats an identifier.
+
+    @type path
+      `Path`
+    @param context
+      The module name of the current context.
+    """
+    modname, name = path
+
+    if path.qualname is None:
+        element = CODE(path.modname, cls="module")
+    elif (   modname == "builtins"
+        or not full
+        or (    full == "auto" 
+            and context is not None and context.modname != path.modname)):
+        element = CODE(path.qualname)
+    else:
+        element = SPAN(
+            CODE(path.modname, cls="module"),
+            ".",
+            CODE(path.qualname))
+
+    return A(element, href=make_url(path), cls="identifier")
+    
+    
+# FIXME: Remove.
 def format_path(path, *, modname=None):
     """
     Formats a fully-qualified path.
@@ -98,14 +131,15 @@ def format_type_summary(objdoc, modname=None):
     if bases is not None:
         div.append(DIV(
             "Base types: ", 
-            *( format_path(get_path(base), modname=modname)
+            *( format_identifier(get_path(base), context=Path(modname))
                for base in bases )))
     if mro is not None:
         mro_div = DIV("MRO: ")
         for first, mro_type in aslib.itr.first(mro):
             if not first:
                 mro_div.append(" \u2192 ")
-            mro_div.append(format_path(get_path(mro_type), modname=modname))
+            mro_div.append(
+                format_identifier(get_path(mro_type), context=Path(modname)))
         div.append(mro_div)
 
     return div
@@ -226,9 +260,9 @@ def format_member(docsrc, objdoc, lookup_path, show_type=True):
 
     # Show where this was imported from.
     if import_path is not None:
-        path = format_path(
+        path = format_idenifier(
             import_path, 
-            modname=None if lookup_path is None else lookup_path.modname)
+            context=None if lookup_path is None else lookup_path)
         div.append(DIV("import \u21d2 ", path))
 
     if show_repr:
@@ -315,7 +349,7 @@ def generate(docsrc, objdoc, lookup_path):
     type_name       = objdoc.get("type_name")
     type_path       = get_path(type)
     instance_of = \
-        ("instance of ", format_path(type_path, modname=lookup_modname))
+        ("instance of ", format_identifier(type_path, context=Path(lookup_modname)))
     nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
     if nice_type_name is not None:
         instance_of = (nice_type_name, " (", *instance_of, ")")
@@ -325,7 +359,7 @@ def generate(docsrc, objdoc, lookup_path):
     if type_name != "module" and module is not None:
         details.append(DIV(
             "in module ",
-            format_path(Path(parse_ref(module)[0], None))
+            format_identifier(Path(parse_ref(module)[0], None))
         ))
 
     # Show the mangled name.

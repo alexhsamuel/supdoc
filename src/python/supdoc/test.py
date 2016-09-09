@@ -5,7 +5,7 @@ import json
 
 def toplevel_function(x, y, z=10, *, w=None, **kw_args):
     """
-    Computes a very important quantity.
+    Computes a _very_ important quantity.
 
     This is a top-level function.  It adds `x` and `y` and `z`, and adds
     the sum of any additional keyword arguments' values.  `w` is ignored.
@@ -68,7 +68,7 @@ def toplevel_function(x, y, z=10, *, w=None, **kw_args):
 
 class C:
     """
-    Main test class.
+    A sample class for demonstrating **supdoc**'s features.
 
     `C` is a top-level class in module `test`.  It serves mainly as a container
     for test methods, which are normal methods, classmethods, staticmethods,
