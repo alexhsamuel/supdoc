@@ -205,7 +205,7 @@ def format_signature_summary(docsrc, objdoc):
     signature = get_signature(objdoc)
 
     if signature is None:
-        div.append(SPAN("no parameter information available", cls="missing"))
+        div.append(DIV("no parameter information available", cls="missing"))
 
     else:
         def format_param(param):
