@@ -6,12 +6,12 @@ import pygments.lexers
 import pygments.formatters
 
 from   .tags import *
-from   .. import inspector, path
+from   .. import inspector, modules, path
 from   .. import terminal  # FIXME
 from   ..objdoc import *
 from   ..path import Path
 from   aslib import if_none
-from   aslib import itr, log, py
+from   aslib import itr, log, memo, py
 import aslib.json
 
 #-------------------------------------------------------------------------------
@@ -22,6 +22,16 @@ def format_modname(modname):
 
 def make_url(path):
     return "/{}/{}".format(path.modname, path.qualname or "")
+
+
+# find_modules = memo.memoize(lambda: list(modules.find_modules_in_path))
+find_modules = modules.find_modules_in_path
+
+def format_module_list():
+    module_list = UL()
+    for name in find_modules():
+        module_list.append(LI(format_name(Path(name, None))))
+    return DIV(module_list, cls="module-list")
 
 
 @log.log_call(log.info)
@@ -364,6 +374,15 @@ def generate(docsrc, objdoc, lookup_path):
     head = HEAD(LINK(
         rel="stylesheet", type="text/css", href="/static/supdoc.css"))
     body = BODY()
+    body_content = DIV(id="content")
+    body.append(body_content)
+
+    module_list = format_module_list()
+    module_list["id"] = "module-sidebar"
+    body_content.append(module_list)
+
+    doc = DIV(id="main")
+    body_content.append(doc)
 
     details = DIV(cls="details box")
 
@@ -394,7 +413,7 @@ def generate(docsrc, objdoc, lookup_path):
         style="margin: 8px 0; "
     ))
 
-    body.append(details)
+    doc.append(details)
 
     main = DIV(cls="main box")
 
@@ -416,9 +435,9 @@ def generate(docsrc, objdoc, lookup_path):
     if is_function_like(objdoc):
         main.append(format_signature_summary(docsrc, objdoc))
 
-    body.append(main)
+    doc.append(main)
 
-    # body.append(DIV(cls="clear"))
+    # doc.append(DIV(cls="clear"))
 
     #----------------------------------------
     # Summarize contents.
@@ -466,14 +485,14 @@ def generate(docsrc, objdoc, lookup_path):
             format_members(docsrc, partition, path, True)
         ))
 
-    body.append(contents)
+    doc.append(contents)
 
     #----------------------------------------
 
     # Summarize the source.
     source = objdoc.get("source")
     if source is not None:
-        body.append(format_source(source))
+        doc.append(format_source(source))
 
     # yield from HTML(head, body).format()
     return HTML(head, body)

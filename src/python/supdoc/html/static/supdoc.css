@@ -8,7 +8,8 @@
 body {
     font-family: 'Catamaran', sans-serif;
     font-size: 14px;
-    padding: 12px 32px;
+    margin: 0;
+    padding: 0;
 }
 
 a {
@@ -54,6 +55,29 @@ code {
 
 pre > .doctest {
     border-left: 4px solid red;
+}
+
+#content {
+    position: relative;
+    width: 100%;
+}
+
+#module-sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 240px;
+}
+
+#main {
+    position: relative;
+    margin-left: 250px;
+    padding: 12px 32px;
+}
+
+.module-list {
+    background: #fff0e0;
 }
 
 .identifier {
