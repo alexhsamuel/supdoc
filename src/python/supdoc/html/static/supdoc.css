@@ -73,11 +73,25 @@ pre > .doctest {
 #main {
     position: relative;
     margin-left: 250px;
-    padding: 12px 32px;
+    padding: 12px 12px;
 }
 
 .module-list {
     background: #fff0e0;
+}
+
+.module-list .heading {
+    margin-bottom: 8px;
+    font-size: 120%;
+    font-weight: 800;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.module-list ul {
+    list-style-type: none;
+    margin: 14px;
+    padding: 0;
 }
 
 .identifier {

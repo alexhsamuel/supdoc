@@ -29,8 +29,20 @@ find_modules = modules.find_modules_in_path
 
 def format_module_list():
     module_list = UL()
-    for name in find_modules():
-        module_list.append(LI(format_name(Path(name, None))))
+    module_list.append(DIV("Modules", cls="heading"))
+    for modname in find_modules():
+        if "." in modname:
+            # For submodules, show only the last component, but indented.
+            name = (
+                "&nbsp;" * (2 * modname.count("."))
+                + "." + modname.rsplit(".", 1)[1]
+            )
+        else:
+            name = modname
+
+        el = CODE(name, cls="modname identifier")
+        el = A(el, href=make_url(Path(modname)))
+        module_list.append(LI(el))
     return DIV(module_list, cls="module-list")
 
 
@@ -39,7 +51,8 @@ def format_name(path, *, name=None, relative_to=None):
     modname, qualname = path
     if name is not None:
         qualname = (
-            qualname.rsplit(".", 1)[0] + "." + name if "." in qualname
+            qualname.rsplit(".", 1)[0] + "." + name 
+            if qualname is not None and "." in qualname
             else name
         )
     
