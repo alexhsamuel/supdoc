@@ -46,7 +46,6 @@ def format_module_list():
     return DIV(module_list, cls="module-list")
 
 
-@log.log_call(log.info)
 def format_name(path, *, name=None, relative_to=None):
     modname, qualname = path
     if name is not None:
