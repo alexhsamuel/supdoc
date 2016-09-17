@@ -481,8 +481,8 @@ class Inspector:
         try:
             obj = import_(modname)
         except ImportError:
-            LOG.debug("skipping unimportable module {}".format(modname))
-            return None
+            LOG.info("skipping unimportable module {}".format(modname))
+            return {}
 
         return self._inspect(obj, Path(modname, None))
         
