@@ -155,6 +155,10 @@ def is_mangled(obj):
 
 #-------------------------------------------------------------------------------
 
+# Used in the objdoc cache to mark an object curretly under inspection; used to
+# detect loop.
+IN_PROGRESS = object()
+
 class Inspector:
 
     def __init__(self, *, source):
@@ -273,12 +277,29 @@ class Inspector:
             return self._inspect_ref(obj)
 
         # Use the cached objdoc, if available.
-        with suppress(KeyError, TypeError):
-            return self.__cache[obj]
+        try:
+            objdoc = self.__cache[obj]
+        except KeyError:
+            # Not in the cache.  Mark that we're processing it, and continue.
+            self.__cache[obj] = IN_PROGRESS
+        except TypeError:
+            # Not hashable or doesn't support weakrefs.
+            # FIXME: We need something to detect reference loops of unhashable
+            # items, like `d = {}; d[0] = d`.
+            pass
+        else:
+            if objdoc is IN_PROGRESS:
+                # Found a loop; return a ref.
+                del self.__cache[obj]
+                LOG.info("found loop: {}".format(lookup_path))  # FIXME: Remove.
+                return self._inspect_ref(obj)
+            else:
+                return objdoc
 
         if isinstance(obj, types.ModuleType):
             LOG.info("inspecting module {}".format(obj.__name__))
-        LOG.debug("_inspect({!r}, {!r})".format(obj, lookup_path))
+        else:
+            LOG.debug("inspecting {}".format(lookup_path))
 
         objdoc = {}
 
@@ -338,7 +359,7 @@ class Inspector:
             for attr_name in names:
                 attr_value = dict[attr_name]
                 attr_path = (
-                         None if lookup_path is None 
+                    None if lookup_path is None 
                     else lookup_path / attr_name
                 )
 
