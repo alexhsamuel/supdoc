@@ -19,6 +19,8 @@ def get_docs(modname, qualname=None):
     fmt = flask.request.args.get("format", "html")
 
     path = Path(modname, qualname)
+
+    # FIXME: Handle exceptions.
     objdoc = docsrc.get(path)
 
     if fmt == "html":
