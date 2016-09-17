@@ -286,23 +286,24 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         and type_name not in ("module", "property", "type", )
     )
 
-    dt = DT(
+    top_line = DIV(
         format_name(lookup_path, relative_to=context_path, name=unmangled_name))
     if is_function_like(objdoc):
-        dt.append(format_signature(docsrc, objdoc))
+        top_line.append(format_signature(docsrc, objdoc))
         
     if show_type:
         nice_type = terminal.format_nice_type_name(objdoc, lookup_path)
         if nice_type is None:
             nice_type = type_name
-        dt.extend((" &mdash;&mdash; ", CODE(nice_type, cls="type")))
-
-    dd = DD(cls="rest")
+        top_line.append(CODE(nice_type, cls="type"))
 
     # Show where this was imported from.
     if import_path is not None:
         path = format_name(import_path, relative_to=lookup_path)
-        dd.append(DIV("import \u21d2 ", path))
+        top_line.append(DIV("import \u21d2 ", path, cls="import"))
+
+    dt = DT(top_line)
+    dd = DD(cls="rest")
 
     if show_repr and repr is not None:
         dd.append(DIV("= ", CODE(escape(repr))))
