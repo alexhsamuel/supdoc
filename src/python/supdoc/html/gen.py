@@ -278,55 +278,55 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
     summary         = docs.get("summary")
     body            = docs.get("body")
 
+    head = DIV(cls="head")
+    rest = DIV(cls="rest")
+
+    title = DIV(cls="title")
+    title.append(
+        format_name(lookup_path, relative_to=context_path, name=unmangled_name))
+    if is_function_like(objdoc):
+        title.append(format_signature(docsrc, objdoc))
+    head.append(title)
+        
     # Show the repr if this is not a callable or one of several other
     # types with uninteresting reprs.
-    show_repr = (
+    if (
             repr is not None 
         and signature is None 
         and type_name not in ("module", "property", "type", )
-    )
+    ):
+        head.append(DIV(SPAN("="), CODE(escape(repr)), cls="repr"))
 
-    top_line = DIV(
-        format_name(lookup_path, relative_to=context_path, name=unmangled_name))
-    if is_function_like(objdoc):
-        top_line.append(format_signature(docsrc, objdoc))
-        
     if show_type:
         nice_type = terminal.format_nice_type_name(objdoc, lookup_path)
         if nice_type is None:
             nice_type = type_name
-        top_line.append(CODE(nice_type, cls="type"))
+        head.append(CODE(nice_type, cls="type"))
 
     # Show where this was imported from.
     if import_path is not None:
         path = format_name(import_path, relative_to=lookup_path)
-        top_line.append(DIV("import \u21d2 ", path, cls="import"))
-
-    dt = DT(top_line)
-    dd = DD(cls="rest")
-
-    if show_repr and repr is not None:
-        dd.append(DIV("= ", CODE(escape(repr))))
+        head.append(DIV("\u21d2 ", path, cls="import"))
 
     if summary is not None:
         docs = DIV(summary)
         if body:
             # Don't print the body, but indicate that there are more docs.
             docs.append("\u2026")
-        dd.append(docs)
+        rest.append(docs)
 
-    return dt, dd
+    return DIV(head, rest, cls="member clearfix")
 
 
 def format_members(docsrc, dict, parent_path, show_type=True, imports=True):
-    div = DL(cls="members")
+    div = DIV(cls="members")
     for name in sorted(dict):
         objdoc = dict[name]
         if imports or not is_ref(objdoc):
             # FIXME: Even if parent_path is None, we need to pass the local
             # name, in case the object doesn't know its own name.
             lookup_path = None if parent_path is None else parent_path / name
-            div.extend(format_member(
+            div.append(format_member(
                 docsrc, objdoc, lookup_path, 
                 context_path=parent_path, show_type=show_type))
     return div

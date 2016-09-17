@@ -5,6 +5,14 @@
     clear: both;
 }
 
+/* For divs that contain only floats.  */
+.clearfix:after { 
+   content: " ";
+   display: block; 
+   height: 0; 
+   clear: both;
+}
+
 body {
     font-family: 'Catamaran', sans-serif;
     font-size: 14px;
@@ -125,7 +133,7 @@ pre > .doctest {
 .source {
     font-size: 85%;
     padding: 12px;
-    background: #f8fcfc;
+    background: #fefafa;
 }
 
 .doctest {
@@ -158,14 +166,43 @@ pre > .doctest {
     font-weight: 700;
 }
 
-.members .import {
+.member {
+    clear: both;
+    margin: 8px 0;
+    padding: 4px;
+}
+
+.member:hover {
+    background: #f8f8f8;
+}
+
+.member .header {
+}
+
+.member .title {
+    float: left;
+}
+
+.member .rest {
+    clear: left;
+    margin-left: 24px;
+}
+
+.member .import {
     clear: right;
     float: right;
     margin-left: 24px;
 }
 
-.members .type {
+.member .type {
     float: right;
     margin-left: 24px;
 }
 
+.member .repr {
+    float: left;
+}
+
+.member .repr span {
+    margin: 0 1ex;
+}
