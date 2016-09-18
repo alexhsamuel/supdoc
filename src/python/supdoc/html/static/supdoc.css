@@ -207,6 +207,12 @@ pre > .doctest {
     margin: 0 1ex;
 }
 
+.more {
+    color: #a0a0a0;
+    font-size: 80%;
+    margin-left: 2ex;
+}
+
 /*----------------------------------------------------------------------------*/
 
 /* from: https://codepen.io/mallendeo/pen/eLIiG */
@@ -265,3 +271,4 @@ pre > .doctest {
   left: 50%;
   background: #d02020;
 }
+
