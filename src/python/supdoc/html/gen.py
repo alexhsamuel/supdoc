@@ -462,6 +462,11 @@ def generate(docsrc, objdoc, lookup_path):
     partitions = terminal._partition_members(terminal.get_dict(objdoc, private) or {})
 
     contents = DIV(cls="contents")
+    contents.extend((
+        "Import",
+        INPUT(id="cb4", type="checkbox", cls="tgl tgl-flat"),
+        LABEL(fr="cb4", cls="tgl-btn"),
+    ))
 
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
