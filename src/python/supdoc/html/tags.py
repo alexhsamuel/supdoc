@@ -51,6 +51,8 @@ class Element:
     def __setitem__(self, name, value):
         if name == "cls":
             name = "class"
+        if name == "fr":
+            name = "for"
         self.__attrs[name] = value
 
 
@@ -83,6 +85,7 @@ def make_element(tag):
 _ELEMENT_NAMES = (
     "a",
     "body",
+    "button",
     "code",
     "dd",
     "div",
@@ -92,6 +95,8 @@ _ELEMENT_NAMES = (
     "head",
     "html",
     "img",
+    "input",
+    "label",
     "li",
     "link",
     "ol",
