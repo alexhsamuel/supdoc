@@ -312,7 +312,7 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         docs = DIV(summary)
         if body:
             # Don't print the body, but indicate that there are more docs.
-            docs.append("\u2026")
+            docs.append(SPAN("more...", cls="more"))
         rest.append(docs)
 
     return DIV(head, rest, cls="member clearfix")
