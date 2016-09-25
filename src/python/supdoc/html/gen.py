@@ -474,9 +474,11 @@ def generate(docsrc, objdoc, lookup_path):
         INPUT(id="cb-import", type="checkbox", cls="tgl tgl-flat"),
         LABEL(fr="cb-import", cls="tgl-btn"),
         SPAN("Imports"),
+        # FIXME: Put this somewhere reasonable.
         SCRIPT("""
           $(function () {
             $('.imported-name').toggle(false);
+            // FIXME: This animation is cheesy.
             $('#cb-import').click(function (event) {
               $('.imported-name').toggle('fast');
             });
