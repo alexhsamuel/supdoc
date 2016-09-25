@@ -315,7 +315,13 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
             docs.append(SPAN("more...", cls="more"))
         rest.append(docs)
 
-    return DIV(head, rest, cls="member clearfix")
+    classes = ("member", "clearfix", )
+    if import_path is not None:
+        classes += ("imported-name", )
+    # FIXME: Not quite right: name may be None.
+    if name is not None and name.startswith("_"):
+        classes += ("private-name", )
+    return DIV(head, rest, cls=classes)
 
 
 def format_members(docsrc, dict, parent_path, show_type=True, imports=True):
@@ -386,6 +392,10 @@ def generate(docsrc, objdoc, lookup_path):
 
     head = HEAD(LINK(
         rel="stylesheet", type="text/css", href="/static/supdoc.css"))
+    # Use jQuery.
+    head.append(
+        SCRIPT(src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"))
+
     body = BODY()
     body_content = DIV(id="content")
     body.append(body_content)
@@ -462,6 +472,40 @@ def generate(docsrc, objdoc, lookup_path):
     partitions = terminal._partition_members(terminal.get_dict(objdoc, private) or {})
 
     contents = DIV(cls="contents")
+
+    contents.append(DIV(
+        INPUT(id="cb-import", type="checkbox", cls="tgl tgl-flat"),
+        LABEL(fr="cb-import", cls="tgl-btn"),
+        SPAN("Imports"),
+        # FIXME: Put this somewhere reasonable.
+        SCRIPT("""
+          $(function () {
+            $('.imported-name').toggle(false);
+            // FIXME: This animation is cheesy.
+            $('#cb-import').click(function (event) {
+              $('.imported-name').toggle('fast');
+            });
+          });
+        """),
+        cls="toggle",
+    ))
+
+    contents.append(DIV(
+        INPUT(id="cb-private", type="checkbox", cls="tgl tgl-flat"),
+        LABEL(fr="cb-private", cls="tgl-btn"),
+        SPAN("Private Names"),
+        # FIXME: Put this somewhere reasonable.
+        SCRIPT("""
+          $(function () {
+            $('.private-name').toggle(false);
+            // FIXME: This animation is cheesy.
+            $('#cb-private').click(function (event) {
+              $('.private-name').toggle('fast');
+            });
+          });
+        """),
+        cls="toggle",
+    ))
 
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
