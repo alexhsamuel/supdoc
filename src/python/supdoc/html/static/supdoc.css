@@ -217,6 +217,19 @@ pre > .doctest {
 
 /* from: https://codepen.io/mallendeo/pen/eLIiG */
 
+.toggle {
+    margin: 8px 0;
+}
+
+.toggle span {
+    margin: 0 4px;
+}
+
+.toggle label {
+    float: left;
+}
+
+
 .tgl {
   display: none;
 }

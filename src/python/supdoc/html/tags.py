@@ -7,6 +7,8 @@ Tools for generating HTML.
 from   html import escape
 import functools
 
+from   aslib import py
+
 #-------------------------------------------------------------------------------
 
 class Element:
@@ -53,6 +55,10 @@ class Element:
             name = "class"
         if name == "fr":
             name = "for"
+
+        if name == "class":
+            value = " ".join( str(c) for c in py.tupleize(value) )
+
         self.__attrs[name] = value
 
 
