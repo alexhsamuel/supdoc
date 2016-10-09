@@ -283,8 +283,8 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
             format_name(import_path, relative_to=lookup_path), 
             cls="import")
 
-    rest = result << DIV(cls="rest")
     if summary is not None:
+        rest = result << DIV(cls="rest")
         docs = rest << DIV(summary)
         if body:
             # Don't print the body, but indicate that there are more docs.
