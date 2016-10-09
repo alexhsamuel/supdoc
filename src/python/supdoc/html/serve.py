@@ -10,11 +10,13 @@ from   aslib import log
 #-------------------------------------------------------------------------------
 
 app = flask.Flask(__name__)
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 300
+
 docsrc = inspector.DocSource(source=True)
 
 @app.route("/favicon.ico/", methods=("GET", ))
 def get_favicon():
-    return app.send_static_file("1475447687_carrot.png")
+    return app.send_static_file("favicon.png")
 
 
 @app.route("/<modname>", methods=("GET", ))
