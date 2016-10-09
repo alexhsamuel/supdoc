@@ -345,6 +345,9 @@ class Inspector:
             all_names = obj.__all__
         except AttributeError:
             pass
+        except KeyError:
+            # Some poorly-designed objects raise KeyError on attribute access.
+            pass
         else:
             objdoc["all_names"] = [ str(n) for n in all_names ]
 
