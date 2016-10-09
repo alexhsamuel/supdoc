@@ -14,7 +14,7 @@
 }
 
 body {
-    font-family: 'Catamaran', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     font-size: 14px;
     margin: 0;
     padding: 0;
@@ -29,7 +29,7 @@ a:hover {
 }
 
 h1, h2, h3, h4, h5, h6, h7, h8 {
-    font-family: 'Gill Sans', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 600;
 }
 
@@ -39,7 +39,7 @@ h1, h2, h3, h4, h5, h6, h7, h8 {
 }
 
 .name {
-    font-family: 'Gill Sans', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 700;
     font-size: 300%;
     margin-right: 24px;
@@ -52,13 +52,13 @@ h1, h2, h3, h4, h5, h6, h7, h8 {
 
 pre {
     font-family: 'Roboto Mono', monospace;
-    font-size: 90%;
+    font-size: 100%;
 }
 
 code {
     font-family: 'Roboto Mono', monospace;
-    font-size: 94%;
-    letter-spacing: -0.05em;
+    font-size: 100;
+    letter-spacing: -0.02em;
 }
 
 pre > .doctest {
