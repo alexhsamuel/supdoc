@@ -23,30 +23,6 @@
   src: local('Noto Sans Bold Italic'), local('NotoSans-BoldItalic'), url(https://fonts.gstatic.com/s/notosans/v6/9Z3uUWMRR7crzm1TjRicDiBnJMIPt0VoltfALX9gDFQ.ttf) format('truetype');
 }
 @font-face {
-  font-family: 'Noto Serif';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Noto Serif'), local('NotoSerif'), url(https://fonts.gstatic.com/s/notoserif/v4/fVu1p3782bqS2z-CaJvp9i3USBnSvpkopQaUR-2r7iU.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Noto Serif';
-  font-style: normal;
-  font-weight: 700;
-  src: local('Noto Serif Bold'), local('NotoSerif-Bold'), url(https://fonts.gstatic.com/s/notoserif/v4/lJAvZoKA5NttpPc9yc6lPbOLyRJkM5aLlPlkJMOAyH0.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Noto Serif';
-  font-style: italic;
-  font-weight: 400;
-  src: local('Noto Serif Italic'), local('NotoSerif-Italic'), url(https://fonts.gstatic.com/s/notoserif/v4/HQXBIwLHsOJCNEQeX9kNz9qQynqKV_9Plp7mupa0S4g.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Noto Serif';
-  font-style: italic;
-  font-weight: 700;
-  src: local('Noto Serif Bold Italic'), local('NotoSerif-BoldItalic'), url(https://fonts.gstatic.com/s/notoserif/v4/Wreg0Be4tcFGM2t6VWytvKp5NA6AAOjfQM_HmvD0shQ.ttf) format('truetype');
-}
-@font-face {
   font-family: 'Roboto Mono';
   font-style: normal;
   font-weight: 300;
