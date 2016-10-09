@@ -72,11 +72,24 @@ class Element:
     def append(self, child):
         if child is not None:
             self.__children.append(child)
+        return child
 
 
     def extend(self, children):
         for child in children:
             self.append(child)
+
+
+    # Why not __iadd__?  We want to use an expression operator, rather than 
+    # an assignment statement, so that we can return the (rightmost) child.
+    # This enables code like,
+    #
+    #   child = parent << DIV(...)
+    #
+    __lshift__ = append
+
+    # FIXME: Sugar for extend too?
+
 
 
 

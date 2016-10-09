@@ -28,8 +28,7 @@ def make_url(path):
 find_modules = modules.find_modules_in_path
 
 def format_module_list():
-    module_list = UL()
-    module_list.append(DIV("Modules", cls="heading"))
+    module_list = UL(DIV("Modules", cls="heading"))
     for modname in find_modules():
         if "." in modname:
             # For submodules, show only the last component, but indented.
@@ -39,10 +38,10 @@ def format_module_list():
             )
         else:
             name = modname
-
-        el = CODE(name, cls="modname identifier")
-        el = A(el, href=make_url(Path(modname)))
-        module_list.append(LI(el))
+        module_list << LI(A(
+            CODE(name, cls="modname identifier"), 
+            href=make_url(Path(modname))
+        ))
     return DIV(module_list, cls="module-list")
 
 
@@ -87,30 +86,6 @@ def format_name(path, *, name=None, relative_to=None):
     return A(element, href=make_url(path), cls="identifier")
 
 
-# FIXME: Remove.
-def format_path(path, *, modname=None):
-    """
-    Formats a fully-qualified path.
-
-    Prints the path, including modname and qualname.  If the modname matches
-    the context `modname`, it is not shown.  Also, if the modname is "builtins",
-    it is not shown.
-
-    @type path
-      `Path`.
-    @param modname
-      The context module name. 
-    """
-    span = CODE()
-    if path.qualname is None or path.modname not in ("builtins", modname):
-        span.append(format_modname(path.modname))
-        if path.qualname is not None:
-            span.append(".")
-    if path.qualname is not None:
-        span.append(CODE(path.qualname, cls="identifier"))
-    return span
-
-
 def format_parameters(parameters):
     star = False
     for param in parameters.values():
@@ -124,60 +99,55 @@ def format_parameters(parameters):
         elif param.kind is Parameter.VAR_KEYWORD:
             prefix = "**"
             star = True
-        result = CODE(prefix, param.name, cls="parameter")
-        yield result
+        yield CODE(prefix, param.name, cls="parameter")
 
 
 def format_signature(docsrc, objdoc):
     sig = get_signature(objdoc)
     span = CODE("(", cls="signature")
     if sig is None:
-        span.append(SPAN("??", cls="missing"))
+        span << SPAN("??", cls="missing")
     else:
         sig = signature_from_jso(sig, docsrc)
         for first, param in itr.first(format_parameters(sig.parameters)):
             if not first:
-                span.append(", ")
-            span.append(param)
-    span.append(")")
+                span << ", "
+            span << param
+    span << ")"
     return span
 
 
 def format_docs(docs):
     div = DIV(cls="docs")
-
-    summary = docs.get("summary", "")
-    body    = docs.get("body", "")
-
     # Show the doc summary.
+    summary = docs.get("summary", "")
     if summary:
-        div.append(DIV(summary, cls="summary"))
+        div << DIV(summary, cls="summary")
     # Show the doc body.
+    body = docs.get("body", "")
     if body:
-        div.append(DIV(body))
-
+        div << DIV(body)
     return div
 
 
 def format_type_summary(objdoc, modname=None):
     div = DIV(H2("Type"))
 
-    bases   = objdoc.get("bases")
-    mro     = objdoc.get("mro")
-
+    bases = objdoc.get("bases")
     if bases is not None:
-        div.append(DIV(
+        div << DIV(
             "Base types: ", 
             *( format_name(get_path(base), relative_to=Path(modname))
-               for base in bases )))
+               for base in bases ))
+
+    mro = objdoc.get("mro")
     if mro is not None:
-        mro_div = DIV("MRO: ")
+        mro_div = div << DIV("MRO: ")
         for first, mro_type in aslib.itr.first(mro):
             if not first:
-                mro_div.append(" \u2192 ")
-            mro_div.append(
-                format_name(get_path(mro_type), relative_to=Path(modname)))
-        div.append(mro_div)
+                mro_div << " \u2192 "
+            mro_div << format_name(
+                get_path(mro_type), relative_to=Path(modname))
 
     return div
 
@@ -188,10 +158,10 @@ def format_property_summary(docsrc, objdoc):
     for accessor_name in ("get", "set", "del"):
         accessor = objdoc.get(accessor_name)
         accessor = None if accessor is None else docsrc.resolve(accessor)
-        div.append(DIV(
+        div << DIV(
             accessor_name + ": ",
             "none" if accessor is None 
-            else _print_member(docsrc, accessor, None)))
+            else _print_member(docsrc, accessor, None))
 
     return div
 
@@ -204,7 +174,7 @@ def format_signature_summary(docsrc, objdoc):
     signature = get_signature(objdoc)
 
     if signature is None:
-        div.append(DIV("no parameter information available", cls="missing"))
+        div << DIV("no parameter information available", cls="missing")
 
     else:
         def format_param(param):
@@ -213,29 +183,26 @@ def format_signature_summary(docsrc, objdoc):
             doc_type    = param.get("doc_type")
             doc         = param.get("doc")
 
-            li = LI()
-            li.append(CODE(name, cls="identifier"))
+            li = LI(CODE(name, cls="identifier"))
             if default is not None:
-                li.extend((" = ", CODE(escape(default["repr"]))))
+                li << " = "
+                li << CODE(escape(default["repr"]))
             if doc_type is not None:
-                li.append(DIV("type: ", CODE(doc_type)))
+                li << DIV("type: ", CODE(doc_type))
             if doc is not None:
-                li.append(DIV(doc))
+                li << DIV(doc)
             return li
 
-        div.append(UL(*( format_param(p) for p in signature["params"] )))
+        div << UL(*( format_param(p) for p in signature["params"] ))
 
         # Show the return type type and documentation.
         ret = signature.get("return")
         if ret is not None:
-            doc         = ret.get("doc")
-            doc_type    = ret.get("doc_type")
-
-            div.append(H3("Return type"))
+            div << H3("Return type")
+            doc_type = ret.get("doc_type")
             if doc_type is not None:
-                div.append(DIV(doc_type))
-            if doc is not None:
-                div.append(doc)
+                div << DIV(doc_type)
+            div << ret.get("doc")
 
     return div
 
@@ -278,15 +245,21 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
     summary         = docs.get("summary")
     body            = docs.get("body")
 
-    head = DIV(cls="head")
-    rest = DIV(cls="rest")
+    cls = ("member", "clearfix", )
+    if import_path is not None:
+        cls += ("imported-name", )
+    # FIXME: Not quite right: name may be None.
+    if name is not None and name.startswith("_"):
+        cls += ("private-name", )
+    result = DIV(cls=cls)
 
-    title = DIV(cls="title")
-    title.append(
-        format_name(lookup_path, relative_to=context_path, name=unmangled_name))
+    head = result << DIV(cls="head")
+
+    title = head << DIV(cls="title")
+    title << format_name(
+        lookup_path, relative_to=context_path, name=unmangled_name)
     if is_function_like(objdoc):
-        title.append(format_signature(docsrc, objdoc))
-    head.append(title)
+        title << format_signature(docsrc, objdoc)
         
     # Show the repr if this is not a callable or one of several other
     # types with uninteresting reprs.
@@ -295,33 +268,29 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         and signature is None 
         and type_name not in ("module", "property", "type", )
     ):
-        head.append(DIV(SPAN("="), CODE(escape(repr)), cls="repr"))
+        head << DIV(SPAN("="), CODE(escape(repr)), cls="repr")
 
     if show_type:
-        nice_type = terminal.format_nice_type_name(objdoc, lookup_path)
-        if nice_type is None:
-            nice_type = type_name
-        head.append(CODE(nice_type, cls="type"))
+        head << CODE(
+            py.if_none(
+                terminal.format_nice_type_name(objdoc, lookup_path), type_name),
+            cls="type")
 
     # Show where this was imported from.
     if import_path is not None:
-        path = format_name(import_path, relative_to=lookup_path)
-        head.append(DIV("\u21d2 ", path, cls="import"))
+        head << DIV(
+            "\u21d2 ", 
+            format_name(import_path, relative_to=lookup_path), 
+            cls="import")
 
+    rest = result << DIV(cls="rest")
     if summary is not None:
-        docs = DIV(summary)
+        docs = rest << DIV(summary)
         if body:
             # Don't print the body, but indicate that there are more docs.
-            docs.append(SPAN("more...", cls="more"))
-        rest.append(docs)
+            docs << SPAN("more...", cls="more")
 
-    classes = ("member", "clearfix", )
-    if import_path is not None:
-        classes += ("imported-name", )
-    # FIXME: Not quite right: name may be None.
-    if name is not None and name.startswith("_"):
-        classes += ("private-name", )
-    return DIV(head, rest, cls=classes)
+    return result
 
 
 def format_members(docsrc, dict, parent_path, show_type=True, imports=True):
@@ -332,9 +301,9 @@ def format_members(docsrc, dict, parent_path, show_type=True, imports=True):
             # FIXME: Even if parent_path is None, we need to pass the local
             # name, in case the object doesn't know its own name.
             lookup_path = None if parent_path is None else parent_path / name
-            div.append(format_member(
+            div << format_member(
                 docsrc, objdoc, lookup_path, 
-                context_path=parent_path, show_type=show_type))
+                context_path=parent_path, show_type=show_type)
     return div
 
 
@@ -345,18 +314,17 @@ def format_source(source):
     source_text = source.get("source")
 
     if loc is not None:
-        div.append(SPAN(loc, cls="path"))
+        div << SPAN(loc, cls="path")
         lines = source.get("lines")
         if lines is not None:
             start, end = lines
-            div.append(" lines {}-{}".format(start + 1, end + 1))
+            div << " lines {}-{}".format(start + 1, end + 1)
 
     if source_text is not None:
-        # div.append(PRE(source_text, cls="source"))
         lexer = pygments.lexers.get_lexer_by_name("python")
         formatter = pygments.formatters.get_formatter_by_name(
             "html", cssclass="source")
-        div.append(pygments.highlight(source_text, lexer, formatter))
+        div << pygments.highlight(source_text, lexer, formatter)
 
     return div
 
@@ -366,7 +334,6 @@ def generate(docsrc, objdoc, lookup_path):
     from_path   = lookup_path or get_path(objdoc)
     while is_ref(objdoc):
         path = parse_ref(objdoc)
-        # FIXME: pr << format_path(from_path) << IMPORT_ARROW << NL
         objdoc = docsrc.resolve(objdoc)
         from_path = path
 
@@ -390,24 +357,21 @@ def generate(docsrc, objdoc, lookup_path):
     )
     lookup_modname  = None if lookup_path is None else lookup_path.modname
 
-    head = HEAD(LINK(
-        rel="stylesheet", type="text/css", href="/static/supdoc.css"))
-    # Use jQuery.
-    head.append(
-        SCRIPT(src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"))
+    html = HTML()
 
-    body = BODY()
-    body_content = DIV(id="content")
-    body.append(body_content)
+    head = html << HEAD(
+        LINK(rel="stylesheet", type="text/css", href="/static/supdoc.css"),
+        # Use jQuery.
+        SCRIPT(src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"),
+    )
 
-    module_list = format_module_list()
+    body = html << BODY() << DIV(id="content")
+
+    module_list = body << format_module_list()
     module_list["id"] = "module-sidebar"
-    body_content.append(module_list)
 
-    doc = DIV(id="main")
-    body_content.append(doc)
-
-    details = DIV(cls="details box")
+    doc = body << DIV(id="main")
+    details = doc << DIV(cls="details box")
 
     # Show its type.
     instance_of = (
@@ -417,50 +381,42 @@ def generate(docsrc, objdoc, lookup_path):
     nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
     if nice_type_name is not None:
         instance_of = (nice_type_name, " (", *instance_of, ")")
-    details.append(DIV(*instance_of))
+    details << DIV(*instance_of)
 
     # Show the module name.
     if type_name != "module" and module is not None:
-        details.append(
-            DIV("in module ", format_name(Path(parse_ref(module)[0]))))
+        details << DIV("in module ", format_name(Path(parse_ref(module)[0])))
 
     # Show the mangled name.
     if mangled_name is not None:
-        details.append(DIV(
-            "external name ", CODE(mangled_name, cls="identifier")))
+        details << DIV("external name ", CODE(mangled_name, cls="identifier"))
 
     # FIXME: Use a better icon.
-    details.append(DIV(A(
+    details << DIV(A(
         SPAN("JSON", cls="mini-icon"), 
         href=make_url(lookup_path) + "?format=json"),
         style="margin: 8px 0; "
-    ))
+    )
 
-    doc.append(details)
+    main = doc << DIV(cls="main box")
 
-    main = DIV(cls="main box")
-
-    main.append(DIV(CODE(display_name, cls="identifier"), cls="name"))
+    main << DIV(CODE(display_name, cls="identifier"), cls="name")
 
     # Show documentation.
     docs = objdoc.get("docs")
     if docs is not None:
-        main.append(format_docs(docs))
+        main << format_docs(docs)
 
     # Summarize type.
     if type_name == "type":
-        main.append(format_type_summary(objdoc, modname))
+        main << format_type_summary(objdoc, modname)
 
     # Summarize property.
     if type_name == "property":
-        main.append(format_property(objdoc))
+        main << format_property(objdoc)
 
     if is_function_like(objdoc):
-        main.append(format_signature_summary(docsrc, objdoc))
-
-    doc.append(main)
-
-    # doc.append(DIV(cls="clear"))
+        main << format_signature_summary(docsrc, objdoc)
 
     #----------------------------------------
     # Summarize contents.
@@ -471,88 +427,69 @@ def generate(docsrc, objdoc, lookup_path):
 
     partitions = terminal._partition_members(terminal.get_dict(objdoc, private) or {})
 
-    contents = DIV(cls="contents")
+    contents = doc << DIV(cls="contents")
 
-    contents.append(DIV(
-        INPUT(id="cb-import", type="checkbox", cls="tgl tgl-flat"),
-        LABEL(fr="cb-import", cls="tgl-btn"),
-        SPAN("Imports"),
-        # FIXME: Put this somewhere reasonable.
-        SCRIPT("""
-          $(function () {
-            $('.imported-name').toggle(false);
-            // FIXME: This animation is cheesy.
-            $('#cb-import').click(function (event) {
-              $('.imported-name').toggle('fast');
-            });
-          });
-        """),
-        cls="toggle",
-    ))
+    controls = contents << DIV(cls="controls")
 
-    contents.append(DIV(
-        INPUT(id="cb-private", type="checkbox", cls="tgl tgl-flat"),
-        LABEL(fr="cb-private", cls="tgl-btn"),
-        SPAN("Private Names"),
-        # FIXME: Put this somewhere reasonable.
-        SCRIPT("""
-          $(function () {
-            $('.private-name').toggle(false);
-            // FIXME: This animation is cheesy.
-            $('#cb-private').click(function (event) {
-              $('.private-name').toggle('fast');
-            });
-          });
-        """),
-        cls="toggle",
-    ))
+    controls << BUTTON("Imported", id="cb-import", cls="toggle")
+    # FIXME: Put this somewhere reasonable.
+    controls << SCRIPT("""
+      $(function () {
+        $('.imported-name').toggle(false);
+        // FIXME: This animation is cheesy.
+        $('#cb-import').click(function (event) {
+          $('.imported-name').toggle('fast');
+          $('#cb-import').toggleClass('toggled');
+        });
+      });
+    """)
 
-    partition = partitions.pop("modules", {})
-    if len(partition) > 0:
-        contents.extend((
-            H2("Modules"),
-            format_members(docsrc, partition, path, False, imports=imports)
-        ))
+    controls << BUTTON("Private", id="cb-private", cls="toggle")
+    # FIXME: Put this somewhere reasonable.
+    controls << SCRIPT("""
+      $(function () {
+        $('.private-name').toggle(false);
+        // FIXME: This animation is cheesy.
+        $('#cb-private').click(function (event) {
+          $('.private-name').toggle('fast');
+          $('#cb-private').toggleClass('toggled');
+        });
+      });
+    """)
 
-    partition = partitions.pop("types", {})
-    if len(partition) > 0:
-        contents.extend((
-            H2("Types" if type_name == "module" else "Member Types"),
-            format_members(docsrc, partition, path, False, imports=imports)
-        ))
+    mems = partitions.pop("modules", {})
+    if len(mems) > 0:
+        contents << H2("Modules")
+        contents << format_members(docsrc, mems, path, False, imports=imports)
 
-    partition = partitions.pop("properties", {})
-    if len(partition) > 0:
-        contents.extend((
-            H2("Properties"),
-            format_members(docsrc, partition, path, True, imports=imports)
-        ))
+    mems = partitions.pop("types", {})
+    if len(mems) > 0:
+        contents << H2("Types" if type_name == "module" else "Member Types")
+        contents << format_members(docsrc, mems, path, False, imports=imports)
 
-    partition = partitions.pop("functions", {})
-    if len(partition) > 0:
-        contents.extend((
-            H2("Functions" if type_name == "module" else "Methods"),
-            format_members(docsrc, partition, path, True, imports=imports)
-        ))
+    mems = partitions.pop("properties", {})
+    if len(mems) > 0:
+        contents << H2("Properties")
+        contents << format_members(docsrc, mems, path, True, imports=imports)
 
-    partition = partitions.pop("attributes", {})
-    if len(partition) > 0:
-        contents.extend((
-            H2("Attributes"),
-            format_members(docsrc, partition, path, True)
-        ))
+    mems = partitions.pop("functions", {})
+    if len(mems) > 0:
+        contents << H2("Functions" if type_name == "module" else "Methods")
+        contents << format_members(docsrc, mems, path, True, imports=imports)
 
-    doc.append(contents)
+    mems = partitions.pop("attributes", {})
+    if len(mems) > 0:
+        contents << H2("Attributes")
+        contents << format_members(docsrc, mems, path, True)
 
     #----------------------------------------
 
     # Summarize the source.
     source = objdoc.get("source")
     if source is not None:
-        doc.append(format_source(source))
+        doc << format_source(source)
 
-    # yield from HTML(head, body).format()
-    return HTML(head, body)
+    return html
 
 
 def main():

@@ -12,6 +12,11 @@ from   aslib import log
 app = flask.Flask(__name__)
 docsrc = inspector.DocSource(source=True)
 
+@app.route("/favicon.ico/", methods=("GET", ))
+def get_favicon():
+    return app.send_static_file("1475447687_carrot.png")
+
+
 @app.route("/<modname>", methods=("GET", ))
 @app.route("/<modname>/", methods=("GET", ))
 @app.route("/<modname>/<qualname>", methods=("GET", ))
