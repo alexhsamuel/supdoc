@@ -251,11 +251,12 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
     # FIXME: Not quite right: name may be None.
     if name is not None and name.startswith("_"):
         cls += ("private-name", )
-    result = DIV(cls=cls)
+    url = make_url(lookup_path)
+    result = DIV(cls=cls, onclick="window.location='{}';".format(url))
 
     head = result << DIV(cls="head")
 
-    title = head << DIV(cls="title")
+    title = head << DIV(cls="title identifier")
     title << format_name(
         lookup_path, relative_to=context_path, name=unmangled_name)
     if is_function_like(objdoc):
@@ -393,14 +394,14 @@ def generate(docsrc, objdoc, lookup_path):
 
     # FIXME: Use a better icon.
     details << DIV(A(
-        SPAN("JSON", cls="mini-icon"), 
+        CODE("{}", cls="mini-icon"), 
         href=make_url(lookup_path) + "?format=json"),
         style="margin: 8px 0; "
     )
 
-    main = doc << DIV(cls="main box")
+    main = doc << DIV(cls="main")
 
-    main << DIV(CODE(display_name, cls="identifier"), cls="name")
+    main << DIV(SPAN(display_name, cls="identifier"), cls="name")
 
     # Show documentation.
     docs = objdoc.get("docs")
