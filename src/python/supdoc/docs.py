@@ -20,6 +20,8 @@ def markup_error(description):
 
 JAVADOC_ARG_TAGS = frozenset({
     "param",
+    "raise",
+    "raises",
     "type",
 })
 

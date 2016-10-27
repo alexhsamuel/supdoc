@@ -1,5 +1,7 @@
 """
 Flask web server for supdoc documentation.
+
+Invoke `bin/supdoc-serve` to start the server.
 """
 
 #-------------------------------------------------------------------------------
