@@ -1,3 +1,9 @@
+"""
+Flask web server for supdoc documentation.
+"""
+
+#-------------------------------------------------------------------------------
+
 import flask
 import json
 import sys
@@ -16,6 +22,9 @@ docsrc = inspector.DocSource(source=True)
 
 @app.route("/favicon.ico/", methods=("GET", ))
 def get_favicon():
+    """
+    Serves the application icon.
+    """
     return app.send_static_file("favicon.png")
 
 
@@ -23,6 +32,9 @@ def get_favicon():
 @app.route("/<modname>/", methods=("GET", ))
 @app.route("/<modname>/<qualname>", methods=("GET", ))
 def get_docs(modname, qualname=None):
+    """
+    Serves documentation.
+    """
     fmt = flask.request.args.get("format", "html")
 
     path = Path(modname, qualname)
