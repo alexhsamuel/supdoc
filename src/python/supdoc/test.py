@@ -161,3 +161,21 @@ class C:
 
 
 
+#-------------------------------------------------------------------------------
+
+def exc_function(x):
+    """
+    This function sometimes raises exceptions.
+
+    @raise TypeError
+      `x` is not an `int`.
+    @raise ValueError
+      `x` is negative.
+    @raise RuntimeError
+      Something is broken in the environment.
+    """
+    x = int(x)
+    if x < 0:
+        raise ValueError("x is negative")
+
+

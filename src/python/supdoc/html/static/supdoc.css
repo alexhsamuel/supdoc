@@ -14,7 +14,7 @@
 }
 
 body {
-    font-family: 'Noto Sans', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 14px;
     margin: 0;
     padding: 0;
@@ -29,18 +29,17 @@ a:hover {
 }
 
 h1, h2, h3, h4, h5, h6, h7, h8 {
-    font-family: 'Noto Sans', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 600;
 }
 
 .box {
-    border: 1px solid #a0a0a0;
+    border: 1px solid #f0f0f0;
     padding: 12px 12px;
 }
 
 .name {
-    font-family: 'Noto Sans', sans-serif;
-    font-weight: 700;
+    font-family: 'Roboto', sans-serif;
     font-size: 300%;
     margin-right: 24px;
 }
