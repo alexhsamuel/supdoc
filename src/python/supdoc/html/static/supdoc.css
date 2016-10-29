@@ -84,15 +84,13 @@ pre > .doctest {
 }
 
 .module-list {
-    border-right: 1px solid black;
+    border-right: 1px solid #e0e0e0;
 }
 
 .module-list .heading {
     margin-bottom: 8px;
     font-size: 120%;
     font-weight: 800;
-    border-bottom-width: 1px;
-    border-bottom-style: solid;
 }
 
 .module-list ul {
