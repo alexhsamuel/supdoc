@@ -144,10 +144,10 @@ ul.params {
 
 .params li:before {
     color: #909090;
-    content: "\25cf";
+    content: "\25cb";
     width: 0;
     display: inline-block;
-    text-indent: -24px;
+    text-indent: -21px;
 }
 
 ul.exceptions {
