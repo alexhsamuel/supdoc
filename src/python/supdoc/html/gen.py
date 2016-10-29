@@ -363,7 +363,7 @@ def generate(docsrc, objdoc, lookup_path):
     head = html << HEAD(
         LINK(rel="stylesheet", type="text/css", href="/static/supdoc.css"),
         # Use jQuery.
-        SCRIPT(src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"),
+        SCRIPT(src="/static/jquery.min.js"),
     )
 
     body = html << BODY() << DIV(id="content")
