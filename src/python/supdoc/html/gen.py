@@ -183,7 +183,9 @@ def format_signature_summary(docsrc, objdoc):
             doc_type    = param.get("doc_type")
             doc         = param.get("doc")
 
-            li = LI(CODE(name, cls="identifier"))
+            li = LI(
+                SPAN("parameter ", cls="light"),
+                CODE(name, cls="identifier"))
             if default is not None:
                 li << " = "
                 li << CODE(escape(default["repr"]))
@@ -193,7 +195,21 @@ def format_signature_summary(docsrc, objdoc):
                 li << DIV(doc)
             return li
 
-        div << UL(*( format_param(p) for p in signature["params"] ))
+        div << UL(
+            *( format_param(p) for p in signature["params"] ), cls="params")
+
+        def format_exception(exc):
+            type    = exc["exc_type"]
+            doc     = exc["doc"]
+            return LI(
+                SPAN("raises ", cls="light"),
+                CODE(type, cls="identifier"),
+                None if doc is None else DIV(doc))
+            
+        exceptions = signature.get("exceptions", ())
+        if len(exceptions) > 0:
+            div << UL(
+                *( format_exception(e) for e in exceptions ), cls="exceptions")
 
         # Show the return type type and documentation.
         ret = signature.get("return")

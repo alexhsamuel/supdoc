@@ -123,6 +123,55 @@ pre > .doctest {
     font-weight: 700;
 }
 
+.light {
+    color: #404040;
+    font-weight: 300;
+}
+
+ul.params {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 24px;
+}
+
+.params li {
+    margin-bottom: 12px;
+}
+
+.params li div {
+    padding-left: 0;
+}
+
+.params li:before {
+    color: #909090;
+    content: "\25cf";
+    width: 0;
+    display: inline-block;
+    text-indent: -24px;
+}
+
+ul.exceptions {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 24px;
+}
+
+.exceptions li {
+    margin-bottom: 12px;
+}
+
+.exceptions li div {
+    padding-left: 0;
+}
+
+.exceptions li:before {
+    color: #909090;
+    content: "\21e7";
+    width: 0;
+    display: inline-block;
+    text-indent: -24px;
+}
+
 .docs pre {
     margin-left: 24px;
 }
