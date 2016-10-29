@@ -79,6 +79,9 @@ def find_javadoc(lines):
             text=parse_formatting(" ".join(text))
         ))
     
+    # FIXME: Handle some aliases, for instance "returns" for "return" and
+    # "raises" for "raise".
+
     return doc_lines, javadoc
 
 
@@ -210,6 +213,14 @@ def attach_javadoc_to_signature(doc):
             key = "doc" if tag == "return" else "doc_type"
             # If an annotation was given more than once, we use the last.
             ret[key] = entry["text"]
+
+        # Attach exception annotations.
+        if tag in {"raise"}: 
+            signature.setdefault("exceptions", []).append({
+                "exc_type": entry["arg"],
+                "doc": entry["text"],
+            })
+            
 
 
 #-------------------------------------------------------------------------------
