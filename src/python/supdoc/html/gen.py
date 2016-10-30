@@ -188,6 +188,8 @@ def format_signature_summary(docsrc, objdoc):
         div << DIV("no parameter information available", cls="missing")
 
     else:
+        ul = div << UL(cls="params")  # FIXME: cls="signature"
+
         def format_param(param):
             name        = param["name"]
             kind        = param["kind"]
@@ -199,6 +201,7 @@ def format_signature_summary(docsrc, objdoc):
                 "POSITIONAL_OR_KEYWORD" : "right-circled",
                 "POSITIONAL_ONLY"       : "cc-zero",
                 "KEYWORD_ONLY"          : "cc-nd",
+                "VAR_POSITIONAL"        : "star",
                 "VAR_KEYWORD"           : "star-empty",
             }[kind]
 
@@ -215,8 +218,7 @@ def format_signature_summary(docsrc, objdoc):
                 li << DIV(doc)
             return li
 
-        div << UL(
-            *( format_param(p) for p in signature["params"] ), cls="params")
+        ul.extend( format_param(p) for p in signature["params"] )
 
         def format_exception(exc):
             type    = exc["exc_type"]
@@ -227,19 +229,19 @@ def format_signature_summary(docsrc, objdoc):
                 CODE(type, cls="identifier"),
                 None if doc is None else DIV(doc))
             
-        exceptions = signature.get("exceptions", ())
-        if len(exceptions) > 0:
-            div << UL(
-                *( format_exception(e) for e in exceptions ), cls="exceptions")
+        ul.extend(
+            format_exception(e) for e in signature.get("exceptions", ()) )
 
         # Show the return type type and documentation.
         ret = signature.get("return")
         if ret is not None:
-            div << H3("Return type")
             doc_type = ret.get("doc_type")
-            if doc_type is not None:
-                div << DIV(doc_type)
-            div << ret.get("doc")
+            doc = ret.get("doc")
+            ul << LI(
+                DIV(icon("right-thin"), cls="bullet"),
+                SPAN("returns ", cls="light"),
+                None if doc_type is None else CODE(doc_type),
+                None if doc is None else DIV(doc))
 
     return div
 

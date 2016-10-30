@@ -53,11 +53,13 @@ def toplevel_function(x, y, z=10, *, w=None, **kw_args):
 
       This argument is **not** required.  If no value is passed, as either a
       positional or a keyword argument, the default value of `10` will be used.
-    @keywords
+    @param kw_args
       Additional keyword arguments.  Their values must all be numerical,
       as they are added together.  
 
       The keyword arguments' names are ignored.
+    @return
+      The computed value.
     @rtype
       `float`
     """

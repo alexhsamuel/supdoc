@@ -220,7 +220,7 @@ def attach_javadoc_to_signature(doc):
                 "exc_type": entry["arg"],
                 "doc": entry["text"],
             })
-            
+
 
 
 #-------------------------------------------------------------------------------
