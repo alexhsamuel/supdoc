@@ -148,7 +148,8 @@ def format_type_summary(objdoc, modname=None):
     if bases is not None:
         div << DIV(
             "Base types: ", 
-            *( format_name(get_path(base), relative_to=Path(modname))
+            *( SPAN(format_name(get_path(base), relative_to=Path(modname)),
+                    cls="base_type")
                for base in bases ))
 
     mro = objdoc.get("mro")
@@ -178,10 +179,7 @@ def format_property_summary(docsrc, objdoc):
 
 
 def format_signature_summary(docsrc, objdoc):
-    div = DIV(
-        H2("Signature"), 
-        CODE(objdoc["name"]), format_signature(docsrc, objdoc), 
-        cls="signature")
+    div = DIV(cls="signature")
     signature = get_signature(objdoc)
 
     if signature is None:
@@ -442,6 +440,9 @@ def generate(docsrc, objdoc, lookup_path):
 
     main << DIV(SPAN(display_name, cls="identifier"), cls="name")
 
+    if is_function_like(objdoc):
+        main << DIV(CODE(objdoc["name"]), format_signature(docsrc, objdoc))
+        
     # Show documentation.
     docs = objdoc.get("docs")
     if docs is not None:

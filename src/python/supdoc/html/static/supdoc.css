@@ -113,13 +113,17 @@ pre > .doctest {
 }
 
 .docs {
-    margin: 12px 0;
+    margin: 24px 0 48px 0;
     line-height: 120%;
 }
 
 .summary {
     font-size: 125%;
     font-weight: 700;
+}
+
+.base_type {
+    margin: 0 8px;
 }
 
 .light {
