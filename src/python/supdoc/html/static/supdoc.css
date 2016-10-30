@@ -16,6 +16,7 @@
 body {
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
+    font-weight: 300;
     margin: 0;
     padding: 0;
 }
@@ -52,12 +53,14 @@ h1, h2, h3, h4, h5, h6, h7, h8 {
 pre {
     font-family: 'Roboto Mono', monospace;
     font-size: 100%;
+    font-weight: 400;
 }
 
 code {
     font-family: 'Roboto Mono', monospace;
     font-size: 100;
     letter-spacing: -0.02em;
+    font-weight: 400;
 }
 
 pre > .doctest {
@@ -115,6 +118,7 @@ pre > .doctest {
 .docs {
     margin: 24px 0 48px 0;
     line-height: 120%;
+    font-weight: 400;
 }
 
 .summary {
