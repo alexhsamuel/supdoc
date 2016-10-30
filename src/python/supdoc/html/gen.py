@@ -164,7 +164,7 @@ def format_type_summary(objdoc, modname=None):
     return div
 
 
-def format_property_summary(docsrc, objdoc):
+def format_property_summary(docsrc, objdoc, lookup_path):
     div = DIV(H2("Property"))
 
     for accessor_name in ("get", "set", "del"):
@@ -173,7 +173,7 @@ def format_property_summary(docsrc, objdoc):
         div << DIV(
             accessor_name + ": ",
             "none" if accessor is None 
-            else _print_member(docsrc, accessor, None))
+            else format_member(docsrc, accessor, lookup_path))
 
     return div
 
@@ -454,7 +454,7 @@ def generate(docsrc, objdoc, lookup_path):
 
     # Summarize property.
     if type_name == "property":
-        main << format_property(objdoc)
+        main << format_property_summary(docsrc, objdoc, lookup_path)
 
     if is_function_like(objdoc):
         main << format_signature_summary(docsrc, objdoc)
