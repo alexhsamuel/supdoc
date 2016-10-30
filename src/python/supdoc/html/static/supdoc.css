@@ -116,14 +116,19 @@ pre > .doctest {
 }
 
 .docs {
-    margin: 24px 0 48px 0;
+    margin: 0;
     line-height: 120%;
     font-weight: 400;
 }
 
-.summary {
+.docs .summary {
+    margin-top: 24px;
     font-size: 125%;
     font-weight: 700;
+}
+
+.docs .body {
+    margin-bottom: 48px;
 }
 
 .base_type {

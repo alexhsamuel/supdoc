@@ -137,7 +137,7 @@ def format_docs(docs):
     # Show the doc body.
     body = docs.get("body", "")
     if body:
-        div << DIV(body)
+        div << DIV(body, cls="body")
     return div
 
 
@@ -322,7 +322,7 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
             cls="import")
 
     if summary is not None:
-        rest = result << DIV(cls="rest")
+        rest = result << DIV(cls=("rest", "docs"))
         docs = rest << DIV(summary)
         if body:
             # Don't print the body, but indicate that there are more docs.
