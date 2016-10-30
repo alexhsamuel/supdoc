@@ -16,6 +16,17 @@ import aslib.json
 
 #-------------------------------------------------------------------------------
 
+def icon(name):
+    # <svg class="icon-twitter">
+    #   <use xlink:href="/images/icons.svg#icon-twitter"></use>
+    # </svg>
+    name = "icon-" + str(name)
+    url = "/static/icons.svg#" + name
+    return SVG(
+        USE(**{"xlink:href": url}),
+        cls=name)
+
+
 def format_modname(modname):
     return CODE(modname, cls="module")
 
@@ -179,11 +190,20 @@ def format_signature_summary(docsrc, objdoc):
     else:
         def format_param(param):
             name        = param["name"]
+            kind        = param["kind"]
             default     = param.get("default")
             doc_type    = param.get("doc_type")
             doc         = param.get("doc")
 
+            icon_name = {
+                "POSITIONAL_OR_KEYWORD" : "right-circled",
+                "POSITIONAL_ONLY"       : "cc-zero",
+                "KEYWORD_ONLY"          : "cc-nd",
+                "VAR_KEYWORD"           : "star-empty",
+            }[kind]
+
             li = LI(
+                DIV(icon(icon_name), cls="bullet"),
                 SPAN("parameter ", cls="light"),
                 CODE(name, cls="identifier"))
             if default is not None:
@@ -202,6 +222,7 @@ def format_signature_summary(docsrc, objdoc):
             type    = exc["exc_type"]
             doc     = exc["doc"]
             return LI(
+                DIV(icon("alert"), cls="bullet"),
                 SPAN("raises ", cls="light"),
                 CODE(type, cls="identifier"),
                 None if doc is None else DIV(doc))

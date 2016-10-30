@@ -115,7 +115,6 @@ pre > .doctest {
 .docs {
     margin: 12px 0;
     line-height: 120%;
-    color: #606060;
 }
 
 .summary {
@@ -138,16 +137,13 @@ ul.params {
     margin-bottom: 12px;
 }
 
-.params li div {
-    padding-left: 0;
-}
-
-.params li:before {
-    color: #909090;
-    content: "\25cb";
+.bullet {
     width: 0;
+    position: relative;
+    bottom: -4px;
     display: inline-block;
-    text-indent: -21px;
+    text-indent: -24px;
+    color: #c0c0c0;
 }
 
 ul.exceptions {
@@ -158,18 +154,6 @@ ul.exceptions {
 
 .exceptions li {
     margin-bottom: 12px;
-}
-
-.exceptions li div {
-    padding-left: 0;
-}
-
-.exceptions li:before {
-    color: #909090;
-    content: "\21e7";
-    width: 0;
-    display: inline-block;
-    text-indent: -24px;
 }
 
 .docs pre {
@@ -276,3 +260,15 @@ button.toggle.toggled {
 button.toggle:focus {
     outline: none;
 }
+
+/*----------------------------------------------------------------------------*/
+
+/* For Fontastic icons.  See demo.html.  */
+
+[class^="icon-"], [class*=" icon-"] {
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    fill: currentColor;
+}
+

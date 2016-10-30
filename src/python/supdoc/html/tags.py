@@ -124,9 +124,11 @@ _ELEMENT_NAMES = (
     "script",
     "span",
     "style",
+    "svg",
     "title",
     "tt",
     "ul",
+    "use",
 ) + tuple( "h{}".format(i) for i in range(1, 10) )
 
 _ELEMENTS = { n.upper(): make_element(n) for n in _ELEMENT_NAMES }
