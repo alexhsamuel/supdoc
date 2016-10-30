@@ -131,8 +131,23 @@ pre > .doctest {
     margin-bottom: 48px;
 }
 
-.base_type {
-    margin: 0 8px;
+.details {
+    line-height: 180%;
+}
+
+.base-type-list {
+    margin: 0;
+    padding-left: 24px;
+}
+
+.mro-list {
+    list-style: none;
+    margin: 0;
+    padding-left: 8px;
+}
+
+.mro-list li:before {
+    content: "\2192  ";
 }
 
 .light {

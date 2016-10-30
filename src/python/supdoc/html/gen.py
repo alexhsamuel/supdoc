@@ -27,6 +27,15 @@ def icon(name):
         cls=name)
 
 
+def make_list(items, tag=UL, start=None, cls=None):
+    list = tag(*( LI(i) for i in items ))
+    if cls is not None:
+        list["cls"] = cls
+    if start is not None:
+        list["start"] = start
+    return list
+
+
 def format_modname(modname):
     return CODE(modname, cls="module")
 
@@ -138,29 +147,6 @@ def format_docs(docs):
     body = docs.get("body", "")
     if body:
         div << DIV(body, cls="body")
-    return div
-
-
-def format_type_summary(objdoc, modname=None):
-    div = DIV(H2("Type"))
-
-    bases = objdoc.get("bases")
-    if bases is not None:
-        div << DIV(
-            "Base types: ", 
-            *( SPAN(format_name(get_path(base), relative_to=Path(modname)),
-                    cls="base_type")
-               for base in bases ))
-
-    mro = objdoc.get("mro")
-    if mro is not None:
-        mro_div = div << DIV("MRO: ")
-        for first, mro_type in aslib.itr.first(mro):
-            if not first:
-                mro_div << " \u2192 "
-            mro_div << format_name(
-                get_path(mro_type), relative_to=Path(modname))
-
     return div
 
 
@@ -429,6 +415,27 @@ def generate(docsrc, objdoc, lookup_path):
     if mangled_name is not None:
         details << DIV("external name ", CODE(mangled_name, cls="identifier"))
 
+    bases = objdoc.get("bases")
+    if bases is not None:
+        bases_div = details << DIV("base types:")
+        bases_div << make_list(
+            ( 
+                SPAN(format_name(get_path(base), relative_to=Path(modname)))
+                for base in bases
+            ),
+            tag=OL, start=0, cls="base-type-list",
+        )
+
+    mro = objdoc.get("mro")
+    if mro is not None:
+        mro_div = details << DIV("MRO: ")
+        for first, mro_type in aslib.itr.first(mro):
+            if not first:
+                mro_div << " \u2192 "
+            mro_div << format_name(
+                get_path(mro_type), relative_to=Path(modname))
+
+
     # FIXME: Use a better icon.
     details << DIV(A(
         CODE("{}", cls="mini-icon"), 
@@ -447,10 +454,6 @@ def generate(docsrc, objdoc, lookup_path):
     docs = objdoc.get("docs")
     if docs is not None:
         main << format_docs(docs)
-
-    # Summarize type.
-    if type_name == "type":
-        main << format_type_summary(objdoc, modname)
 
     # Summarize property.
     if type_name == "property":
