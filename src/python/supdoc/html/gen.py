@@ -230,6 +230,15 @@ def format_signature_summary(docsrc, objdoc):
     return div
 
 
+# Names of types of which objects' reprs are not interesting.
+SUPPRESS_REPR_TYPES = {
+    "classmethod_descriptor", 
+    "getset_descriptor", 
+    "module", 
+    "property", 
+    "type", 
+}
+
 # FIXME: WTF is this signature anyway?
 def format_member(docsrc, objdoc, lookup_path, *, context_path=None, 
                   show_type=True):
@@ -290,7 +299,7 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
     if (
             repr is not None 
         and signature is None 
-        and type_name not in ("module", "property", "type", )
+        and type_name not in SUPPRESS_REPR_TYPES
     ):
         head << DIV(SPAN("="), CODE(escape(repr)), cls="repr")
 
@@ -371,7 +380,7 @@ def generate(docsrc, objdoc, lookup_path):
     )
     type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
-    type_path       = get_path(type)
+    type_path       = None if type is None else get_path(type)
     
     module          = objdoc.get("module")
     modname         = (
@@ -398,14 +407,15 @@ def generate(docsrc, objdoc, lookup_path):
     details = doc << DIV(cls="details box")
 
     # Show its type.
-    instance_of = (
-        "instance of ", 
-        format_name(type_path, relative_to=Path(lookup_modname)),
-    )
-    nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
-    if nice_type_name is not None:
-        instance_of = (nice_type_name, " (", *instance_of, ")")
-    details << DIV(*instance_of)
+    if type is not None:
+        instance_of = (
+            "instance of ", 
+            format_name(type_path, relative_to=Path(lookup_modname)),
+        )
+        nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
+        if nice_type_name is not None:
+            instance_of = (nice_type_name, " (", *instance_of, ")")
+        details << DIV(*instance_of)
 
     # Show the module name.
     if type_name != "module" and module is not None:
