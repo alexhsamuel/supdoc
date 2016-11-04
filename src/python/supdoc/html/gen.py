@@ -231,6 +231,7 @@ def format_signature_summary(docsrc, objdoc):
 
 
 # Names of types of which objects' reprs are not interesting.
+# FIXME: Share with terminal docs.
 SUPPRESS_REPR_TYPES = {
     "classmethod_descriptor", 
     "getset_descriptor", 
