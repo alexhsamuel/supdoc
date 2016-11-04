@@ -110,6 +110,7 @@ _CODE_TYPES = {
     "classmethod",
     "classmethod_descriptor",
     "function",
+    "getset_descriptor",
     "method_descriptor",
     "module",
     "property",
@@ -431,6 +432,7 @@ class Inspector:
 
         # Get documentation, if it belongs to this object itself (not to the
         # object's type).
+        # FIXME: Maybe just compare obj.__doc__ to type(obj).__doc__?
         doc = getattr(obj, "__doc__", None) if has_code(obj) else None
         if (    doc is not None 
             and isinstance(doc, str)
