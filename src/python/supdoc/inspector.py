@@ -1,6 +1,7 @@
 import builtins
 import collections
 from   contextlib import suppress
+import enum
 import importlib
 import inspect
 import json
@@ -65,12 +66,22 @@ SPECIAL_NAMES = {
     }
 
 # Types that have docstrings.
-DOCSTRING_TYPES = (
+DOCSTRING_TYPES = {
     property,
     type,
     types.FunctionType,
     types.ModuleType,
-    )
+}
+
+# Types that have paths, i.e. are defined somewhere.
+# FIXME: Do we need this?
+DEFINED_TYPES = {
+    enum.EnumMeta,
+    type,
+    types.BuiltinFunctionType,
+    types.BuiltinMethodType,
+    types.FunctionType,
+}
 
 #-------------------------------------------------------------------------------
 
@@ -271,9 +282,10 @@ class Inspector:
         """
         # Get the object's path.  If the path doesn't refer back to the object,
         # though, ignore it.
+        # FIXME: Simplify this code.
         path = None if is_imposter(obj) else Path.of(obj)
 
-        if path is not None and lookup_path is not None and path != lookup_path:
+        if path is not None and path != lookup_path:
             # Defined elsewhere.  Produce a ref.
             return self._inspect_ref(obj)
 

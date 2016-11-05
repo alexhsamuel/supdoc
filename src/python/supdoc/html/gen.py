@@ -16,6 +16,17 @@ import aslib.json
 
 #-------------------------------------------------------------------------------
 
+def get_name(objdoc):
+    if is_ref(objdoc):
+        path = parse_ref(objdoc)
+        return path.qualname
+    else:
+        try:
+            return objdoc["name"]
+        except KeyError:
+            return objdoc.get("repr", "??")
+
+
 def icon(name):
     # <svg class="icon-twitter">
     #   <use xlink:href="/images/icons.svg#icon-twitter"></use>
@@ -195,7 +206,9 @@ def format_signature_summary(docsrc, objdoc):
                 CODE(name, cls="identifier"))
             if default is not None:
                 li << " = "
-                li << CODE(escape(default["repr"]))
+                # FIXME: Important.  There should be a function that takes
+                # an arbitrary ref/non-ref objdoc and formats it!
+                li << CODE(escape(get_name(param)))
             if doc_type is not None:
                 li << DIV("type: ", CODE(doc_type))
             if doc is not None:
