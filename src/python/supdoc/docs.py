@@ -274,7 +274,7 @@ def parse_doc_markdown(docstring):
     tostring = lambda e: ET.tostring(e, method="html", encoding="unicode")
 
     def content(e):
-        return (html.escape(e.text) or "") + "".join( tostring(c) for c in e )
+        return (html.escape(e.text or "")) + "".join( tostring(c) for c in e )
 
     # If the first element is a paragraph, use that as the summary.
     if len(et) > 0 and et[0].tag.lower() == 'p':
