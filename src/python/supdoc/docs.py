@@ -1,5 +1,6 @@
 import doctest
 import html
+import inspect
 import logging
 import re
 import sys
@@ -183,11 +184,63 @@ def parse_doc(source):
     return result
 
 
+def parse_signature(name, signature):
+    """
+    @param name
+      The expected name of the function.
+    @parma signature
+      A string containing the function signature.
+    """
+    # FIXME: Validate the signature.
+
+    # Write an empty function with this signature.
+    fn_src = "def {}:\n  pass\n".format(signature)
+    # Now evaluate it.  FIXME: This allows evaluation of arbitrary expressions.
+    names = {}
+    exec(fn_src, names)
+    # Fish out the produced function, and get its signature.
+    fn = names[name]
+    sig = inspect.signature(fn)
+
+    # Exctract docs from the signature.
+
+    def inspect_parameter(param):
+        # FIXME: Default value.
+        # FIXME: Annotation.
+        return {
+            "name": param.name,
+            "kind": str(param.kind),
+        }
+
+    # FIXME: Return annotation.
+
+    return {
+        "params": [ inspect_parameter(p) for p in sig.parameters.values() ]
+    }
+
+
 def attach_javadoc_to_signature(doc):
     try:
-        signature   = doc["signature"]
-        javadoc     = doc["docs"]["javadoc"]
+        javadoc = doc["docs"]["javadoc"]
     except KeyError:
+        # No javadoc annotations.
+        return
+
+    # If this is a callable but has no signature, and there is a @signature
+    # annotation, use it.
+    if doc.get("callable", False) and "signature" not in doc:
+        sig = [ e for e in javadoc if e["tag"] == "signature" ]
+        if len(sig) > 0:
+            try:
+                doc["signature"] = parse_signature(doc["name"], sig[0]["text"])
+            except Exception as e:
+                print(e)
+                return
+
+    try:
+        signature = doc["signature"]
+    except KeyError:
+        # No signature to annotate.
         return
 
     params = { s["name"] : s for s in signature.get("params", ()) }

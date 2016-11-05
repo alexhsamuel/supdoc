@@ -167,7 +167,7 @@ def is_mangled(obj):
 
 #-------------------------------------------------------------------------------
 
-# Used in the objdoc cache to mark an object curretly under inspection; used to
+# Used in the objdoc cache to mark an object currently under inspection; used to
 # detect loop.
 IN_PROGRESS = object()
 
@@ -417,12 +417,7 @@ class Inspector:
                 # Doesn't work for extension functions.
                 pass
             else:
-                objdoc["signature"] = {
-                    "params": [
-                        self._inspect_parameter(p)
-                        for p in sig.parameters.values()
-                    ]
-                }
+                objdoc["signature"] = self._inspect_signature(sig)
 
         # If this is a classmethod or staticmethod wrapper, inspect the
         # underlying function.
@@ -463,6 +458,21 @@ class Inspector:
         with suppress(TypeError):
             self.__cache[obj] = objdoc
         return objdoc
+
+
+    def _inspect_signature(self, sig):
+        """
+        Inspects a signature object.
+
+        @type sig
+          `inspect.Signature`.
+        """
+        return {
+            "params": [
+                self._inspect_parameter(p)
+                for p in sig.parameters.values()
+            ]
+        }
 
 
     def _inspect_parameter(self, param):
