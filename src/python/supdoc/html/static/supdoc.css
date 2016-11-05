@@ -122,7 +122,7 @@ pre > .doctest {
 }
 
 .docs .summary {
-    margin-top: 24px;
+    margin: 24px 0;
     font-size: 125%;
     font-weight: 700;
 }
