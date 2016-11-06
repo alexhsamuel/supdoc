@@ -139,6 +139,7 @@ def format_signature(docsrc, objdoc):
     if sig is None:
         span << SPAN("??", cls="missing")
     else:
+        # FIXME: Don't reconstitute a signature here.  Use it directly.
         sig = signature_from_jso(sig, docsrc)
         for first, param in itr.first(format_parameters(sig.parameters)):
             if not first:
