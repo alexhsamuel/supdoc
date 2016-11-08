@@ -1,5 +1,7 @@
 from   contextlib import closing
 import json
+import math
+import typing
 
 #-------------------------------------------------------------------------------
 
@@ -70,7 +72,7 @@ def annotated(
         x: str, 
         y: int=42, 
         *a: "stuff", 
-        k: bool=True, 
+        fn: typing.Callable=math.sqrt, 
         **kw: "more"
     ) -> str:
     """

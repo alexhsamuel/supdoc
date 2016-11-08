@@ -16,6 +16,7 @@ import aslib.json
 
 #-------------------------------------------------------------------------------
 
+# FIXME: Get rid of this.
 def get_name(objdoc):
     if is_ref(objdoc):
         path = parse_ref(objdoc)
@@ -207,8 +208,9 @@ def format_signature_summary(docsrc, objdoc):
             if default is not None:
                 li << " = "
                 # FIXME: Important.  There should be a function that takes
-                # an arbitrary ref/non-ref objdoc and formats it!
-                li << CODE(escape(get_name(param)))
+                # an arbitrary ref/non-ref objdoc and formats it!  Show links
+                # for refs.
+                li << CODE(escape(get_name(default)))
             if doc_type is not None:
                 li << DIV("type: ", CODE(doc_type))
             if doc is not None:
