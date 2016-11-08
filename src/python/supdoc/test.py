@@ -66,6 +66,19 @@ def toplevel_function(x, y, z=10, *, w=None, **kw_args):
     return x + y + z + sum(kw_args.values())
 
 
+def annotated(
+        x: str, 
+        y: int=42, 
+        *a: "stuff", 
+        k: bool=True, 
+        **kw: "more"
+    ) -> str:
+    """
+    A function with annotations.
+    """
+    return "x={} y={} a={} k={} kw={}".format(x, y, a, k, kw)
+
+
 #-------------------------------------------------------------------------------
 
 class C:
