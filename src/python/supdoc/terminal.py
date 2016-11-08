@@ -116,20 +116,21 @@ def format_nice_type_name(objdoc, lookup_path):
 
 #-------------------------------------------------------------------------------
 
-def _format_parameters(parameters):
+def _format_parameters(params):
     star = False
-    for param in parameters.values():
+    for param in params:
         prefix = ""
-        if param.kind is Parameter.KEYWORD_ONLY and not star:
+        kind = param["kind"]
+        if kind == "KEYWORD_ONLY" and not star:
             yield "*"
             star = True
-        elif param.kind is Parameter.VAR_POSITIONAL:
+        elif kind == "VAR_POSITIONAL":
             prefix = "*"
             star = True
-        elif param.kind is Parameter.VAR_KEYWORD:
+        elif kind == "VAR_KEYWORD":
             prefix = "**"
             star = True
-        result = prefix + ansi.style(**STYLES["identifier"])(param.name)
+        result = prefix + ansi.style(**STYLES["identifier"])(param["name"])
         yield result
 
 
@@ -145,8 +146,7 @@ def _print_signature(docsrc, objdoc, pr):
     pr << "("
     signature = get_signature(objdoc)
     if signature is not None:
-        sig = signature_from_jso(signature, docsrc)
-        pr << ", ".join(_format_parameters(sig.parameters))
+        pr << ", ".join(_format_parameters(signature["params"]))
     else:
         with pr(**STYLES["warning"]):
             pr << MISSING

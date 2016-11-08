@@ -117,20 +117,21 @@ def format_name(path, *, name=None, relative_to=None):
     return A(element, href=make_url(path), cls="identifier")
 
 
-def format_parameters(parameters):
+def format_parameters(params):
     star = False
-    for param in parameters.values():
+    for param in params:
         prefix = None
-        if param.kind is Parameter.KEYWORD_ONLY and not star:
+        kind = param["kind"]
+        if kind == "KEYWORD_ONLY" and not star:
             yield "*"
             star = True
-        elif param.kind is Parameter.VAR_POSITIONAL:
+        elif kind == "VAR_POSITIONAL":
             prefix = "*"
             star = True
-        elif param.kind is Parameter.VAR_KEYWORD:
+        elif kind == "VAR_KEYWORD":
             prefix = "**"
             star = True
-        yield CODE(prefix, param.name, cls="parameter")
+        yield CODE(prefix, param["name"], cls="parameter")
 
 
 def format_signature(docsrc, objdoc):
@@ -139,9 +140,7 @@ def format_signature(docsrc, objdoc):
     if sig is None:
         span << SPAN("??", cls="missing")
     else:
-        # FIXME: Don't reconstitute a signature here.  Use it directly.
-        sig = signature_from_jso(sig, docsrc)
-        for first, param in itr.first(format_parameters(sig.parameters)):
+        for first, param in itr.first(format_parameters(sig["params"])):
             if not first:
                 span << ", "
             span << param
