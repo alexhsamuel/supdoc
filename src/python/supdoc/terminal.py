@@ -74,6 +74,7 @@ def unmangle(name, parent_name):
 _NICE_TYPE_NAMES = {
     Path("builtins", "builtin_function_or_method")  : "extension function",
     Path("builtins", "classmethod")                 : "class method",
+    Path("builtins", "classmethod_descriptor")      : "extenson class method",
     Path("builtins", "getset_descriptor")           : "extension property",
     Path("builtins", "method_descriptor")           : "extention method",
     Path("builtins", "wrapper_descriptor")          : "special method",
