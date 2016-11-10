@@ -77,6 +77,13 @@ def annotated(
     ) -> str:
     """
     A function with annotations.
+
+    @type x
+      A string.
+    @type y
+      An integer.
+    @type fn
+      A function or other callable.
     """
     return "x={} y={} a={} k={} kw={}".format(x, y, a, k, kw)
 

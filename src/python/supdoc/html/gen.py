@@ -16,16 +16,53 @@ import aslib.json
 
 #-------------------------------------------------------------------------------
 
-# FIXME: Get rid of this.
-def get_name(objdoc):
+def format_name(path, *, name=None, relative_to=None):
+    modname, qualname = path
+    if name is not None:
+        qualname = (
+            qualname.rsplit(".", 1)[0] + "." + name 
+            if qualname is not None and "." in qualname
+            else name
+        )
+    
+    if relative_to is None:
+        pass
+    elif relative_to.modname != modname:
+        # In a different module.
+        pass
+    elif qualname is None:
+        # It's the module itself; show it fully.
+        pass
+    elif relative_to.qualname is None:
+        # Relative to the module: show qualname only.
+        modname = None
+    elif qualname.startswith(relative_to.qualname + "."):
+        # Sub-qualname; omit the common prefix.
+        modname = None
+        qualname = qualname[len(relative_to.qualname) + 1 :]
+
+    if modname == "builtins":
+        modname = None
+
+    if modname is None:
+        element = CODE(qualname, cls="qualname")
+    elif qualname is None:
+        element = CODE(modname, cls="modname")
+    else:
+        element = CODE(
+            CODE(modname, cls="modname"), ".",
+            CODE(qualname, cls="qualname"),
+        )
+
+    return A(element, href=make_url(path), cls="identifier")
+
+
+def format_objdoc(objdoc, relative_to=None):
     if is_ref(objdoc):
         path = parse_ref(objdoc)
-        return path.qualname
+        return format_name(parse_ref(objdoc), relative_to=relative_to)
     else:
-        try:
-            return objdoc["name"]
-        except KeyError:
-            return objdoc.get("repr", "??")
+        return CODE(objdoc["repr"])
 
 
 def icon(name):
@@ -75,47 +112,6 @@ def format_module_list():
             href=make_url(Path(modname))
         ))
     return DIV(module_list, cls="module-list")
-
-
-def format_name(path, *, name=None, relative_to=None):
-    modname, qualname = path
-    if name is not None:
-        qualname = (
-            qualname.rsplit(".", 1)[0] + "." + name 
-            if qualname is not None and "." in qualname
-            else name
-        )
-    
-    if relative_to is None:
-        pass
-    elif relative_to.modname != modname:
-        # In a different module.
-        pass
-    elif qualname is None:
-        # It's the module itself; show it fully.
-        pass
-    elif relative_to.qualname is None:
-        # Relative to the module: show qualname only.
-        modname = None
-    elif qualname.startswith(relative_to.qualname + "."):
-        # Sub-qualname; omit the common prefix.
-        modname = None
-        qualname = qualname[len(relative_to.qualname) + 1 :]
-
-    if modname == "builtins":
-        modname = None
-
-    if modname is None:
-        element = CODE(qualname, cls="qualname")
-    elif qualname is None:
-        element = CODE(modname, cls="modname")
-    else:
-        element = CODE(
-            CODE(modname, cls="modname"), ".",
-            CODE(qualname, cls="qualname"),
-        )
-
-    return A(element, href=make_url(path), cls="identifier")
 
 
 def format_parameters(params):
@@ -192,6 +188,7 @@ def format_signature_summary(docsrc, objdoc):
             default     = param.get("default")
             doc_type    = param.get("doc_type")
             doc         = param.get("doc")
+            annotation  = param.get("annotation")
 
             icon_name = {
                 "POSITIONAL_OR_KEYWORD" : "right-circled",
@@ -207,12 +204,11 @@ def format_signature_summary(docsrc, objdoc):
                 CODE(name, cls="identifier"))
             if default is not None:
                 li << " = "
-                # FIXME: Important.  There should be a function that takes
-                # an arbitrary ref/non-ref objdoc and formats it!  Show links
-                # for refs.
-                li << CODE(escape(get_name(default)))
+                li << format_objdoc(default)
             if doc_type is not None:
                 li << DIV("type: ", CODE(doc_type))
+            if annotation is not None:
+                li << DIV("annotation: ", format_objdoc(annotation))
             if doc is not None:
                 li << DIV(doc)
             return li
