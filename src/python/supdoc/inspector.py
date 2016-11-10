@@ -138,7 +138,10 @@ def has_code(obj):
     """
     # FIXME: This is probably not the best way to do it.
     typ = type(obj)
-    return typ.__module__ == "builtins" and typ.__name__ in _CODE_TYPES
+    return (
+        isinstance(typ, type)
+        or (typ.__module__ == "builtins" and typ.__name__ in _CODE_TYPES)
+    )
 
 
 def is_mangled(obj):
