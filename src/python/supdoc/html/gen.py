@@ -230,13 +230,18 @@ def format_signature_summary(docsrc, objdoc):
         # Show the return type type and documentation.
         ret = signature.get("return")
         if ret is not None:
-            doc_type = ret.get("doc_type")
-            doc = ret.get("doc")
-            ul << LI(
+            doc_type    = ret.get("doc_type")
+            annotation  = ret.get("annotation")
+            doc         = ret.get("doc")
+            li = ul << LI(
                 DIV(icon("right-thin"), cls="bullet"),
-                SPAN("returns ", cls="light"),
-                None if doc_type is None else CODE(doc_type),
-                None if doc is None else DIV(doc))
+                SPAN("returns ", cls="light"))
+            if doc_type is not None:
+                li << CODE(doc_type)
+            if annotation is not None:
+                li << DIV("annotation: ", format_objdoc(annotation))
+            if doc is not None:
+                li << DIV(doc)
 
     return div
 

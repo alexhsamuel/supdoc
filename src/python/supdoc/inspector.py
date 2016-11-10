@@ -470,12 +470,16 @@ class Inspector:
         @type sig
           `inspect.Signature`.
         """
-        return {
+        objdoc = {
             "params": [
                 self._inspect_parameter(p)
                 for p in sig.parameters.values()
             ]
         }
+        if sig.return_annotation != inspect.Signature.empty:
+            objdoc.setdefault("return", {})["annotation"] = \
+                self._inspect(sig.return_annotation)
+        return objdoc
 
 
     def _inspect_parameter(self, param):

@@ -84,6 +84,8 @@ def annotated(
       An integer.
     @type fn
       A function or other callable.
+    @return
+      A calculated string result.
     """
     return "x={} y={} a={} k={} kw={}".format(x, y, a, k, kw)
 
