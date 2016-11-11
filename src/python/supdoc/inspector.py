@@ -357,15 +357,18 @@ class Inspector:
             # Convert the module name into a ref.
             objdoc["module"] = make_ref(Path(modname, None))
 
-        try:
-            all_names = obj.__all__
-        except AttributeError:
-            pass
-        except KeyError:
-            # Some poorly-designed objects raise KeyError on attribute access.
-            pass
-        else:
-            objdoc["all_names"] = [ str(n) for n in all_names ]
+        if isinstance(obj, types.ModuleType):
+            try:
+                all_names = obj.__all__
+            except AttributeError:
+                all_names = None
+            except KeyError:
+                # Some poorly-designed objects raise KeyError on attribute access.
+                all_names = None
+            else:
+                # Just in case.
+                all_names = [ str(n) for n in all_names ]
+            objdoc["all_names"] = all_names
 
         try:
             dict = obj.__dict__
@@ -385,11 +388,17 @@ class Inspector:
                 # Inspect the value, unless it's a module, in which case just
                 # put in a ref.
                 # FIXME: Should _inspect() always return a ref for a module?
-                dict_jso[attr_name] = (
+                attr_objdoc = (
                     self._inspect_ref(attr_value)
                     if isinstance(attr_value, types.ModuleType)
                     else self._inspect(attr_value, attr_path)
                 )
+                if isinstance(obj, types.ModuleType):
+                    attr_objdoc["exported"] = (
+                        not attr_name.startswith("_") if all_names is None
+                        else attr_name in all_names
+                    )
+                dict_jso[attr_name] = attr_objdoc
                 
             objdoc["dict"] = dict_jso
 

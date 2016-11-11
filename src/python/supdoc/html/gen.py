@@ -277,6 +277,8 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         lookup_name     = lookup_parts[-1]
         parent_name     = None if len(lookup_parts) == 1 else lookup_parts[-2] 
 
+    exported = objdoc.get("exported", False)
+
     if is_ref(objdoc):
         # Find the full name from which this was imported.
         import_path = get_path(objdoc)
@@ -303,12 +305,13 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
     docs            = objdoc.get("docs", {})
     summary         = docs.get("summary")
     body            = docs.get("body")
+    private         = name is not None and name.startswith("_")
 
     cls = ("member", "clearfix", )
-    if import_path is not None:
+    if import_path is not None and not exported:
         cls += ("imported-name", )
     # FIXME: Not quite right: name may be None.
-    if name is not None and name.startswith("_"):
+    if private and not exported:
         cls += ("private-name", )
     url = make_url(lookup_path)
     result = DIV(cls=cls, onclick="window.location='{}';".format(url))
