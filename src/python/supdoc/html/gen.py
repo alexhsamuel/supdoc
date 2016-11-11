@@ -16,6 +16,16 @@ import aslib.json
 
 #-------------------------------------------------------------------------------
 
+class Redirect(Exception):
+    """
+    Raised to specify redirection to another URL.
+    """
+
+    def __init__(self, url):
+        self.url = url
+
+
+
 def format_name(path, *, name=None, relative_to=None):
     modname, qualname = path
     if name is not None:
@@ -380,13 +390,11 @@ def format_source(source):
 
 
 def generate(docsrc, objdoc, lookup_path):
-    # If this is a ref, follow it.
-    from_path   = lookup_path or get_path(objdoc)
-    while is_ref(objdoc):
-        path = parse_ref(objdoc)
-        objdoc = docsrc.resolve(objdoc)
-        from_path = path
+    # If this is a ref, redirect.
+    if is_ref(objdoc):
+        raise Redirect(make_url(parse_ref(objdoc)))
 
+    from_path       = lookup_path or get_path(objdoc)
     path            = get_path(objdoc) or lookup_path
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")

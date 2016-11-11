@@ -45,8 +45,12 @@ def get_docs(modname, qualname=None):
     objdoc = docsrc.get(path)
 
     if fmt == "html":
-        docs = gen.generate(docsrc, objdoc, path)
-        return "<!DOCTYPE html>\n" + str(docs)
+        try:
+            docs = gen.generate(docsrc, objdoc, path)
+        except gen.Redirect as redirect:
+            return flask.redirect(redirect.url, code=302)
+        else:
+            return "<!DOCTYPE html>\n" + str(docs)
     elif fmt == "json":
         return flask.jsonify(objdoc)
     else:
