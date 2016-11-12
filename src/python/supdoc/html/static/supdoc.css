@@ -270,6 +270,7 @@ ul.exceptions {
 }
 
 .icon-login, .icon-logout {
+    color: #808080;
     position: relative;
     bottom: -2px;
 }

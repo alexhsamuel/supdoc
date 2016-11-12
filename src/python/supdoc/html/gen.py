@@ -259,6 +259,7 @@ def format_signature_summary(docsrc, objdoc):
 # Names of types of which objects' reprs are not interesting.
 # FIXME: Share with terminal docs.
 SUPPRESS_REPR_TYPES = {
+    "builtin_function_or_method",
     "classmethod_descriptor", 
     "getset_descriptor", 
     "module", 
@@ -341,10 +342,11 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         head << SPAN(SPAN("="), CODE(escape(repr)), cls="repr")
 
     if show_type:
-        head << CODE(
-            py.if_none(
-                terminal.format_nice_type_name(objdoc, lookup_path), type_name),
-            cls="type")
+        nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
+        if nice_type_name is None:
+            head << CODE(type_name, cls="type")
+        else:
+            head << SPAN(nice_type_name, cls="type")
 
     # Show where this was imported from.
     if import_path is not None:
