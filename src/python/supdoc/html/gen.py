@@ -318,7 +318,14 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
 
     head = result << DIV(cls="head")
 
-    title = head << DIV(cls="title identifier")
+    if import_path is not None:
+        head << icon("login")
+        head << " "
+    if exported:
+        head << icon("logout")
+        head << " "
+
+    title = head << SPAN(cls="title identifier")
     title << format_name(
         lookup_path, relative_to=context_path, name=unmangled_name)
     if is_function_like(objdoc):
@@ -331,7 +338,7 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         and signature is None 
         and type_name not in SUPPRESS_REPR_TYPES
     ):
-        head << DIV(SPAN("="), CODE(escape(repr)), cls="repr")
+        head << SPAN(SPAN("="), CODE(escape(repr)), cls="repr")
 
     if show_type:
         head << CODE(

@@ -238,7 +238,6 @@ ul.exceptions {
 }
 
 .member .title {
-    float: left;
 }
 
 .member .rest {
@@ -258,7 +257,6 @@ ul.exceptions {
 }
 
 .member .repr {
-    float: left;
 }
 
 .member .repr span {
@@ -269,6 +267,11 @@ ul.exceptions {
     color: #a0a0a0;
     font-size: 80%;
     margin-left: 2ex;
+}
+
+.icon-login, .icon-logout {
+    position: relative;
+    bottom: -2px;
 }
 
 /*----------------------------------------------------------------------------*/
