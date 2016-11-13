@@ -226,23 +226,12 @@ ul.exceptions {
 
 .member {
     clear: both;
-    margin: 2px 0;
+    margin: 2px 0 2px 30px;
     padding: 4px;
 }
 
 .member:hover {
     background: #f8f8f8;
-}
-
-.member .header {
-}
-
-.member .title {
-}
-
-.member .rest {
-    clear: left;
-    margin-left: 24px;
 }
 
 .member .import {
@@ -270,9 +259,25 @@ ul.exceptions {
 }
 
 .icon-login, .icon-logout {
-    color: #808080;
+    color: #c0c0c0;
     position: relative;
-    bottom: -2px;
+    bottom: -1px;
+    height: 12px !important;  /* FIXME */
+    width: 12px !important;
+}
+
+.iconbox {
+    display: inline-block;
+    width: 0;
+    position: relative;
+}
+
+.member .import-icon {
+    left: -28px;
+}
+
+.member .export-icon {
+    left: -14px;
 }
 
 /*----------------------------------------------------------------------------*/

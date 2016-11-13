@@ -75,7 +75,7 @@ def format_objdoc(objdoc, relative_to=None):
         return CODE(objdoc["repr"])
 
 
-def icon(name):
+def icon(name, cls=()):
     # <svg class="icon-twitter">
     #   <use xlink:href="/images/icons.svg#icon-twitter"></use>
     # </svg>
@@ -83,7 +83,7 @@ def icon(name):
     url = "/static/icons.svg#" + name
     return SVG(
         USE(**{"xlink:href": url}),
-        cls=name)
+        cls=(name, ) + py.tupleize(cls))
 
 
 def make_list(items, tag=UL, start=None, cls=None):
@@ -320,11 +320,9 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
     head = result << DIV(cls="head")
 
     if import_path is not None:
-        head << icon("login")
-        head << " "
+        head << SPAN(icon("login", cls="import-icon"), cls="iconbox")
     if exported:
-        head << icon("logout")
-        head << " "
+        head << SPAN(icon("logout", cls="export-icon"), cls="iconbox")
 
     title = head << SPAN(cls="title identifier")
     title << format_name(
@@ -356,7 +354,7 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
             cls="import")
 
     if summary is not None:
-        rest = result << DIV(cls=("rest", "docs"))
+        rest = result << DIV(cls=("docs"))
         docs = rest << DIV(summary)
         if body:
             # Don't print the body, but indicate that there are more docs.
