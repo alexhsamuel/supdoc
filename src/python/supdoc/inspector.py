@@ -369,6 +369,8 @@ class Inspector:
                 # Just in case.
                 all_names = [ str(n) for n in all_names ]
             objdoc["all_names"] = all_names
+        else:
+            all_names = None
 
         try:
             dict = obj.__dict__
@@ -393,11 +395,8 @@ class Inspector:
                     if isinstance(attr_value, types.ModuleType)
                     else self._inspect(attr_value, attr_path)
                 )
-                if isinstance(obj, types.ModuleType):
-                    attr_objdoc["exported"] = (
-                        not attr_name.startswith("_") if all_names is None
-                        else attr_name in all_names
-                    )
+                if all_names is not None:
+                    attr_objdoc["exported"] = attr_name in all_names
                 dict_jso[attr_name] = attr_objdoc
                 
             objdoc["dict"] = dict_jso
