@@ -184,6 +184,13 @@ def parse_doc(source):
     return result
 
 
+# FIXME: This is a stop-gap.  In order to handle default values and annotations
+# correctly, we need to extract the signature (from a javadoc tag or whatever)
+# at the time we're first inspecting the object, and parse the signature at 
+# that time.  That will allow us to provide the right context for evaluating
+# the default value and annotation expressions, and to inspect the resulting
+# values.
+
 def parse_signature(name, signature):
     """
     @param name
@@ -191,32 +198,62 @@ def parse_signature(name, signature):
     @parma signature
       A string containing the function signature.
     """
-    # FIXME: Validate the signature.
-
     # Write an empty function with this signature.
     fn_src = "def {}:\n  pass\n".format(signature)
-    # Now evaluate it.  FIXME: This allows evaluation of arbitrary expressions.
-    names = {}
-    exec(fn_src, names)
+
+    # For evaluation, use a fake globals dict.  We don't have access to 
+    # the global context for the object for which this is the signature;
+    class Globals(dict):
+        # This is called when an annotation or default parameter value 
+        # references some name.
+        def __getitem__(self, name):
+            return name
+        # This should be called once: to add the function definition.
+        def __setitem__(self, attr_name, fn):
+            assert attr_name == name
+            self.signature = inspect.signature(fn)
+
+    # Now evaluate it.  
+    # FIXME: This allows evaluation of arbitrary expressions.
+    namespace = Globals()
+    exec(fn_src, namespace)
+
     # Fish out the produced function, and get its signature.
-    fn = names[name]
-    sig = inspect.signature(fn)
+    sig = namespace.signature
+
+    # For now, return a string.  But see the FIXME above.
+    def make(obj):
+        return {
+          "repr": str(obj),
+          "type": {
+            "$ref": "#/modules/builtins/dict/str",
+            "type": {
+              "$ref": "#/modules/builtins/dict/type"
+            }
+          },
+          "type_name": "str"
+        }
 
     # Exctract docs from the signature.
 
     def inspect_parameter(param):
-        # FIXME: Default value.
-        # FIXME: Annotation.
-        return {
+        jso = {
             "name": param.name,
             "kind": str(param.kind),
         }
+        if param.annotation is not param.empty:
+            jso["annotation"] = make(param.annotation)  # FIXME
+        if param.default is not param.empty:
+            jso["default"] = make(param.default)  # FIXME
+        return jso
 
-    # FIXME: Return annotation.
-
-    return {
+    jso = {
         "params": [ inspect_parameter(p) for p in sig.parameters.values() ]
     }
+    if sig.return_annotation != inspect.Signature.empty:
+        jso["return"] = {"annotation": make(sig.return_annotation)}  # FIXME
+
+    return jso
 
 
 def attach_javadoc_to_signature(doc):

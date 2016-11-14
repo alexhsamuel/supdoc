@@ -5,6 +5,8 @@ import typing
 
 #-------------------------------------------------------------------------------
 
+CONSTANT = "CONSTANT"
+
 def toplevel_function(x, y, z=10, *, w=None, **kw_args):
     """
     Computes a _very_ important quantity.
