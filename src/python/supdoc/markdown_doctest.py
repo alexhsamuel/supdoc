@@ -1,3 +1,4 @@
+import html
 import re
 import sys
 
@@ -51,7 +52,7 @@ def extract(lines):
         while (line.startswith(indent) 
                and line.strip() != ""
                and not line.startswith(indent + ">>>")):
-            output_lines.append(line[len(indent) :])
+            output_lines.append(html.escape(line[len(indent) :]))
             line = next(lines)
         
         yield from format(source_lines, output_lines).split("\n")
