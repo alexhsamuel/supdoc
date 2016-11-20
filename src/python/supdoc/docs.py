@@ -80,7 +80,7 @@ def find_javadoc(lines):
         javadoc.append(dict(
             tag =tag, 
             arg =arg, 
-            text=parse_formatting(" ".join(text))
+            text=parse_formatting("\n".join(text))
         ))
     
     # FIXME: Handle some aliases, for instance "returns" for "return" and
@@ -271,8 +271,9 @@ def attach_javadoc_to_signature(doc):
     if doc.get("callable", False) and "signature" not in doc:
         sig = [ e for e in javadoc if e["tag"] == "signature" ]
         if len(sig) > 0:
+            sig = sig[0]["text"].strip()
             try:
-                doc["signature"] = parse_signature(doc["name"], sig[0]["text"])
+                doc["signature"] = parse_signature(doc["name"], sig)
             except Exception as e:
                 print(e)
                 return
@@ -323,7 +324,6 @@ def attach_javadoc_to_members(doc):
     javadoc = doc.get("docs", {}).get("javadoc", {})
     for entry in javadoc:
         if entry["tag"] == "cvar":  # A class variable.
-            logging.info("cvar: {!r}".format(entry))
             # FIXME: Make sure this is a type.
             name = entry["arg"]
             try:
