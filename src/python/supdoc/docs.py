@@ -320,7 +320,6 @@ def attach_javadoc_to_members(doc):
     """
     Attaches javadoc annotations to the doc's dict members.
     """
-    logging.info("attach_javadoc_to_members")
     javadoc = doc.get("docs", {}).get("javadoc", {})
     for entry in javadoc:
         if entry["tag"] == "cvar":  # A class variable.
