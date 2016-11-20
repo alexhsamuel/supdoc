@@ -56,7 +56,7 @@ def find_javadoc(lines):
                 javadoc.append(dict(
                     tag =tag, 
                     arg =arg, 
-                    text=parse_formatting(" ".join(text)),
+                    text=parse_formatting("\n".join(text)),
                 ))
             tag = first[1 :]
             # Some tags take an argument.
