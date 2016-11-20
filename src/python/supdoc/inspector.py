@@ -14,7 +14,7 @@ from   weakref import WeakKeyDictionary
 
 import aslib.log
 
-from   .docs import parse_doc, parse_doc_markdown, attach_javadoc_to_signature
+from   .docs import parse_doc, enrich
 from   .objdoc import *
 from   .path import *
 
@@ -457,11 +457,8 @@ class Inspector:
             and (isinstance(obj, type) 
                  or doc != getattr(type(obj), "__doc__", None))):
             objdoc["docs"] = obj_docs = {"doc": doc}
-
             # Parse and process docs.
-            # FIXME: Wrap these two in a function?
-            obj_docs.update(parse_doc_markdown(doc))
-            attach_javadoc_to_signature(objdoc)
+            enrich(objdoc)
 
         # Put this item in the cache.  Some objects are unhashable, though, so
         # they can't be cached.  Oh well.

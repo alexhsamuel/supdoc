@@ -20,10 +20,13 @@ def markup_error(description):
 #-------------------------------------------------------------------------------
 
 JAVADOC_ARG_TAGS = frozenset({
+    "cvar",
+    "ivar",
     "param",
     "raise",
     "raises",
     "type",
+    "var",
 })
 
 
@@ -313,6 +316,26 @@ def attach_javadoc_to_signature(doc):
 
 
 
+def attach_javadoc_to_members(doc):
+    """
+    Attaches javadoc annotations to the doc's dict members.
+    """
+    logging.info("attach_javadoc_to_members")
+    javadoc = doc.get("docs", {}).get("javadoc", {})
+    for entry in javadoc:
+        if entry["tag"] == "cvar":  # A class variable.
+            logging.info("cvar: {!r}".format(entry))
+            # FIXME: Make sure this is a type.
+            name = entry["arg"]
+            try:
+                member = doc["dict"][name]
+            except KeyError:
+                continue
+            else:
+                # FIXME: Don't replace.
+                member["docs"] = parse_doc_markdown(entry["text"])
+
+
 #-------------------------------------------------------------------------------
 
 def markdown_to_et(text):
@@ -392,9 +415,10 @@ def enrich(odoc, modules={}):
     except KeyError:
         pass
     else:
-        docs.update(parse_doc_markdown(doc))
         # docs.update(parse_doc(doc))
+        docs.update(parse_doc_markdown(doc))
         attach_javadoc_to_signature(odoc)
+        attach_javadoc_to_members(odoc)
 
     # FIXME
     for val in odoc.get("dict", {}).values():

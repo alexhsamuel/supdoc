@@ -262,6 +262,7 @@ SUPPRESS_REPR_TYPES = {
     "builtin_function_or_method",
     "classmethod_descriptor", 
     "getset_descriptor", 
+    "method_descriptor",
     "module", 
     "property", 
     "type", 
