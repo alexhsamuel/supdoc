@@ -216,9 +216,10 @@ def get_dict(objdoc, private):
                 }
             else:
                 # If so, filter by it.
-                dict = { 
-                    n: v for n, v in dict.items() if n in all_names 
-                }
+                if all_names is not None:
+                    dict = { 
+                        n: v for n, v in dict.items() if n in all_names 
+                    }
         else:
             # For other things, remove private but not special names.
             dict = { 
