@@ -1,18 +1,16 @@
 import argparse
 from   html import escape
-
 import pygments
 import pygments.lexers
 import pygments.formatters
 
-from   .tags import *
-from   .. import inspector, modules, path
-from   .. import terminal  # FIXME
-from   ..objdoc import *
-from   ..path import Path
-from   aslib import if_none
-from   aslib import itr, log, memo, py
-import aslib.json
+from   .tags import A, BODY, BUTTON, CODE, DIV, HEAD, H2, HTML, LI, LINK, OL, SCRIPT, SPAN, SVG, UL, USE
+from   supdoc import inspector, modules, path
+from   supdoc import terminal  # FIXME
+from   supdoc.exc import QualnameError
+from   supdoc.lib import itr, py
+from   supdoc.objdoc import is_function_like, is_ref, get_path, get_signature, parse_ref
+from   supdoc.path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -69,7 +67,6 @@ def format_name(path, *, name=None, relative_to=None):
 
 def format_objdoc(objdoc, relative_to=None):
     if is_ref(objdoc):
-        path = parse_ref(objdoc)
         return format_name(parse_ref(objdoc), relative_to=relative_to)
     else:
         return CODE(objdoc["repr"])
@@ -296,13 +293,9 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         import_path = None
 
     name            = objdoc.get("name")
-    module          = objdoc.get("module")
-    modname         = None if module is None else parse_ref(module)[0]
-    unmangled_name  = if_none(terminal.unmangle(lookup_name, parent_name), name)
+    unmangled_name  = py.if_none(terminal.unmangle(lookup_name, parent_name), name)
     type_name       = objdoc.get("type_name")
-    type_           = objdoc.get("type")
     repr            = objdoc.get("repr")
-    callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
     docs            = objdoc.get("docs", {})
     summary         = docs.get("summary")
@@ -405,7 +398,6 @@ def generate(docsrc, objdoc, lookup_path):
     if is_ref(objdoc):
         raise Redirect(make_url(parse_ref(objdoc)))
 
-    from_path       = lookup_path or get_path(objdoc)
     path            = get_path(objdoc) or lookup_path
     name            = objdoc.get("name")
     qualname        = objdoc.get("qualname")
@@ -428,7 +420,7 @@ def generate(docsrc, objdoc, lookup_path):
 
     html = HTML()
 
-    head = html << HEAD(
+    html << HEAD(
         LINK(rel="stylesheet", type="text/css", href="/static/supdoc.css"),
         # Use jQuery.
         SCRIPT(src="/static/jquery.min.js"),
@@ -475,7 +467,7 @@ def generate(docsrc, objdoc, lookup_path):
     mro = objdoc.get("mro")
     if mro is not None:
         mro_div = details << DIV("MRO: ")
-        for first, mro_type in aslib.itr.first(mro):
+        for first, mro_type in itr.first(mro):
             if not first:
                 mro_div << " \u2192 "
             mro_div << format_name(
