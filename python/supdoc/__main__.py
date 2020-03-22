@@ -11,10 +11,9 @@ Invoke with `--help` for usage info.
 #-------------------------------------------------------------------------------
 
 import argparse
+import json
 import sys
 import traceback
-
-import aslib.terminal
 
 from   . import inspector
 from   .exc import FullNameError, ImportFailure, QualnameError
@@ -88,9 +87,9 @@ def main():
 
     try:
         if args.sdoc:
-            aslib.json.pprint(objdoc)
+            json.dump(obj, sys.stdout, indent=1, sort_keys=True)
         elif args.objdoc:
-            aslib.json.pprint(objdoc)
+            json.dump(objdoc, sys.stdout, indent=1, sort_keys=True)
         else:
             # Leave a one-space border on the right.
             print_docs(
