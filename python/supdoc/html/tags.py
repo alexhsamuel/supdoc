@@ -4,10 +4,7 @@ Tools for generating HTML.
 
 #-------------------------------------------------------------------------------
 
-from   html import escape
-import functools
-
-from   aslib import py
+from   supdoc.lib import py
 
 #-------------------------------------------------------------------------------
 
@@ -44,7 +41,6 @@ class Element:
         for child in self.__children:
             if isinstance(child, Element):
                 yield from child.format(indent + 1)
-                space = True
             else:
                 yield " " * (indent + 1) + child
         yield " " * indent + end
