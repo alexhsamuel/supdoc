@@ -1,13 +1,11 @@
 import sys
 
-from   aslib import if_none
-import aslib.itr
-import aslib.json
-from   aslib.terminal import ansi
-from   aslib.terminal.printer import Printer, NL
-
-from   .objdoc import is_function_like, get_signature, is_ref, parse_ref
-from   .path import Path, get_path
+from   .lib import itr
+from   .lib.py import if_none
+from   .lib.terminal import ansi, get_width
+from   .lib.terminal.printer import Printer, NL
+from   .objdoc import is_function_like, get_signature, is_ref, parse_ref, get_path
+from   .path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -238,7 +236,7 @@ def print_docs(docsrc, objdoc, lookup_path=None, *,
         file = sys.stdout
     if width is None:
         # Substract one to leave a one-space border on the right.
-        width = aslib.terminal.get_width() - 1
+        width = get_width() - 1
 
     printer = Printer(file.write, indent=" ", width=width)
     try:
@@ -385,7 +383,7 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
             if mro is not None:
                 with pr(**STYLES["label"]):
                     pr << "MRO: "
-                for first, mro_type in aslib.itr.first(mro):
+                for first, mro_type in itr.first(mro):
                     entry = format_path(get_path(mro_type), modname=modname)
                     entry = ansi.style(**STYLES["type_name"])(entry)
                     entry = entry if first else " \u2192 " + entry
