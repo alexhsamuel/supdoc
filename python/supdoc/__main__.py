@@ -3,7 +3,7 @@ Command line interface to supdoc.
 
 Invoke as::
 
-  python -m supdoc.cli ...
+  python -m supdoc ...
 
 Invoke with `--help` for usage info.
 """
