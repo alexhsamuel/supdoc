@@ -7,13 +7,10 @@ Invoke `bin/supdoc-serve` to start the server.
 #-------------------------------------------------------------------------------
 
 import flask
-import json
-import sys
 
+from   supdoc import inspector
+from   supdoc.path import Path
 from   . import gen
-from   .. import inspector
-from   ..path import Path
-from   aslib import log
 
 #-------------------------------------------------------------------------------
 
