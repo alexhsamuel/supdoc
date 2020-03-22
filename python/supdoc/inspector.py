@@ -8,8 +8,8 @@ from   weakref import WeakKeyDictionary
 
 from   .docs import enrich
 from   .exc import QualnameError
-from   .objdoc import get_obj, make_ref, is_ref, parse_ref
-from   .path import Path, is_imposter, import_
+from   .objdoc import make_ref, is_ref, parse_ref
+from   .path import Path, is_imposter, import_, get_obj, split
 
 #-------------------------------------------------------------------------------
 
@@ -579,4 +579,27 @@ class DocSource:
         return objdoc
 
 
+
+#-------------------------------------------------------------------------------
+
+def main():
+    import argparse
+    import json
+    import sys
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "modname", metavar="MODNAME", 
+        help="fully-qualified module name")
+    args = parser.parse_args()
+
+    path, _ = split(args.modname)
+
+    docsrc = DocSource()
+    objdoc = docsrc.get(path)
+    json.dump(objdoc, sys.stdout, indent=1, sort_keys=True)
+
+
+if __name__ == "__main__":
+    main()
 
