@@ -486,7 +486,15 @@ def generate(docsrc, objdoc, lookup_path):
     main << DIV(SPAN(display_name, cls="identifier"), cls="name")
 
     if is_function_like(objdoc):
-        main << DIV(CODE(objdoc["name"]), format_signature(docsrc, objdoc))
+        try:
+            name = objdoc["name"]
+        except KeyError:
+            name = objdoc["func"]["name"]
+        try:
+            main << DIV(CODE(name), format_signature(docsrc, objdoc))
+        except KeyError:
+            import pprint
+            pprint.pprint(objdoc)
         
     # Show documentation.
     docs = objdoc.get("docs")
