@@ -9,9 +9,8 @@ import collections
 import types
 import sys
 
-import aslib.py
-
-from   .exc import *
+from   .exc import ImportFailure, QualnameError, FullNameError
+from   .lib.py import format_ctor
 
 #-------------------------------------------------------------------------------
 
@@ -38,7 +37,7 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
 
 
     def __repr__(self):
-        return aslib.py.format_ctor(self, self.modname, self.qualname)
+        return format_ctor(self, self.modname, self.qualname)
 
 
     @classmethod
