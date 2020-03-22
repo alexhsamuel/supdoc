@@ -15,15 +15,11 @@ import sys
 import traceback
 
 import aslib.terminal
-from   aslib.terminal.printer import Printer
 
 from   . import inspector
-from   .exc import *
-from   .objdoc import *
-from   .path import *
-from   .terminal import *
-
-__all__ = ()
+from   .exc import FullNameError, ImportFailure, QualnameError
+from   .path import split
+from   .terminal import print_docs
 
 #-------------------------------------------------------------------------------
 
@@ -62,7 +58,7 @@ def main():
     # Find the requested object.
     try:
         path, obj = split(args.name)
-    except FullNameError as error:
+    except FullNameError:
         print("can't find name: {}".format(args.name), file=sys.stderr)
         raise SystemExit(1)
     except ImportFailure as error:
@@ -81,7 +77,7 @@ def main():
         # FIXME
         # with open(args.path) as file:
         #     sdoc = json.load(file)
-        raise NotImplementedException("docs file")
+        raise NotImplementedError("docs file")
 
     try:
         objdoc = docsrc.get(path)
@@ -92,12 +88,11 @@ def main():
 
     try:
         if args.sdoc:
-            aslib.json.pprint(sdoc)
+            aslib.json.pprint(objdoc)
         elif args.objdoc:
             aslib.json.pprint(objdoc)
         else:
             # Leave a one-space border on the right.
-            width = aslib.terminal.get_width() - 1 
             print_docs(
                 docsrc, objdoc, path, 
                 private=args.private, imports=args.imports)
