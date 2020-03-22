@@ -4,7 +4,6 @@ Tools for finding and importing modules.
 
 #-------------------------------------------------------------------------------
 
-import importlib
 from   importlib.machinery import SourceFileLoader
 import inspect
 import logging
@@ -15,30 +14,6 @@ import types
 from   .path import Path
 
 #-------------------------------------------------------------------------------
-
-# FIXME: Don't rely on the module in the path.
-def import_module_from_filename(path):
-    path = Path(path)
-    if path.is_dir():
-        # FIXME: Is this general?  Is this right?
-        path = path / "__init__.py"
-
-    for load_path in sys.path:
-        try:
-            relative = path.with_suffix("").relative_to(load_path)
-        except ValueError:
-            pass
-        else:
-            name = Name(relative.parts)
-            module = importlib.import_module(str(name))
-            if Path(module.__file__) == path:
-                return name, module
-            else:
-                logging.warning(
-                    "module {} imports from {}, not expected {}".format(
-                        name, module.__file__, path))
-    raise RuntimeError("{} is not in the Python path".format(path))
-
 
 def is_package(obj):
     return isinstance(obj, types.ModuleType) and obj.__name__ == obj.__package__
