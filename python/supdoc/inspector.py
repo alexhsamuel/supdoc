@@ -1,25 +1,19 @@
 from   contextlib import suppress
 import enum
 import inspect
-import json
-import sys
+import logging
 import traceback
 import types
 from   weakref import WeakKeyDictionary
 
-import aslib.log
-
 from   .docs import enrich
-from   .objdoc import *
-from   .path import *
 from   .ext import QualnameError
 from   .objdoc import get_obj, make_ref, is_ref, parse_ref
 from   .path import Path, is_imposter, import_
 
 #-------------------------------------------------------------------------------
 
-LOG = aslib.log.get()
-# LOG.setLevel(20)
+LOG = logging.getLogger(__name__)
 
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
