@@ -2,8 +2,8 @@
 
 import argparse
 
-import aslib.log
 import supdoc.html.serve
+import supdoc.lib.log
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -15,7 +15,7 @@ parser.add_argument(
 parser.add_argument(
     "--port", "-P", metavar="PORT", type=int, default=5000,
     help="serve HTTP on PORT")
-aslib.log.add_option(parser)
+supdoc.lib.log.add_option(parser)
 args = parser.parse_args()
 
 supdoc.html.serve.app.run(host=args.host, port=args.port, debug=args.debug)

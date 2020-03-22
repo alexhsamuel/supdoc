@@ -12,7 +12,7 @@ import os
 import sys
 import types
 
-from   .lib.path import Path
+from   .path import Path
 
 #-------------------------------------------------------------------------------
 

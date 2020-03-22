@@ -50,7 +50,7 @@ def add_option(parser):
 
         def __call__(self, parser, namespace, value, option_string):
             level = ensure_level(value)
-            logging.getLogger().setLevel(level)
+            logging.getLogger(None).setLevel(level)
 
     parser.add_argument(
         "--log", metavar="LEVEL", default="WARNING", action=Action,
