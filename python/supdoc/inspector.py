@@ -7,7 +7,7 @@ import types
 from   weakref import WeakKeyDictionary
 
 from   .docs import enrich
-from   .ext import QualnameError
+from   .exc import QualnameError
 from   .objdoc import get_obj, make_ref, is_ref, parse_ref
 from   .path import Path, is_imposter, import_
 
