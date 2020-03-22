@@ -1,20 +1,13 @@
-from   contextlib import suppress
-from   enum import Enum
-import json
-import re
-import shutil
 import sys
 
-from   aslib import if_none, or_none
+from   aslib import if_none
 import aslib.itr
 import aslib.json
 from   aslib.terminal import ansi
 from   aslib.terminal.printer import Printer, NL
 
-from   . import inspector
-from   .exc import *
-from   .objdoc import *
-from   .path import *
+from   .objdoc import is_function_like, get_signature, is_ref, parse_ref
+from   .path import Path, get_path
 
 #-------------------------------------------------------------------------------
 
@@ -287,7 +280,6 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
     type            = objdoc.get("type")
     type_name       = objdoc.get("type_name")
     type_path       = get_path(type)
-    callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
     source          = objdoc.get("source")
     repr            = objdoc.get("repr")
@@ -569,13 +561,9 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
         import_path = None
 
     name            = objdoc.get("name")
-    module          = objdoc.get("module")
-    modname         = None if module is None else parse_ref(module)[0]
     unmangled_name  = if_none(unmangle(lookup_name, parent_name), name)
     type_name       = objdoc.get("type_name")
-    type_           = objdoc.get("type")
     repr            = objdoc.get("repr")
-    callable        = is_callable(objdoc)
     signature       = get_signature(objdoc)
     docs            = objdoc.get("docs", {})
     summary         = docs.get("summary")
