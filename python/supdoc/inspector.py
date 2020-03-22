@@ -1,22 +1,20 @@
-import builtins
-import collections
 from   contextlib import suppress
 import enum
-import importlib
 import inspect
 import json
-import os
 import sys
-import sysconfig
 import traceback
 import types
 from   weakref import WeakKeyDictionary
 
 import aslib.log
 
-from   .docs import parse_doc, enrich
+from   .docs import enrich
 from   .objdoc import *
 from   .path import *
+from   .ext import QualnameError
+from   .objdoc import get_obj, make_ref, is_ref, parse_ref
+from   .path import Path, is_imposter, import_
 
 #-------------------------------------------------------------------------------
 
@@ -82,37 +80,6 @@ DEFINED_TYPES = {
     types.BuiltinMethodType,
     types.FunctionType,
 }
-
-#-------------------------------------------------------------------------------
-
-# FIXME: Elsewhere.
-
-_STDLIB_PATH = os.path.normpath(sysconfig.get_path("stdlib"))
-
-_BUILTIN_IMPORTER = builtins.__spec__.loader
-
-def is_standard_library(module):
-    """
-    Returns true if `module` is from the Python standard library.
-
-    Standard library modules are either built-in or are imported from the
-    standard library location.
-
-    @type module
-      `types.ModuleType`.
-    """
-    if module.__spec__.loader is _BUILTIN_IMPORTER:
-        return True
-
-    try:
-        path = module_obj.__file__
-    except AttributeError:
-        LOG.warning("no __file__ for {!r}".format(module_obj))
-        return False
-    else:
-        path = os.path.normpath(module_obj.__file__)
-        return path.startswith(_STDLIB_PATH)
-
 
 #-------------------------------------------------------------------------------
 
@@ -206,7 +173,7 @@ class Inspector:
         # don't have to call it on each object in a module?
         try:
             lines, start_num = inspect.getsourcelines(obj)
-        except (OSError, TypeError, ValueError) as exc:
+        except (OSError, TypeError, ValueError):
             raise LookupError("no source for {!r}".format(obj))
         else:
             # FIXME: Not sure why this is necessary.
@@ -456,7 +423,7 @@ class Inspector:
             and isinstance(doc, str)
             and (isinstance(obj, type) 
                  or doc != getattr(type(obj), "__doc__", None))):
-            objdoc["docs"] = obj_docs = {"doc": doc}
+            objdoc["docs"] = {"doc": doc}
             # Parse and process docs.
             enrich(objdoc)
 
@@ -622,59 +589,5 @@ class DocSource:
                 break
         return objdoc
 
-
-
-#-------------------------------------------------------------------------------
-
-def main():
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    parser.add_argument(
-        "--log-level", metavar="LEVEL", default=None,
-        help="log at LEVEL")
-    parser.add_argument(
-        "--builtins", dest="builtins", default=True, action="store_true",
-        help="inspect builtin modules (default)")
-    parser.add_argument(
-        "--no-builtins", dest="builtins", default=True, action="store_false",
-        help="don't inspect builtin modules")
-    parser.add_argument(
-        "--referencess", dest="refs", default=True, action="store_true",
-        help="inspect referenced modules")
-    parser.add_argument(
-        "--no-references", dest="refs", default=True, action="store_false",
-        help="don't inspect referenced modules")
-    parser.add_argument(
-        "--source", dest="source", default=False, action="store_true",
-        help="include source")
-    parser.add_argument(
-        "--no-source", dest="source",  action="store_false",
-        help="don't include source")
-    parser.add_argument(
-        "modules", nargs="*", metavar="MODULE",
-        help="packages and modules to inspect")
-    args = parser.parse_args()
-
-    if args.log_level is not None:
-        # FIXME: Put in aslib.logging.
-        import logging
-        try:
-            level = getattr(logging, args.log_level.upper())
-        except AttributeError:
-            parser.error("invalid log level: {}".format(args.log_level))
-        else:
-            LOG.setLevel(level)
-
-    docs = inspect_modules(
-        args.modules, builtins=args.builtins, refs=args.refs, 
-        source=args.source)
-    json.dump(docs, sys.stdout, indent=1, sort_keys=True)
-
-    # FIXME: Track all the ids we've inspected, and if an orphan object
-    # (its path doesn't resolve to it) matches one, fix it up afterward.
-
-
-if __name__ == "__main__":
-    main()
 
 
