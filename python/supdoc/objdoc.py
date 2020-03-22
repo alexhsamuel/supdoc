@@ -5,9 +5,8 @@ Functions for working with objdoc and ref objects.
 #-------------------------------------------------------------------------------
 
 from   contextlib import suppress
-from   inspect import Signature, Parameter
 
-from   .path import *
+from   .path import Path
 
 #-------------------------------------------------------------------------------
 
