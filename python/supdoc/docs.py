@@ -1,15 +1,12 @@
-import doctest
 import html
 import inspect
 import logging
+import markdown
 import re
-import sys
 import xml.etree.ElementTree as ET
 
-import markdown
-
-import aslib.itr
-from   aslib.text import get_indent, get_common_indent, join_pars
+from   .lib.itr import PeekIter
+from   .lib.text import get_indent, get_common_indent, join_pars
 
 #-------------------------------------------------------------------------------
 
@@ -142,7 +139,7 @@ def parse_doc(source):
     pars = [ (i - min_indent, p) for i, p in pars ]
 
     def generate(pars):
-        pars = aslib.itr.PeekIter(pars)
+        pars = PeekIter(pars)
         for indent, par in pars:
             # Look for doctests.
             # FIXME: Look for more indentation than the previous par.
