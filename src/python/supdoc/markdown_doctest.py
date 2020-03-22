@@ -1,9 +1,7 @@
 import html
 import re
-import sys
 
 import markdown.extensions
-from   markdown.extensions.codehilite import CodeHilite, CodeHiliteExtension
 import markdown.preprocessors
 import pygments
 import pygments.lexers
@@ -26,36 +24,41 @@ PS1_RE = re.compile("( *)(>>> .*)")
 
 def extract(lines):
     lines = iter(lines)
-    line = next(lines)
 
-    while True:
-        # Look for a PS1 line.
-        match = PS1_RE.match(line)
-        if match is None:
-            # Not a doctest.
-            yield line
-            line = next(lines)
-            continue
-
-        # Got the PS1 line; start a doctest.
-        indent, line = match.groups()
-        source_lines = [line]
+    try:
         line = next(lines)
 
-        # Gather any following PS2 lines.
-        while line.startswith(indent + "... "):
-            source_lines.append(line[len(indent) :])
+        while True:
+            # Look for a PS1 line.
+            match = PS1_RE.match(line)
+            if match is None:
+                # Not a doctest.
+                yield line
+                line = next(lines)
+                continue
+
+            # Got the PS1 line; start a doctest.
+            indent, line = match.groups()
+            source_lines = [line]
             line = next(lines)
-        
-        # Any remaining indented nonempty lines are output.
-        output_lines = []
-        while (line.startswith(indent) 
-               and line.strip() != ""
-               and not line.startswith(indent + ">>>")):
-            output_lines.append(html.escape(line[len(indent) :]))
-            line = next(lines)
-        
-        yield from format(source_lines, output_lines).split("\n")
+
+            # Gather any following PS2 lines.
+            while line.startswith(indent + "... "):
+                source_lines.append(line[len(indent) :])
+                line = next(lines)
+
+            # Any remaining indented nonempty lines are output.
+            output_lines = []
+            while (line.startswith(indent) 
+                   and line.strip() != ""
+                   and not line.startswith(indent + ">>>")):
+                output_lines.append(html.escape(line[len(indent) :]))
+                line = next(lines)
+
+            yield from format(source_lines, output_lines).split("\n")
+
+    except StopIteration:
+        return
 
 
 def format(source, output):
