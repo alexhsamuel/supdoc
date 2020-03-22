@@ -53,9 +53,9 @@ this:
 A key of `modules` is a fully-qualified Python module name.  The corresponding
 value is an objdoc describing the Python module.
 
-An **objdoc** is a JSON object ecoding summary and documentation for a Python
+An **objdoc** is a JSON object encoding summary and documentation for a Python
 object.  An objdoc may document any type of Python object, such as a module,
-class, function, method, or scalar value.  An objdoc may be recursive, i.e. 
+class, function, method, or other value.  An objdoc may be recursive, i.e. 
 contain other objdoc instances, to express composition of Python objects.
 
 With a docsrc, an objdoc can be located given two pieces of information: its
@@ -77,7 +77,7 @@ looks as follows
 ```
 
 The reference is always relative to the top of the docsrc.  The reference path
-is is `"modules"`, followed by the fully qualified module name, followed by
+is `"modules"`, followed by the fully qualified module name, followed by
 components of the path within the module.
 
 A ref can be used anywhere in place of an objdoc.
@@ -85,9 +85,9 @@ A ref can be used anywhere in place of an objdoc.
 
 ## objdoc fields
 
-Field names of an objdoc and their semantics are given below.  _All_ fields in an
-objdoc are optional; an implementation should be able to handle an instance with
-any or all omitted.
+Field names of an objdoc and their semantics are given below.  _All_ fields in
+an objdoc are optional; an implementation should be able to handle an instance
+with any or all omitted.
 
 - `name`: The unqualified name of the object, generally the value of its
   `__name__` attribute.
