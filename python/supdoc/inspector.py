@@ -157,10 +157,10 @@ class Inspector:
         """
         Returns source code and line number range for `obj`.
 
-        @return
+        :return:
           The source code, and a [start, end) pair of line numbers in the source
           file.
-        @raise LookupError
+        :raise LookupError:
           `obj` has no source, or the source cannot be obtained.
         """
         # FIXME: getsourcelines() is expensive.  Is it necessary?  Perhaps we
@@ -180,7 +180,7 @@ class Inspector:
         """
         Returns information about the source of `obj`.
 
-        @return
+        :return:
           A JSO object with source information.
         """
         result = {}
@@ -206,9 +206,9 @@ class Inspector:
         """
         Returns a ref to `obj`.
 
-        @param with_type
+        :param with_type:
           If true, include a "type" field with a ref to `type(obj)`.
-        @return
+        :return:
           A JSO object with a "$ref" key.
         """
         path = Path.of(obj)
@@ -220,7 +220,7 @@ class Inspector:
         return ref
 
 
-    def _inspect(self, obj, lookup_path=None):
+    def _inspect(self, obj, lookup_path: Path=None):
         """
         Inspects `obj` and produces an objdoc or ref.
 
@@ -233,15 +233,13 @@ class Inspector:
         inspecting, since this object (a module, class, or function) is not the
         location at which it was defined.
 
-        @param obj
+        :param obj:
           The object to inspect.
-        @param lookup_path
+        :param lookup_path:
           The path by which the object has been reached, by module import
           followed by successive `getattr`.  It may not be the same as the name
           by which the object knows itself.
-        @type lookup_path
-          `Path`.
-        @return
+        :return:
           The objdoc extracted from `obj`, or a ref to it.
         """
         # Get the object's path.  If the path doesn't refer back to the object,
@@ -429,12 +427,9 @@ class Inspector:
         return objdoc
 
 
-    def _inspect_signature(self, sig):
+    def _inspect_signature(self, sig: inspect.Signature):
         """
         Inspects a signature object.
-
-        @type sig
-          `inspect.Signature`.
         """
         objdoc = {
             "params": [
@@ -452,7 +447,7 @@ class Inspector:
         """
         Inspects a single parameter in a callable signature.
 
-        @return
+        :return:
           A JSO object with information about `param`.
         """
         jso = {
@@ -475,7 +470,7 @@ class Inspector:
         """
         Imports (if necessary) and inspects a module.
 
-        @return
+        :return:
           Objdoc for the module.
         """
         try:
@@ -507,7 +502,7 @@ class DocSource:
         """
         Imports and inspects modules.
 
-        @param referenced
+        :param referenced:
           Whether to inspect referenced modules.  If `False`, does not inspect
           referenced modules.  If 1, inspects only modules referenced directly
           by modules in `modnames`.  If `True`, inspects all directly and
@@ -545,7 +540,7 @@ class DocSource:
         """
         Returns an objdoc for the object at `path`.
 
-        @raise QualnameError
+        :raise QualnameError:
           The qualname of `path` could not be found in the module objdoc.
         """
         objdoc = self.inspect_module(path.modname)
@@ -574,7 +569,7 @@ class DocSource:
         """
         Resolves `objdoc` if it is a ref, otherwise returns it.
 
-        @param recursive
+        :param recursive:
           If true, keep resolving the result until it is not a ref.
         """
         while is_ref(objdoc):
