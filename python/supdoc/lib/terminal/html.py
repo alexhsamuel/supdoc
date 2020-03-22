@@ -3,15 +3,11 @@ import html.parser
 import io
 import logging
 import re
-import shutil
 import sys
 
-from   . import ansi
 from   .printer import Printer, NL
-from   ..text import get_common_indent
-import aslib.log
 
-log = aslib.log.get()
+LOG = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------------------
 
@@ -94,7 +90,7 @@ class Converter(html.parser.HTMLParser):
         try:
             indent, prefix, prenl, postnl, style = self.ELEMENTS[tag]
         except KeyError:
-            log.warning("unknown tag: {}".format(tag))
+            LOG.warning("unknown tag: {}".format(tag))
         else:
             if indent:
                 pr.indent(indent)
