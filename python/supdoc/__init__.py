@@ -1,11 +1,9 @@
+import json
 import sys
 
 from   . import inspector
 from   . import terminal
-import aslib.json
-from   aslib.memo import memoize
-import aslib.terminal
-from   aslib.terminal.printer import Printer
+from   .lib.memo import memoize
 
 __all__ = (
     "dump_objdoc",
@@ -27,7 +25,7 @@ def dump_objdoc(obj):
     # FIXME: For shame.
     objdoc = docsrc._DocSource__inspector._inspect(obj)
 
-    aslib.json.pprint(objdoc)
+    json.dump(objdoc, sys.stdout, indent=1, sort_keys=True)
     print()
 
 
