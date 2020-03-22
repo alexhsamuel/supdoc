@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+#-------------------------------------------------------------------------------
+
 import argparse
 
-import supdoc.html.serve
+from   supdoc.html.serve import DEFAULT_PORT, app
 import supdoc.lib.log
+
+#-------------------------------------------------------------------------------
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -13,10 +17,10 @@ parser.add_argument(
     "--host", "-H", metavar="ADDR", default="localhost",
     help="serve HTTP on ADDR")
 parser.add_argument(
-    "--port", "-P", metavar="PORT", type=int, default=5000,
-    help="serve HTTP on PORT")
+    "--port", "-P", metavar="PORT", type=int, default=DEFAULT_PORT,
+    help=f"serve HTTP on PORT [def: {DEFAULT_PORT}]")
 supdoc.lib.log.add_option(parser)
 args = parser.parse_args()
 
-supdoc.html.serve.app.run(host=args.host, port=args.port, debug=args.debug)
+app.run(host=args.host, port=args.port, debug=args.debug)
 

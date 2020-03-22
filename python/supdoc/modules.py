@@ -11,7 +11,7 @@ import os
 import sys
 import types
 
-from   .path import Path
+from   .lib.path import Path
 
 #-------------------------------------------------------------------------------
 

@@ -24,9 +24,12 @@ def first(iterable):
     true for the first time and false for subsequent items.
     """
     i = iter(iterable)
-    yield True, next(i)
-    while True:
-        yield False, next(i)
+    try:
+        yield True, next(i)
+        while True:
+            yield False, next(i)
+    except StopIteration:
+        return
 
 
 def last(iterable):

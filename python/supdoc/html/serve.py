@@ -14,6 +14,8 @@ from   . import gen
 
 #-------------------------------------------------------------------------------
 
+DEFAULT_PORT = 5050
+
 app = flask.Flask(__name__)
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 300
 
