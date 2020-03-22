@@ -8,7 +8,7 @@ a number of dubious bits of syntactic sugar to make the formatting code concise.
 
 For example,
 
-    from aslib.terminal.printer import Printer, NL
+    from supdoc.lib.terminal.printer import Printer, NL
     printer = Printer()
 
     # Print a message.
@@ -30,11 +30,10 @@ Note that `NL` is just an alias for `"\\n"`; you may include newlines directly.
 
 #-------------------------------------------------------------------------------
 
-from   contextlib import suppress
 import sys
 
+from   supdoc.lib import itr
 from   . import get_width
-from   .. import itr
 from   .ansi import length, StyleStack
 
 #-------------------------------------------------------------------------------
