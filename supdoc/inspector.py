@@ -588,26 +588,3 @@ def get_docsrc():
     return DocSource()
 
 
-#-------------------------------------------------------------------------------
-
-def main():
-    import argparse
-    import json
-    import sys
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "modname", metavar="MODNAME", 
-        help="fully-qualified module name")
-    args = parser.parse_args()
-
-    path = Path(args.modname, None)
-
-    docsrc = DocSource()
-    objdoc = docsrc.get(path)
-    json.dump(objdoc, sys.stdout, indent=1, sort_keys=True)
-
-
-if __name__ == "__main__":
-    main()
-
