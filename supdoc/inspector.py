@@ -8,8 +8,9 @@ from   weakref import WeakKeyDictionary
 
 from   .docs import enrich
 from   .exc import QualnameError
+from   .lib.memo import memoize
 from   .objdoc import make_ref, is_ref, parse_ref
-from   .path import Path, is_imposter, import_, get_obj, split
+from   .path import Path, is_imposter, import_, get_obj
 
 #-------------------------------------------------------------------------------
 
@@ -485,6 +486,8 @@ class Inspector:
 
 #-------------------------------------------------------------------------------
 
+# FIXME: This might be completely unnecessary now.
+
 class DocSource:
     # FIXME: Cache invalidation logic: check file mtime and reload?
 
@@ -580,6 +583,11 @@ class DocSource:
 
 
 
+@memoize
+def get_docsrc():
+    return DocSource()
+
+
 #-------------------------------------------------------------------------------
 
 def main():
@@ -593,7 +601,7 @@ def main():
         help="fully-qualified module name")
     args = parser.parse_args()
 
-    path, _ = split(args.modname)
+    path = Path(args.modname, None)
 
     docsrc = DocSource()
     objdoc = docsrc.get(path)

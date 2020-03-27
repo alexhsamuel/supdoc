@@ -55,6 +55,7 @@ def extract(lines):
                 output_lines.append(html.escape(line[len(indent) :]))
                 line = next(lines)
 
+            # FIXME: Why do we build a paragraph and then split it right back?
             yield from format(source_lines, output_lines).split("\n")
 
     except StopIteration:
