@@ -34,10 +34,10 @@ def find_modules(path, base_path=None):
     Includes standard Python module files and package directories only.
     A package name will be generated before its submodules.
 
-    @param path
+    :param path:
       Path to a module or a package directory, which is assumed to be at the
       top level.
-    @param base_path
+    :param base_path:
       The base path to import from (i.e. what would be in the PYTHONPATH).
       If None, uses the parent of 'path'.
     """
