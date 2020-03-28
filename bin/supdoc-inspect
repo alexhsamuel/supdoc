@@ -5,19 +5,25 @@ import json
 import sys
 
 from   supdoc.inspector import DocSource
+from   supdoc.modules import find_submodules
 from   supdoc.path import Path
 
 #-------------------------------------------------------------------------------
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "modname", metavar="MODNAME", 
+    "modnames", metavar="MODNAME", nargs="*",
     help="fully-qualified module name")
 args = parser.parse_args()
 
-path = Path(args.modname, None)
-
+modnames = sorted({ n for m in args.modnames for n in find_submodules(m) })
 docsrc = DocSource()
-objdoc = docsrc.get(path)
+objdoc = {
+    "modules": {
+        m["name"]: m
+        for n in modnames
+        for m in (docsrc.get(Path(n, None)), )  # FIXME: :=
+    }
+}
 json.dump(objdoc, sys.stdout, indent=1, sort_keys=True)
 
