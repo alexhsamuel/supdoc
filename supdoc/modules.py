@@ -8,10 +8,12 @@ from   importlib.machinery import SourceFileLoader
 import inspect
 import logging
 import os
+import pkgutil
 import sys
 import types
 
 from   .lib.path import Path
+from   .path import import_
 
 #-------------------------------------------------------------------------------
 
@@ -82,6 +84,7 @@ def find_std_modules():
     return names
 
 
+# FIXME: This is bogus and should be removed.
 def find_modules_in_path():
     """
     Generates names of modules in the import path.
@@ -98,13 +101,16 @@ def find_modules_in_path():
             pass
 
 
-def load_module(name, path):
-    logging.info("loading {} from {}".format(name, path))
-    module = SourceFileLoader(str(name), str(path)).load_module()
-    if len(name) > 1:
-        parent_name = Name(name[: -1])
-        parent = sys.modules[str(parent_name)]
-        setattr(parent, name[-1], module)
-    return module
+def find_submodules(modname):
+    """
+    Generate names of submodules, including subpackages, of module `modname`.
+    """
+    mod = import_(modname)
+    # Not sure if this is right.
+    path = os.path.dirname(mod.__spec__.origin)
+
+    yield mod.__name__
+    for modinfo in pkgutil.walk_packages([path], mod.__name__ + "."):
+        yield(modinfo.name)
 
 
