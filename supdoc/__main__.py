@@ -11,11 +11,11 @@ Invoke with `--help` for usage info.
 #-------------------------------------------------------------------------------
 
 import argparse
+import logging
 import json
 import sys
-import traceback
 
-from   . import inspector
+from   .cache import get_inspector
 from   .exc import FullNameError, ImportFailure, QualnameError
 from   .path import split
 from   .terminal import print_docs
@@ -41,9 +41,6 @@ def main():
         "--sdoc", default=False, action="store_true",
         help="dump JSON sdoc")
     parser.add_argument(
-        "--path", metavar="FILE", default=None,
-        help="read JSON docs from FILE")
-    parser.add_argument(
         "--private", default=False, action="store_true",
         help="show private module/class members")
     parser.add_argument(
@@ -58,28 +55,15 @@ def main():
     try:
         path, obj = split(args.name)
     except FullNameError:
-        print("can't find name: {}".format(args.name), file=sys.stderr)
-        raise SystemExit(1)
-    except ImportFailure as error:
-        print(
-            "error importing module: {}:\n".format(error.modname),
-            file=sys.stderr)
-        cause = error.__context__
-        traceback.print_exception(
-            type(cause), cause, cause.__traceback__, file=sys.stderr)
+        parser.error(f"can't find name: {args.name}")
+    except ImportFailure as exc:
+        logging.error(f"error importing module: {exc.modname}", exc_info=True)
         raise SystemExit(1)
 
-    if args.path is None:
-        docsrc = inspector.DocSource(source=args.source)
-    else:
-        # Read the docs file.
-        # FIXME
-        # with open(args.path) as file:
-        #     sdoc = json.load(file)
-        raise NotImplementedError("docs file")
+    inspector = get_inspector()
 
     try:
-        objdoc = docsrc.get(path)
+        objdoc = inspector.inspect_module(path.modname)
     except QualnameError as error:
         # FIXME
         print(error, file=sys.stderr)

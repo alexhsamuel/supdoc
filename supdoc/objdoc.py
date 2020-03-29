@@ -5,8 +5,11 @@ Functions for working with objdoc and ref objects.
 #-------------------------------------------------------------------------------
 
 from   contextlib import suppress
+import typing
 
 from   .path import Path
+
+Objdoc = typing.NewType("Objdoc", dict)
 
 #-------------------------------------------------------------------------------
 

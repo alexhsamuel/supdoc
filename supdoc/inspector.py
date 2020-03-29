@@ -16,6 +16,9 @@ from   .path import Path, is_imposter, import_, get_obj
 
 LOG = logging.getLogger(__name__)
 
+# Objdoc schema version.  Bump this whenever anything changes.
+VERSION = 1
+
 # Maximum length of an object repr to store.
 MAX_REPR_LENGTH = 65536
 
@@ -138,7 +141,7 @@ IN_PROGRESS = object()
 
 class Inspector:
 
-    def __init__(self, *, source):
+    def __init__(self, *, source=False):
         self.__source = bool(source)
         self.__ref_modnames = set()
         # Cache from object to its objdoc.
