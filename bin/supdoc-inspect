@@ -4,9 +4,8 @@ import argparse
 import json
 import sys
 
-from   supdoc.inspector import DocSource
+from   supdoc.inspector import Inspector
 from   supdoc.modules import find_submodules
-from   supdoc.path import Path
 
 #-------------------------------------------------------------------------------
 
@@ -17,13 +16,13 @@ parser.add_argument(
 args = parser.parse_args()
 
 modnames = sorted({ n for m in args.modnames for n in find_submodules(m) })
-docsrc = DocSource()
-objdoc = {
+inspector = Inspector()
+odoc = {
     "modules": {
         m["name"]: m
         for n in modnames
-        for m in (docsrc.get(Path(n, None)), )  # FIXME: :=
+        for m in (inspector.inspect_module(n), )  # FIXME: :=
     }
 }
-json.dump(objdoc, sys.stdout, indent=1, sort_keys=True)
+json.dump(odoc, sys.stdout, indent=1, sort_keys=True)
 
