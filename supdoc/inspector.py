@@ -143,17 +143,8 @@ class Inspector:
 
     def __init__(self, *, source=False):
         self.__source = bool(source)
-        self.__ref_modnames = set()
         # Cache from object to its objdoc.
         self.__cache = WeakKeyDictionary()
-
-
-    @property
-    def referenced_modnames(self):
-        """
-        Names of modules that have been referenced during inspection.
-        """
-        return self.__ref_modnames
 
 
     @classmethod
@@ -206,7 +197,7 @@ class Inspector:
         return result
 
 
-    def _inspect_ref(self, obj, *, with_type=True):
+    def _inspect_ref(self, obj):
         """
         Returns a ref to `obj`.
 
@@ -216,11 +207,9 @@ class Inspector:
           A JSO object with a "$ref" key.
         """
         path = Path.of(obj)
-        self.__ref_modnames.add(path.modname)
         ref = make_ref(path)
-        if with_type:
-            # Add information about its type.
-            ref["type"] = make_ref(Path.of(type(obj)))
+        # Add information about its type.
+        ref["type"] = make_ref(Path.of(type(obj)))
         return ref
 
 
@@ -501,45 +490,6 @@ class DocSource:
 
     def inspect_module(self, modname):
         return self.__inspector.inspect_module(modname)
-
-
-    # FIXME: Do we need this?
-    def inspect_modules(self, *modnames, referenced=0):
-        """
-        Imports and inspects modules.
-
-        :param referenced:
-          Whether to inspect referenced modules.  If `False`, does not inspect
-          referenced modules.  If 1, inspects only modules referenced directly
-          by modules in `modnames`.  If `True`, inspects all directly and
-          indirectly referenced modules.
-        """
-        # Mapping from modname to module objdoc.
-        objdocs = {}
-
-        # Set up an inspector for our modules.
-        def inspect(modname):
-            if modname not in objdocs:
-                objdocs[modname] = self.inspect_module(modname)
-
-        # Inspect modules.
-        for modname in modnames:
-            inspect(modname)
-
-        if referenced:
-            # Inspect referenced modules.
-            remaining = self.referenced_modnames - set(objdocs)
-            while len(remaining) > 0:
-                for modname in remaining:
-                    inspect(modname)
-                if referenced == 1:
-                    break
-
-        # Parse and process docstrings.
-        from . import docs
-        docs.enrich_modules(objdocs)
-
-        return {"modules": objdocs}
 
 
     def get(self, path):
