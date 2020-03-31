@@ -591,7 +591,7 @@ def main():
 
     lookup_path, _ = path.split(args.path)
 
-    docsrc = inspector.DocSource(source=True)
+    docsrc = inspector.DocSource()
     objdoc = docsrc.get(lookup_path)
 
     print("<!DOCTYPE html>")

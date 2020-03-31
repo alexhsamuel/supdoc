@@ -141,8 +141,7 @@ IN_PROGRESS = object()
 
 class Inspector:
 
-    def __init__(self, *, source=False):
-        self.__source = bool(source)
+    def __init__(self):
         # Cache from object to its objdoc.
         self.__cache = WeakKeyDictionary()
 
@@ -171,7 +170,7 @@ class Inspector:
             return "".join(lines), [start_num, start_num + len(lines)]
 
 
-    def _inspect_source(self, obj):
+    def _inspect_source(self, obj, *, source=True):
         """
         Returns information about the source of `obj`.
 
@@ -191,7 +190,7 @@ class Inspector:
         except LookupError:
             pass
         else:
-            if self.__source:
+            if source:
                 result["source"] = source
 
         return result
@@ -213,7 +212,7 @@ class Inspector:
         return ref
 
 
-    def _inspect(self, obj, lookup_path: Path=None):
+    def _inspect(self, obj, lookup_path: Path=None, *, source=True):
         """
         Inspects `obj` and produces an objdoc or ref.
 
@@ -354,7 +353,7 @@ class Inspector:
             objdoc["dict"] = dict_jso
 
         if isinstance(obj, (type, types.ModuleType, types.FunctionType)):
-            objdoc["source"] = self._inspect_source(obj)
+            objdoc["source"] = self._inspect_source(obj, source)
 
         try:
             bases = obj.__bases__
@@ -483,9 +482,8 @@ class Inspector:
 class DocSource:
     # FIXME: Cache invalidation logic: check file mtime and reload?
 
-    def __init__(self, *, source=False):
-        self.__source = bool(source)
-        self.__inspector = Inspector(source=source)
+    def __init__(self):
+        self.__inspector = Inspector()
         
 
     def inspect_module(self, modname):

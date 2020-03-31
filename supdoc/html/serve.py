@@ -19,7 +19,7 @@ DEFAULT_PORT = 5050
 app = flask.Flask(__name__)
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 300
 
-docsrc = inspector.DocSource(source=True)
+docsrc = inspector.DocSource()
 
 @app.route("/favicon.ico/", methods=("GET", ))
 def get_favicon():

@@ -1,5 +1,6 @@
-- [ ] remove actual source from `_get_source`
+- [x] remove actual source from `_get_source`
 - [ ] turn `Inspector` into a bunch of functions
 - [ ] merge `DocSource` into the caching layer
 - [ ] remove `supdoc-inspect`
 - [ ] add + document CLI for precaching objdocs
+- [ ] improve on `_get_source`, particularly `inspect.getsourcelines`
