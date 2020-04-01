@@ -75,10 +75,10 @@ def main():
         elif args.objdoc:
             json.dump(objdoc, sys.stdout, indent=1, sort_keys=True)
         else:
-            # Leave a one-space border on the right.
             print_docs(
-                docsrc, objdoc, path, 
-                private=args.private, imports=args.imports)
+                inspector, objdoc, path,
+                private=args.private, imports=args.imports
+            )
     except BrokenPipeError:
         # Eat this; probably the user killed the pager attached to stdout.
         pass

@@ -1,3 +1,5 @@
+from   __future__ import annotations
+
 from   contextlib import suppress
 import enum
 import inspect
@@ -8,8 +10,7 @@ from   weakref import WeakKeyDictionary
 
 from   .docs import enrich
 from   .exc import QualnameError
-from   .lib.memo import memoize
-from   .objdoc import make_ref, is_ref, parse_ref
+from   .objdoc import make_ref, is_ref, parse_ref, look_up
 from   .path import Path, is_imposter, import_, get_obj
 
 #-------------------------------------------------------------------------------
@@ -135,19 +136,14 @@ def is_mangled(obj):
 
 #-------------------------------------------------------------------------------
 
-# Used in the objdoc cache to mark an object currently under inspection; used to
-# detect loop.
-IN_PROGRESS = object()
-
 class Inspector:
 
-    def __init__(self):
-        # Cache from object to its objdoc.
-        self.__cache = WeakKeyDictionary()
+    # Used in the objdoc cache to mark an object currently under inspection; used to
+    # detect loop.
+    IN_PROGRESS = object()
 
-
-    @classmethod
-    def _get_source(class_, obj):
+    @staticmethod
+    def _get_source(obj):
         """
         Returns source code and line number range for `obj`.
 
@@ -170,7 +166,7 @@ class Inspector:
             return "".join(lines), [start_num, start_num + len(lines)]
 
 
-    def _inspect_source(self, obj, *, source=True):
+    def _inspect_source(self, obj):
         """
         Returns information about the source of `obj`.
 
@@ -178,7 +174,7 @@ class Inspector:
           A JSO object with source information.
         """
         result = {}
-        
+
         module = inspect.getmodule(obj)
         if module is not None:
             with suppress(TypeError):
@@ -186,17 +182,15 @@ class Inspector:
             with suppress(TypeError):
                 result["file"] = inspect.getfile(module)
         try:
-            source, result["lines"] = self._get_source(obj)
+            result["source"], result["lines"] = self._get_source(obj)
         except LookupError:
             pass
-        else:
-            if source:
-                result["source"] = source
 
         return result
 
 
-    def _inspect_ref(self, obj):
+    @staticmethod
+    def _inspect_ref(obj):
         """
         Returns a ref to `obj`.
 
@@ -212,7 +206,7 @@ class Inspector:
         return ref
 
 
-    def _inspect(self, obj, lookup_path: Path=None, *, source=True):
+    def _inspect(self, cache, obj, lookup_path: Path=None):
         """
         Inspects `obj` and produces an objdoc or ref.
 
@@ -245,19 +239,19 @@ class Inspector:
 
         # Use the cached objdoc, if available.
         try:
-            objdoc = self.__cache[obj]
+            objdoc = cache[obj]
         except KeyError:
             # Not in the cache.  Mark that we're processing it, and continue.
-            self.__cache[obj] = IN_PROGRESS
+            cache[obj] = self.IN_PROGRESS
         except TypeError:
             # Not hashable or doesn't support weakrefs.
             # FIXME: We need something to detect reference loops of unhashable
             # items, like `d = {}; d[0] = d`.
             pass
         else:
-            if objdoc is IN_PROGRESS:
+            if objdoc is self.IN_PROGRESS:
                 # Found a loop; return a ref.
-                del self.__cache[obj]
+                del cache[obj]
                 LOG.info("found loop: {}".format(lookup_path))  # FIXME: Remove.
                 return self._inspect_ref(obj)
             else:
@@ -344,16 +338,16 @@ class Inspector:
                 attr_objdoc = (
                     self._inspect_ref(attr_value)
                     if isinstance(attr_value, types.ModuleType)
-                    else self._inspect(attr_value, attr_path)
+                    else self._inspect(cache, attr_value, attr_path)
                 )
                 if all_names is not None:
                     attr_objdoc["exported"] = attr_name in all_names
                 dict_jso[attr_name] = attr_objdoc
-                
+
             objdoc["dict"] = dict_jso
 
         if isinstance(obj, (type, types.ModuleType, types.FunctionType)):
-            objdoc["source"] = self._inspect_source(obj, source)
+            objdoc["source"] = self._inspect_source(obj)
 
         try:
             bases = obj.__bases__
@@ -379,7 +373,7 @@ class Inspector:
                 # Doesn't work for extension functions.
                 pass
             else:
-                objdoc["signature"] = self._inspect_signature(sig)
+                objdoc["signature"] = self._inspect_signature(cache, sig)
 
         # If this is a classmethod or staticmethod wrapper, inspect the
         # underlying function.
@@ -388,12 +382,15 @@ class Inspector:
         except (AttributeError, KeyError):
             pass
         else:
-            objdoc["func"] = self._inspect(func, lookup_path)
+            objdoc["func"] = self._inspect(cache, func, lookup_path)
 
         # If this is a property, inspect the underlying accessors.
         if isinstance(obj, property):
             def insp(obj):
-                return None if obj is None else self._inspect(obj, lookup_path)
+                return (
+                    None if obj is None
+                    else self._inspect(cache, obj, lookup_path)
+                )
 
             objdoc["get"] = insp(obj.fget)
             objdoc["set"] = insp(obj.fset)
@@ -415,27 +412,28 @@ class Inspector:
         # they can't be cached.  Oh well.
         # FIXME: Is there a way around this?
         with suppress(TypeError):
-            self.__cache[obj] = objdoc
+            cache[obj] = objdoc
         return objdoc
 
 
-    def _inspect_signature(self, sig: inspect.Signature):
+    def _inspect_signature(self, cache, sig: inspect.Signature):
         """
         Inspects a signature object.
         """
         objdoc = {
             "params": [
-                self._inspect_parameter(p)
+                self._inspect_parameter(cache, p)
                 for p in sig.parameters.values()
             ]
         }
         if sig.return_annotation != inspect.Signature.empty:
+            # FIXME: Handle future annotations.
             objdoc.setdefault("return", {})["annotation"] = \
-                self._inspect(sig.return_annotation)
+                self._inspect(cache, sig.return_annotation)
         return objdoc
 
 
-    def _inspect_parameter(self, param):
+    def _inspect_parameter(self, cache, param):
         """
         Inspects a single parameter in a callable signature.
 
@@ -449,13 +447,18 @@ class Inspector:
 
         annotation = param.annotation
         if annotation is not param.empty:
-            jso["annotation"] = self._inspect(annotation)
+            jso["annotation"] = self._inspect(cache, annotation)
 
         default = param.default 
         if default is not param.empty:
-            jso["default"] = self._inspect(default)
+            jso["default"] = self._inspect(cache, default)
 
         return jso
+
+
+    def inspect(self, obj):
+        cache = WeakKeyDictionary()
+        return self._inspect(cache, obj)
 
 
     def inspect_module(self, modname):
@@ -471,71 +474,49 @@ class Inspector:
             LOG.info("skipping unimportable module {}".format(modname))
             return {}
 
-        return self._inspect(obj, Path(modname, None))
-        
+        cache = WeakKeyDictionary()
+        return self._inspect(cache, obj, Path(modname, None))
+
 
 
 #-------------------------------------------------------------------------------
 
-# FIXME: This might be completely unnecessary now.
+def inspect_path(inspector, path):
+    """
+    Returns an objdoc for the object at `path`.
 
-class DocSource:
-    # FIXME: Cache invalidation logic: check file mtime and reload?
+    :raise QualnameError:
+      The qualname of `path` could not be found in the module objdoc.
+    """
+    objdoc = inspector.inspect_module(path.modname)
+    if path.qualname is not None:
+        try:
+            return look_up(objdoc, path.qualname)
+        except LookupError as exc:
+            raise QualnameError(f"no such name: {exc} in: {path}") from None
 
-    def __init__(self):
-        self.__inspector = Inspector()
-        
-
-    def inspect_module(self, modname):
-        return self.__inspector.inspect_module(modname)
-
-
-    def get(self, path):
-        """
-        Returns an objdoc for the object at `path`.
-
-        :raise QualnameError:
-          The qualname of `path` could not be found in the module objdoc.
-        """
-        objdoc = self.inspect_module(path.modname)
-        if path.qualname is not None:
-            parts = path.qualname.split(".")
-            for i in range(len(parts)):
-                try:
-                    objdoc = objdoc["dict"][parts[i]]
-                except KeyError:
-                    missing_name = ".".join(parts[: i + 1])
-                    raise QualnameError(
-                        "no such name: {} in: {}".format(missing_name, path))
-
-        return objdoc
+    return objdoc
 
 
-    def resolve_ref(self, ref):
-        """
-        Returns the objdoc or ref referred to by `ref`.
-        """
-        assert is_ref(ref)
-        return self.get(parse_ref(ref))
+def resolve_ref(inspector, ref):
+    """
+    Returns the objdoc or ref referred to by `ref`.
+    """
+    assert is_ref(ref)
+    return inspect_path(inspector, parse_ref(ref))
 
 
-    def resolve(self, objdoc, *, recursive=True):
-        """
-        Resolves `objdoc` if it is a ref, otherwise returns it.
+def resolve(inspector, objdoc, *, recursive=True):
+    """
+    Resolves `objdoc` if it is a ref, otherwise returns it.
 
-        :param recursive:
-          If true, keep resolving the result until it is not a ref.
-        """
-        while is_ref(objdoc):
-            objdoc = self.resolve_ref(objdoc)
-            if not recursive:
-                break
-        return objdoc
-
-
-
-@memoize
-def get_docsrc():
-    return DocSource()
+    :param recursive:
+      If true, keep resolving the result until it is not a ref.
+    """
+    while is_ref(objdoc):
+        objdoc = resolve_ref(inspector, objdoc)
+        if not recursive:
+            break
+    return objdoc
 
 

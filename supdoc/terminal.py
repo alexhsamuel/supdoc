@@ -4,6 +4,7 @@ from   .lib import itr
 from   .lib.py import if_none
 from   .lib.terminal import ansi, get_width
 from   .lib.terminal.printer import Printer, NL
+from   .inspector import resolve
 from   .objdoc import is_function_like, get_signature, is_ref, parse_ref, get_path
 from   .path import Path
 
@@ -125,7 +126,7 @@ def _format_parameters(params):
         yield result
 
 
-def _print_signature(docsrc, objdoc, pr):
+def _print_signature(inspector, objdoc, pr):
     """
     If `objdoc` is callable, prints its call signature in parentheses.
 
@@ -222,7 +223,7 @@ def get_dict(objdoc, private):
     return dict
 
 
-def print_docs(docsrc, objdoc, lookup_path=None, *, 
+def print_docs(inspector, objdoc, lookup_path=None, *, 
                private=True, imports=True, file=None, width=None):
     """
     @param lookup_path
@@ -240,20 +241,20 @@ def print_docs(docsrc, objdoc, lookup_path=None, *,
 
     printer = Printer(file.write, indent=" ", width=width)
     try:
-        _print_docs(docsrc, objdoc, lookup_path, printer, private, imports)
+        _print_docs(inspector, objdoc, lookup_path, printer, private, imports)
     finally:
         file.flush()
 
 
 # FIXME: Break this function up.
-def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
+def _print_docs(inspector, objdoc, lookup_path, printer, private, imports):
     pr = printer  # For brevity.
 
     from_path   = lookup_path or get_path(objdoc)
     while is_ref(objdoc):
         path = parse_ref(objdoc)
         pr << format_path(from_path) << IMPORT_ARROW << NL
-        objdoc = docsrc.resolve(objdoc)
+        objdoc = resolve(inspector, objdoc)
         from_path = path
 
     path            = get_path(objdoc) or lookup_path
@@ -297,7 +298,7 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
     _print_name(display_name, name, pr)
     
     # Show its callable signature, if it has one.
-    _print_signature(docsrc, objdoc, pr)
+    _print_signature(inspector, objdoc, pr)
 
     pr << NL
     rule()
@@ -398,11 +399,11 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
         header("Property")
         for accessor_name in ("get", "set", "del"):
             accessor = objdoc.get(accessor_name)
-            accessor = None if accessor is None else docsrc.resolve(accessor)
+            accessor = None if accessor is None else resolve(inspector, accessor)
             with pr(**STYLES["label"]):
                 pr << "{}: ".format(accessor_name)
             if accessor is not None:
-                _print_member(docsrc, accessor, None, pr)
+                _print_member(inspector, accessor, None, pr)
             else:
                 pr << "none" << NL
         pr << NL 
@@ -465,27 +466,27 @@ def _print_docs(docsrc, objdoc, lookup_path, printer, private, imports):
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
         header("Modules")
-        _print_members(docsrc, partition, path, pr, False, imports=imports)
+        _print_members(inspector, partition, path, pr, False, imports=imports)
 
     partition = partitions.pop("types", {})
     if len(partition) > 0:
         header("Types" if type_name == "module" else "Member Types")
-        _print_members(docsrc, partition, path, pr, False, imports=imports)
+        _print_members(inspector, partition, path, pr, False, imports=imports)
 
     partition = partitions.pop("properties", {})
     if len(partition) > 0:
         header("Properties")
-        _print_members(docsrc, partition, path, pr, True, imports=imports)
+        _print_members(inspector, partition, path, pr, True, imports=imports)
 
     partition = partitions.pop("functions", {})
     if len(partition) > 0:
         header("Functions" if type_name == "module" else "Methods")
-        _print_members(docsrc, partition, path, pr, True, imports=imports)
+        _print_members(inspector, partition, path, pr, True, imports=imports)
 
     partition = partitions.pop("attributes", {})
     if len(partition) > 0:
         header("Attributes")
-        _print_members(docsrc, partition, path, pr, True)
+        _print_members(inspector, partition, path, pr, True)
 
     assert len(partitions) == 0
     if not private or not imports:
@@ -535,7 +536,7 @@ def repr_is_uninteresting(objdoc):
 
 
 # FIXME: WTF is this signature anyway?
-def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
+def _print_member(inspector, objdoc, lookup_path, pr, show_type=True):
     if lookup_path is None:
         lookup_name     = None
         parent_name     = None
@@ -549,7 +550,7 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
         import_path = get_path(objdoc)
         # Read through the ref.
         try:
-            resolved = docsrc.resolve(objdoc)
+            resolved = resolve(inspector, objdoc)
         except LookupError:
             pass
         else:
@@ -578,7 +579,7 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
     with pr(**STYLES["identifier"]):
         pr << unmangled_name
 
-    _print_signature(docsrc, objdoc, pr)
+    _print_signature(inspector, objdoc, pr)
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
@@ -619,7 +620,7 @@ def _print_member(docsrc, objdoc, lookup_path, pr, show_type=True):
             pr << NL
 
 
-def _print_members(docsrc, dict, parent_path, pr, show_type=True, imports=True):
+def _print_members(inspector, dict, parent_path, pr, show_type=True, imports=True):
     for name in sorted(dict):
         objdoc = dict[name]
         if imports or not is_ref(objdoc):
@@ -627,7 +628,7 @@ def _print_members(docsrc, dict, parent_path, pr, show_type=True, imports=True):
             # name, in case the object doesn't know its own name.
             lookup_path = None if parent_path is None else parent_path / name
             pr << BULLET
-            _print_member(docsrc, objdoc, lookup_path, pr, show_type)
+            _print_member(inspector, objdoc, lookup_path, pr, show_type)
     pr << NL
 
 

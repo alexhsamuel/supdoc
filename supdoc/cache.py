@@ -195,9 +195,9 @@ class CachingInspector:
     An inspector with caching.
     """
     
-    def __init__(self, caches, inspector):
-        self.__caches = tuple(caches)
+    def __init__(self, inspector, caches):
         self.__inspector = inspector
+        self.__caches = tuple(caches)
 
 
     def inspect_module(self, modname: str) -> Objdoc:
@@ -217,7 +217,6 @@ class CachingInspector:
                 cache[modname] = objdoc
             except Exception:
                 # Try the next cache.
-                logging.warning(f"can't cache: {modname}", exc_info=True)
                 continue
             else:
                 break
@@ -230,7 +229,10 @@ class CachingInspector:
 
 @memo.memoize
 def get_inspector():
-    return CachingInspector([PYCACHE, DirCache(get_cache_dir())], Inspector())
+    # Try the __pycache__ dir first, then fall back to a global cache for
+    # packages installed in $PREFIX.
+    caches = [PYCACHE, DirCache(get_cache_dir())]
+    return CachingInspector(Inspector(), caches,)
 
 
 def cache_modules(*modnames) -> None:

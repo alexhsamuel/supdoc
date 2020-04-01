@@ -1,5 +1,7 @@
 - [x] remove actual source from `_get_source`
 - [ ] turn `Inspector` into a bunch of functions
+- [ ] clean up `.format`
+- [ ] cache on `id(obj)`
 - [ ] merge `DocSource` into the caching layer
 - [ ] remove `supdoc-inspect`
 - [ ] add + document CLI for precaching objdocs

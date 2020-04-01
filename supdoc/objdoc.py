@@ -79,6 +79,20 @@ def get_path(objdoc):
             return Path(get_path(module).modname, qualname)
 
 
+def look_up(objdoc, qualname):
+    """
+    Resolves `qualname` in `objdoc` in the manner of recursive `getattr`.
+    """
+    parts = qualname.split(".")
+    for i in range(len(parts)):
+        try:
+            objdoc = objdoc["dict"][parts[i]]
+        except KeyError:
+            missing_name = ".".join(parts[: i + 1])
+            raise LookupError(missing_name)
+    return objdoc
+
+
 def is_callable(objdoc):
     """
     Returns true if the object is callable or wraps a callable.
