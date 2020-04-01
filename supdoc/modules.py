@@ -4,9 +4,7 @@ Tools for finding and importing modules.
 
 #-------------------------------------------------------------------------------
 
-from   importlib.machinery import SourceFileLoader
 import inspect
-import logging
 import os
 import pkgutil
 import sys
