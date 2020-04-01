@@ -253,7 +253,7 @@ def split(name):
         try:
             obj = get_obj(path)
         except:
-            raise FullNameError("can't find {} in {}".format(qualname, modname))
+            raise FullNameError(f"can't find {qualname} in {modname}")
 
     else:
         parts = name.split(".")
@@ -273,7 +273,7 @@ def split(name):
             try:
                 obj = getattr_qualname(name, builtins)
             except QualnameError:
-                raise FullNameError("can't find {}".format(name)) from None
+                raise FullNameError(f"can't find {name}") from None
             else:
                 path = Path("builtins", name)
 
