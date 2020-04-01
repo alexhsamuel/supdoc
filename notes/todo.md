@@ -1,6 +1,8 @@
 - [x] remove actual source from `_get_source`
 - [x] recast `Docsrc` → cached `Inspector`
-- [ ] clean up `.format`
+- [x] clean up `.format`
+- [ ] make `--no-source` work
+- [ ] fix `supdoc supdoc.test.C`
 - [ ] cache on `id(obj)`
 - [ ] merge `DocSource` into the caching layer
 - [ ] remove `supdoc-inspect`
