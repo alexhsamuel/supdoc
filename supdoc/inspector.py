@@ -158,7 +158,7 @@ class Inspector:
         try:
             lines, start_num = inspect.getsourcelines(obj)
         except (OSError, TypeError, ValueError):
-            raise LookupError("no source for {!r}".format(obj))
+            raise LookupError(f"no source for {obj!r}")
         else:
             # FIXME: Not sure why this is necessary.
             if not isinstance(obj, types.ModuleType):
@@ -252,15 +252,14 @@ class Inspector:
             if objdoc is self.IN_PROGRESS:
                 # Found a loop; return a ref.
                 del cache[obj]
-                LOG.info("found loop: {}".format(lookup_path))  # FIXME: Remove.
                 return self._inspect_ref(obj)
             else:
                 return objdoc
 
         if isinstance(obj, types.ModuleType):
-            LOG.info("inspecting module {}".format(obj.__name__))
+            LOG.info(f"inspecting module {obj.__name__}")
         else:
-            LOG.debug("inspecting {}".format(lookup_path))
+            LOG.debug(f"inspecting {lookup_path}")
 
         objdoc = {}
 
@@ -275,8 +274,7 @@ class Inspector:
             try:
                 obj_repr = repr(obj)
             except Exception:
-                LOG.warning(
-                    "failed to get repr: {}".format(traceback.format_exc()))
+                LOG.warning(f"failed to get repr", exc_info=True)
             else:
                 objdoc["repr"] = obj_repr[: MAX_REPR_LENGTH]
 
@@ -471,7 +469,7 @@ class Inspector:
         try:
             obj = import_(modname)
         except ImportError:
-            LOG.info("skipping unimportable module {}".format(modname))
+            LOG.info(f"skipping unimportable module {modname}")
             return {}
 
         cache = WeakKeyDictionary()
