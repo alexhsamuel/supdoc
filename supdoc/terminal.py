@@ -342,7 +342,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, private, imports):
             lines = source.get("lines")
             if lines is not None:
                 start, end = lines
-                pr >> " lines {}-{}".format(start + 1, end + 1)
+                pr >> f" lines {start + 1}-{end + 1}"
             pr << NL << NL
 
         if source_text is not None:
@@ -401,7 +401,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, private, imports):
             accessor = objdoc.get(accessor_name)
             accessor = None if accessor is None else resolve(inspector, accessor)
             with pr(**STYLES["label"]):
-                pr << "{}: ".format(accessor_name)
+                pr << accessor_name + ": "
             if accessor is not None:
                 _print_member(inspector, accessor, None, pr)
             else:
