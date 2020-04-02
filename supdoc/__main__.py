@@ -17,6 +17,7 @@ import sys
 
 from   .cache import get_inspector
 from   .exc import FullNameError, ImportFailure, QualnameError
+from   .inspector import inspect_path
 from   .path import split
 from   .terminal import print_docs
 
@@ -63,7 +64,7 @@ def main():
     inspector = get_inspector()
 
     try:
-        objdoc = inspector.inspect_module(path.modname)
+        objdoc = inspect_path(inspector, path)
     except QualnameError as error:
         # FIXME
         print(error, file=sys.stderr)
