@@ -125,12 +125,14 @@ class C:
     """
 
     def __init__(self, x, y=10):
-        "This is C.__init__()."
+        "This is `C.__init__()`."
         self.__x = x
 
 
     def method(self, name):
-        "This is C.method()."
+        """
+        This is `C.method()`.
+        """
         return "Hello, {}!".format(name)
 
 
