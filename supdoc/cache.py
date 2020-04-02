@@ -88,13 +88,12 @@ class Cache:
             raise CannotCache(f"can't write cache: {modname}")
         with file:
             json.dump({"check": check, "objdoc": objdoc}, file)
-        print("TO CACHE:", path)
 
 
     def __getitem__(self, modname: str) -> Objdoc:
         spec = importlib.util.find_spec(modname)
         if spec.origin is None:
-            return False
+            raise KeyError(f"can't cache: {modname}")
 
         try:
             path = self.__get_path(spec)
@@ -112,7 +111,13 @@ class Cache:
         with file:
             cache = json.load(file)
 
-        _compare_check(spec, cache["check"])
+        if not _compare_check(spec, cache["check"]):
+            # Stale cache; clean it up.
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+            raise KeyError(modname)
 
         return cache["objdoc"]
 
