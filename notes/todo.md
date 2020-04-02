@@ -2,9 +2,9 @@
 - [x] recast `Docsrc` → cached `Inspector`
 - [x] clean up `.format`
 - [x] make `--no-source` work
-- [ ] fix `supdoc supdoc.test.C`
+- [x] fix `supdoc supdoc.test.C`
 - [ ] cache on `id(obj)`
-- [ ] merge `DocSource` into the caching layer
 - [ ] remove `supdoc-inspect`
 - [ ] add + document CLI for precaching objdocs
 - [ ] improve on `_get_source`, particularly `inspect.getsourcelines`
+- [ ] don't parse/convert doc text when inspecting, but rather later
