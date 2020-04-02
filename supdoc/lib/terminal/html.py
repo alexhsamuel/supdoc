@@ -90,7 +90,7 @@ class Converter(html.parser.HTMLParser):
         try:
             indent, prefix, prenl, postnl, style = self.ELEMENTS[tag]
         except KeyError:
-            LOG.warning("unknown tag: {}".format(tag))
+            LOG.warning(f"unknown tag: {tag}")
         else:
             if indent:
                 pr.indent(indent)
