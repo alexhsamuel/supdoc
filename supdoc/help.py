@@ -39,6 +39,7 @@ def help(obj, *, private=False, imports=False):
     objdoc = inspector.inspect(obj)
 
     print()
-    terminal.print_docs(inspector, objdoc, private=private, imports=imports)
+    terminal.print_docs(
+        inspector, objdoc, private=private, imports=imports, source=False)
 
 

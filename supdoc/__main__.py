@@ -77,7 +77,7 @@ def main():
         else:
             print_docs(
                 inspector, objdoc, path,
-                private=args.private, imports=args.imports
+                private=args.private, imports=args.imports, source=args.source,
             )
     except BrokenPipeError:
         # Eat this; probably the user killed the pager attached to stdout.

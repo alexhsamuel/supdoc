@@ -224,10 +224,12 @@ def get_dict(objdoc, private):
 
 
 def print_docs(inspector, objdoc, lookup_path=None, *, 
-               private=True, imports=True, file=None, width=None):
+               source=False, private=True, imports=True, file=None, width=None):
     """
     @param lookup_path
       The path under which this objdoc was found.
+    @param source
+      If true, print full source.
     @param private
       If true, shows all names in `dict`; otherwise, excludes private names.
     @param imports
@@ -239,15 +241,21 @@ def print_docs(inspector, objdoc, lookup_path=None, *,
         # Substract one to leave a one-space border on the right.
         width = get_width() - 1
 
+    cfg = {
+        "source"    : source,
+        "private"   : private,
+        "imports"   : imports,
+    }
+
     printer = Printer(file.write, indent=" ", width=width)
     try:
-        _print_docs(inspector, objdoc, lookup_path, printer, private, imports)
+        _print_docs(inspector, objdoc, lookup_path, printer, cfg)
     finally:
         file.flush()
 
 
 # FIXME: Break this function up.
-def _print_docs(inspector, objdoc, lookup_path, printer, private, imports):
+def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
     pr = printer  # For brevity.
 
     from_path   = lookup_path or get_path(objdoc)
@@ -345,7 +353,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, private, imports):
                 pr >> f" lines {start + 1}-{end + 1}"
             pr << NL << NL
 
-        if source_text is not None:
+        if cfg["source"] and source_text is not None:
             with pr(indent="\u2506 ", **STYLES["source"]):
                 pr.elide(source_text)
             pr << NL << NL
@@ -461,27 +469,27 @@ def _print_docs(inspector, objdoc, lookup_path, printer, private, imports):
             pr << repr << NL << NL
 
     # Summarize contents.
-    partitions = _partition_members(get_dict(objdoc, private) or {})
+    partitions = _partition_members(get_dict(objdoc, cfg["private"]) or {})
 
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
         header("Modules")
-        _print_members(inspector, partition, path, pr, False, imports=imports)
+        _print_members(inspector, partition, path, pr, False, imports=cfg["imports"])
 
     partition = partitions.pop("types", {})
     if len(partition) > 0:
         header("Types" if type_name == "module" else "Member Types")
-        _print_members(inspector, partition, path, pr, False, imports=imports)
+        _print_members(inspector, partition, path, pr, False, imports=cfg["imports"])
 
     partition = partitions.pop("properties", {})
     if len(partition) > 0:
         header("Properties")
-        _print_members(inspector, partition, path, pr, True, imports=imports)
+        _print_members(inspector, partition, path, pr, True, imports=cfg["imports"])
 
     partition = partitions.pop("functions", {})
     if len(partition) > 0:
         header("Functions" if type_name == "module" else "Methods")
-        _print_members(inspector, partition, path, pr, True, imports=imports)
+        _print_members(inspector, partition, path, pr, True, imports=cfg["imports"])
 
     partition = partitions.pop("attributes", {})
     if len(partition) > 0:
@@ -489,11 +497,11 @@ def _print_docs(inspector, objdoc, lookup_path, printer, private, imports):
         _print_members(inspector, partition, path, pr, True)
 
     assert len(partitions) == 0
-    if not private or not imports:
+    if not cfg["private"] or not cfg["imports"]:
         omitted = []
-        if not imports:
+        if not cfg["imports"]:
             omitted.append("imported")
-        if not private:
+        if not cfg["private"]:
             omitted.append("private")
         with pr(**STYLES["warning"]):
             pr << " and ".join(omitted).capitalize() + " members omitted." << NL
