@@ -34,6 +34,29 @@ class Converter(html.parser.HTMLParser):
     - `style` is a style mapping for the element
     """
 
+    NO_STYLE = ("", "", 0, 0, {})
+
+    # These are from pygments.
+    SPAN_CLASSES = {
+        None    : NO_STYLE,
+        "prompt": ("", "", 0, 0, {"fg": "#345"}),
+        "k"     : ("", "", 0, 0, {"bold": True}),
+        "mi"    : ("", "", 0, 0, {"bold": True}),
+        "n"     : ("", "", 0, 0, {"bold": True}),
+        "nb"    : ("", "", 0, 0, {"bold": True}),
+        "p"     : ("", "", 0, 0, {"fg": "#844"}),
+        "o"     : ("", "", 0, 0, {"fg": "#484"}),
+        "ow"    : ("", "", 0, 0, {"fg": "#484"}),
+        "s2"    : ("", "", 0, 0, {"fg": "#448"}),
+    }
+
+    DIV_CLASSES = {
+        "codehilite": ("", "", 1, 2, {}),
+        "doctest"   : ("", "", 1, 2, {}),
+        "src"       : ("", "", 1, 1, {}),
+        "out"       : ("", "", 1, 1, {}),
+    }
+
     ELEMENTS = {
         # Block elements
         "div"   : ("", "", 1, 2, {}),
@@ -42,7 +65,7 @@ class Converter(html.parser.HTMLParser):
         "h3"    : ("", "\u2734 ", 1, 1, {}),
         "ol"    : ("  ", "", 1, 1, {}), 
         "p"     : ("", "", 1, 2, {}),
-        "pre"   : ("\u2503 ", "", 1, 2, {"fg": "gray20"}),
+        "pre"   : ("\u2503 ", "", 1, 1, {"fg": "gray20"}),
         "ul"    : ("  ", "", 1, 1, {}),
 
         # Inline elements
@@ -52,7 +75,7 @@ class Converter(html.parser.HTMLParser):
         "em"    : ("", "", 0, 0, {"underline": True}),
         "i"     : ("", "", 0, 0, {"fg": "#600"}),
         "li"    : ("", "\u2219 ", 1, 1, {}),  # FIXME: Numbers for <ol>!
-        "span"  : ("", "", 0, 0, {}),
+        "span"  : NO_STYLE,
         "strong": ("", "", 0, 0, {"bold": True}),
         "u"     : ("", "", 0, 0, {"underline": True}),
     }
@@ -62,6 +85,7 @@ class Converter(html.parser.HTMLParser):
         super().__init__(convert_charrefs=True)
 
         self.__printer = printer
+        self.__tag_stack = []
 
         # True if horizontal space is required before the next word.
         self.__hspace = False
@@ -81,6 +105,32 @@ class Converter(html.parser.HTMLParser):
             self.__printer.unstyle()
 
 
+    def __get_tag_style(self, tag, attrs):
+        # Spans produced by pygments.
+        if tag == "span":
+            attrs = dict(attrs)
+            class_ = attrs.get("class")
+            try:
+                return self.SPAN_CLASSES[class_]
+            except KeyError:
+                LOG.warning(f"unknown span class: {class_}")
+
+        if tag == "div":
+            attrs = dict(attrs)
+            class_ = attrs.get("class")
+            try:
+                return self.DIV_CLASSES[class_]
+            except KeyError:
+                LOG.warning(f"unknown div class: {class_}")
+
+        try:
+            return self.ELEMENTS[tag]
+        except KeyError:
+            LOG.warning(f"unknown tag: {tag}")
+
+        return self.NO_STYLE
+
+
     def handle_starttag(self, tag, attrs):
         pr = self.__printer
 
@@ -89,17 +139,16 @@ class Converter(html.parser.HTMLParser):
             pr << " "
             self.__hspace = False
 
-        try:
-            indent, prefix, prenl, postnl, style = self.ELEMENTS[tag]
-        except KeyError:
-            LOG.warning(f"unknown tag: {tag}")
-        else:
-            if indent:
-                pr.indent(indent)
-            if style:
-                pr.style(**style)
-            self.__vspace = max(self.__vspace, prenl)
-            self.__handle_text(prefix)
+        tag_style = self.__get_tag_style(tag, attrs)
+        self.__tag_stack.append((tag, attrs, tag_style))
+
+        indent, prefix, prenl, postnl, style = tag_style
+        if indent:
+            pr.indent(indent)
+        if style:
+            pr.style(**style)
+        self.__vspace = max(self.__vspace, prenl)
+        self.__handle_text(prefix)
 
         if tag == "pre":
             # Enable special handling for preformatted elements.
@@ -112,16 +161,15 @@ class Converter(html.parser.HTMLParser):
 
         pr = self.__printer
 
-        try:
-            indent, prefix, prenl, postnl, style = self.ELEMENTS[tag]
-        except KeyError:
-            pass
-        else:
-            if indent:
-                pr.unindent()
-            if style:
-                pr.unstyle()
-            pr.newline(postnl - (1 if pr.is_start else 0))
+        assert self.__tag_stack[-1][0] == tag
+        _, attrs, tag_style = self.__tag_stack.pop()
+
+        indent, prefix, prenl, postnl, style = tag_style
+        if indent:
+            pr.unindent()
+        if style:
+            pr.unstyle()
+        pr.newline(postnl - (1 if pr.is_start else 0))
 
 
     def handle_data(self, data):
