@@ -404,7 +404,7 @@ def parse_doc_markdown(docstring):
 
 #-------------------------------------------------------------------------------
 
-def enrich(odoc, modules={}):
+def enrich(odoc):
     docs = odoc.get("docs", {})
     try:
         doc = docs["doc"]
@@ -418,12 +418,6 @@ def enrich(odoc, modules={}):
 
     # FIXME
     for val in odoc.get("dict", {}).values():
-        enrich(val, modules)
-
-
-def enrich_modules(modules):
-    for mod in modules.values():
-        if mod is not None:
-            enrich(mod, modules)
+        enrich(val)
 
 
