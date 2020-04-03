@@ -3,6 +3,7 @@
 - [x] clean up `.format`
 - [x] make `--no-source` work
 - [x] fix `supdoc supdoc.test.C`
+- [ ] fix `supdoc pandas.DataFrame.align`
 - [ ] cache on `id(obj)`
 - [ ] remove `supdoc-inspect`
 - [ ] add + document CLI for precaching objdocs
