@@ -352,13 +352,18 @@ def markdown_to_et(text):
     # FIXME: Teach markup to emit ElementTree directly?
     # The parser expects a single element, so wrap it.
     try:
-        et = ET.fromstring('<html>' + html + '</html>')
+        from lxml.etree import HTMLParser
+        et = ET.fromstring('<html>' + html + '</html>', parser=HTMLParser())
     except ET.ParseError as exc:
         # FIXME: If the source includes invalid HTML, such as unclosed tags,
         # so will the output, will will lead to parse errors.  For now, just
         # report these and produce an error..
         logging.error("-" * 80 + "\n" + html + "\n" + str(exc) + "\n\n")
         return ET.fromstring('<strong>Error parsing Markdown output.</strong>')
+
+    # Unwrap the body.
+    if et.tag.lower() == "html" and len(et) == 1 and et[0].tag.lower() == "body":
+        et = et[0]
 
     return et
 

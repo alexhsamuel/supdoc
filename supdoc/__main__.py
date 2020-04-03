@@ -17,7 +17,7 @@ import sys
 
 from   .cache import get_inspector
 from   .exc import FullNameError, ImportFailure, QualnameError
-from   .inspector import inspect_path
+from   .inspector import inspect_path, Inspector
 from   .path import split
 from   .terminal import print_docs
 
@@ -29,6 +29,10 @@ def main():
     parser.add_argument(
         "name", metavar="NAME",
         help="fully-qualified module or object name")
+    # FIXME: Generalize this to various caching strategies.
+    parser.add_argument(
+        "--no-cache", action="store_true", default=False,
+        help="don't use or write doc caches")
     parser.add_argument(
         "--imports", dest="imports", default=False, action="store_true",
         help="show imported mambers")
@@ -61,7 +65,7 @@ def main():
         logging.error(f"error importing module: {exc.modname}", exc_info=True)
         raise SystemExit(1)
 
-    inspector = get_inspector()
+    inspector = Inspector() if args.no_cache else get_inspector()
 
     try:
         objdoc = inspect_path(inspector, path)
