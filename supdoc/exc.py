@@ -10,7 +10,7 @@ class ModnameError(RuntimeError):
     """
 
     def __init__(self, modname):
-        super().__init__(self, f"bad modname: {modname}")
+        super().__init__(f"bad modname: {modname}")
         self.modname = modname
 
 
@@ -21,7 +21,7 @@ class QualnameError(RuntimeError):
     """
 
     def __init__(self, qualname):
-        super().__init__(self, f"bad qualname: {qualname}")
+        super().__init__(f"bad qualname: {qualname}")
         self.qualname = qualname
 
 
@@ -32,7 +32,7 @@ class FullNameError(RuntimeError):
     """
 
     def __init__(self, name):
-        super().__init__(self, f"bad name: {name}")
+        super().__init__(f"bad name: {name}")
         self.name = name
 
 
@@ -43,7 +43,7 @@ class ImportFailure(RuntimeError):
     """
 
     def __init__(self, modname):
-        super().__init__(self, f"import failed: {modname}")
+        super().__init__(f"import failed: {modname}")
         self.modname = modname
 
 
