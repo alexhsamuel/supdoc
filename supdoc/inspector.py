@@ -4,13 +4,12 @@ from   contextlib import suppress
 import enum
 import inspect
 import logging
-import traceback
 import types
 from   weakref import WeakKeyDictionary
 
 from   .docs import enrich
 from   .exc import QualnameError
-from   .objdoc import make_ref, is_ref, parse_ref, look_up
+from   .objdoc import make_ref, is_ref, parse_ref
 from   .path import Path, is_imposter, import_, get_obj
 
 #-------------------------------------------------------------------------------
@@ -479,6 +478,21 @@ class Inspector:
 
 #-------------------------------------------------------------------------------
 
+def look_up(inspector, objdoc, qualname):
+    """
+    Resolves `qualname` in `objdoc` in the manner of recursive `getattr`.
+    """
+    parts = qualname.split(".")
+    for i in range(len(parts)):
+        try:
+            objdoc = objdoc["dict"][parts[i]]
+        except KeyError:
+            missing_name = ".".join(parts[: i + 1])
+            raise LookupError(missing_name)
+        objdoc = resolve(inspector, objdoc)
+    return objdoc
+
+
 def inspect_path(inspector, path):
     """
     Returns an objdoc for the object at `path`.
@@ -489,7 +503,7 @@ def inspect_path(inspector, path):
     objdoc = inspector.inspect_module(path.modname)
     if path.qualname is not None:
         try:
-            return look_up(objdoc, path.qualname)
+            return look_up(inspector, objdoc, path.qualname)
         except LookupError as exc:
             raise QualnameError(f"no such name: {exc} in: {path}") from None
 
