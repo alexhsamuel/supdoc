@@ -133,6 +133,7 @@ def get_color(value):
     `value` may be:
 
     - An integer color code between 0 and 255.
+    - An 9-bit "%XYZ" RGB triple, where each digit is between 0 and 5.
     - A web-style "#XYZ" or "#XXYYZZ" RGB triple
     - A grayscale name "grayX" where X is between 0 and 100.
     - A color name for the sixteen standard colors.
@@ -165,6 +166,10 @@ def get_color(value):
                     else 231 if gray_value == 25 
                     else 231 + gray_value
                 )
+
+    if val.startswith("%") and len(val) == 4:
+        r, g, b = ( int(x) for x in val[1 :] )
+        return 16 + 36 * r + 6 * g + b
 
     try:
         return COLOR_NAMES[val]
@@ -515,13 +520,22 @@ def print_colors(print=print):
             "    {:2x} ".format(color) + fg(color)("TEST") + "  ", 
             end="\n" if color % 6 == 5 else "")
     print()
-    print(underline("RGB Colors"))
+    print(underline("RGB Foreground Colors"))
     for r in range(6):
         for g in range(6):
             for b in range(6):
                 color = 16 + 36 * r + 6 * g + b
-                print("{}{}{} {:2x} ".format(r, g, b, color)
-                    + fg(color)("TEST") + "  ", 
+                print(
+                    f"{r}{g}{b} {color:2x} " + fg(color)("TEST") + "  ", 
+                    end="\n" if color % 6 == 3 else "")
+    print(underline("RGB Background Colors"))
+    for r in range(6):
+        for g in range(6):
+            for b in range(6):
+                color = 16 + 36 * r + 6 * g + b
+                print(
+                    f"{r}{g}{b} {color:2x} ".format(r, g, b, color)
+                    + bg(color)("TEST") + "  ", 
                     end="\n" if color % 6 == 3 else "")
     print(underline("Gray Scale"))
     for i in range(0, 101, 4):
