@@ -87,6 +87,7 @@ class Printer:
         self.__col = None
         self.__indent = [indent]
         self.__style = StyleStack(style)
+        self.__fill = True
         self._write = write
 
 
@@ -140,11 +141,22 @@ class Printer:
         """
         if count < 1:
             return
+        self._write(self.__style.current)
         if self.is_start:
-            self._write(self.__indent[-1])
+            self._write(self.indentation)
+        if self.__fill:
+            self._write(" " * self.remaining)
         self._write("\n")
         if count > 1:
-            self._write((self.__indent[-1] + "\n") * (count - 1))
+            line = (
+                self.__style.current
+                + self.indentation
+                + (
+                    " " * (self.__width - len(self.indentation)) if self.__fill
+                    else ""
+                ) + "\n"
+            )
+            self._write(line * (count - 1))
         self.__col = None
 
 
@@ -196,9 +208,13 @@ class Printer:
         Starts the current line, if necessary.
         """
         if self.__col is None:
-            # FIXME: Hacky.  What's the style policy for indentation?
-            with self(**StyleStack.DEFAULT_STYLE):
-                self._write(self.indentation)
+            # FIXME: Hacky.  This is the old policy: don't style the
+            # indentation.
+            # with self(**StyleStack.DEFAULT_STYLE):
+            #     self._write(self.indentation)
+
+            self._write(self.__style.current)
+            self._write(self.indentation)
             self.__col = length(self.indentation)
 
 

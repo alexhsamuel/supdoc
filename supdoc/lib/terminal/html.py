@@ -67,7 +67,7 @@ class Converter(html.parser.HTMLParser):
         "h3"    : ("", "\u2734 ", 1, 1, {}),
         "ol"    : ("  ", "", 1, 1, {}), 
         "p"     : ("", "", 1, 2, {}),
-        "pre"   : ("\u2503 ", "", 1, 1, {"fg": "gray20"}),
+        "pre"   : ("\u2503 ", "", 1, 1, {"fg": "gray80"}),
         "ul"    : ("  ", "", 1, 1, {}),
 
         # Inline elements

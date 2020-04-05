@@ -4,6 +4,7 @@
 - [x] make `--no-source` work
 - [x] fix `supdoc supdoc.test.C`
 - [x] fix `supdoc pandas.DataFrame.align`
+- [ ] color themes
 - [ ] cache on `id(obj)`
 - [ ] remove `supdoc-inspect`
 - [ ] add + document CLI for precaching objdocs

@@ -17,18 +17,25 @@ from   .path import Path
 # and then use bold for emphasis (summary / parameters)
 
 STYLES = {
-    "docs"              : {"fg": "gray24", },
-    "header"            : {"underline": True, "fg": 0x82, },
-    "identifier"        : {"bold": True, },
+#    "docs"              : {"fg": "gray24", },
+    "docs"              : {"indent": " ", "bg": "gray20", },
+    "doc"               : {"fg": "gray70", },
+    "head"              : {"indent": " ", "bg": "%012", "fg": "gray70", },
+#    "header"            : {"underline": True, "fg": 0x82, },
+    "header"            : {"bold": True, "fg": "black", "bg": "%112", },
+#    "identifier"        : {"bold": True, },
+    "identifier"        : {"underline": True, },
     "label"             : {"fg": 0x82, },
     "mangled_name"      : {"fg": "gray70", },
-    "modname"           : {"fg": 17, },
+    "modname"           : {"fg": "%045", },
+    "name"              : {"fg": "white", },
     "path"              : {"fg": "gray60", },
     "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": 0xdf, },
     "source"            : {"fg": "#222845", },
-    "summary"           : {"fg": "black", },
-    "type_name"         : {"fg": 23, },
+#    "summary"           : {"fg": "black", },
+    "summary"              : {"bg": "gray20", "fg": "white", },
+    "type_name"         : {"fg": "%345", },
     "warning"           : {"fg": 0x7c, },
 }
 
@@ -247,7 +254,7 @@ def print_docs(inspector, objdoc, lookup_path=None, *,
         "imports"   : imports,
     }
 
-    printer = Printer(file.write, indent=" ", width=width)
+    printer = Printer(file.write, width=width)
     try:
         _print_docs(inspector, objdoc, lookup_path, printer, cfg)
     finally:
@@ -294,38 +301,31 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
 
     def header(header):
         with pr(**STYLES["header"]):
-            pr << header << NL
+            pr << " " << header << NL
 
-    def rule():
-        with pr(**STYLES["rule"]):
-            pr << "\u2501" * pr.remaining << NL
+    with pr(**STYLES["head"]):
+        with pr(**STYLES["name"]):
+            pr << NL
+            # Show its name.
+            _print_name(display_name, name, pr)
+            # Show its callable signature, if it has one.
+            _print_signature(inspector, objdoc, pr)
 
-    rule()
+        # Show its type.
+        type_name = format_path(type_path, modname=lookup_modname)
+        nice_type_name = format_nice_type_name(objdoc, lookup_path)
+        with pr(**STYLES["type_name"]):
+            pr.write_right((nice_type_name or type_name) + pr.indentation)
+            pr << NL
+        if nice_type_name is not None:
+            pr << type_name << NL
 
-    # Show its name.
-    _print_name(display_name, name, pr)
-    
-    # Show its callable signature, if it has one.
-    _print_signature(inspector, objdoc, pr)
+        # Show the module name.
+        if type_name != "module" and module is not None:
+            pr << "in module " 
+            pr << format_path(Path(parse_ref(module)[0], None)) << NL
 
-    pr << NL
-    rule()
-
-    # Show its type.
-    instance_of = (
-        "instance of " + format_path(type_path, modname=lookup_modname))
-    nice_type_name = format_nice_type_name(objdoc, lookup_path)
-    with pr(**STYLES["type_name"]):
-        if nice_type_name is None:
-            pr << instance_of
-        else:
-            pr << nice_type_name << " (" << instance_of << ")"
         pr << NL
-
-    # Show the module name.
-    if type_name != "module" and module is not None:
-        pr << "in module " 
-        pr << format_path(Path(parse_ref(module)[0], None)) << NL
 
     pr << NL
 
@@ -366,7 +366,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
         if summary or body:
             header("Documentation")
 
-        with pr(**STYLES["docs"]):
+        with pr(**STYLES["docs"], **STYLES["doc"]):
             # Show the doc summary.
             if summary:
                 with pr(**STYLES["summary"]):
@@ -374,6 +374,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
             # Show the doc body.
             if body:
                 pr.html(body)
+        pr << NL
 
     # Summarize type.
     if type_name == "type":
@@ -438,7 +439,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
                         pr.html(doc_type) << NL
 
                 if doc is not None:
-                    with pr(**STYLES["docs"]):
+                    with pr(**STYLES["doc"]):
                         pr.html(doc) << NL
 
             pr << NL
@@ -457,7 +458,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
                     pr.html(doc_type) << NL
 
             if doc is not None:
-                with pr(**STYLES["docs"]):
+                with pr(**STYLES["doc"]):
                     pr.html(doc) << NL
 
             pr << NL
@@ -619,7 +620,7 @@ def _print_member(inspector, objdoc, lookup_path, pr, show_type=True):
                 pr.elide("= " + repr)
             pr << NL
         if summary is not None:
-            with pr(**STYLES["docs"]):
+            with pr(**STYLES["doc"]):
                 pr.html(summary)
             if body:
                 # Don't print the body, but indicate that there are more docs.

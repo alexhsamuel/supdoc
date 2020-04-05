@@ -335,6 +335,11 @@ class StyleStack:
         self.__stack = [style]
 
 
+    @property
+    def current(self):
+        return "" if len(self.__stack) == 0 else sgr(**self.__stack[-1])
+
+
     def push(self, **styles):
         """
         Pushes a new style onto the stack.
