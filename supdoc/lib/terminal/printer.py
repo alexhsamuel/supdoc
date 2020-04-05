@@ -223,6 +223,7 @@ class Printer:
         for line in lines:
             self._start_line()
             self._write(line)
+            self.__col += length(line)
             self.newline()
         if len(last) > 0:
             self._start_line()

@@ -18,7 +18,7 @@ from   .path import Path
 
 STYLES = {
 #    "docs"              : {"fg": "gray24", },
-    "docs"              : {"indent": " ", "bg": "gray20", },
+    "docs"              : {"indent": " ", "bg": "gray15", },
     "doc"               : {"fg": "gray70", },
     "head"              : {"indent": " ", "bg": "%012", "fg": "gray70", },
 #    "header"            : {"underline": True, "fg": 0x82, },
@@ -34,7 +34,7 @@ STYLES = {
     "rule"              : {"fg": 0xdf, },
     "source"            : {"fg": "#222845", },
 #    "summary"           : {"fg": "black", },
-    "summary"              : {"bg": "gray20", "fg": "white", },
+    "summary"           : {"fg": "white", },
     "type_name"         : {"fg": "%345", },
     "warning"           : {"fg": 0x7c, },
 }
@@ -367,6 +367,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
             header("Documentation")
 
         with pr(**STYLES["docs"], **STYLES["doc"]):
+            pr << NL
             # Show the doc summary.
             if summary:
                 with pr(**STYLES["summary"]):
