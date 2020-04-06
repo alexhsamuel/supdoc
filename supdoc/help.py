@@ -17,6 +17,8 @@ def dump_objdoc(obj):
     """
     Dumps JSON documentation extracted from `obj`.
     """
+    # FIXME: We should cache stuff in sys.prefix, but not other?
+
     inspector = Inspector()
     objdoc = inspector.inspect(obj)
 
@@ -35,6 +37,8 @@ def help(obj, *, private=False, imports=False):
     @param imports
       If true, includes imported names.
     """
+    # FIXME: We should cache stuff in sys.prefix, but not other?
+
     inspector = Inspector()
     objdoc = inspector.inspect(obj)
 
