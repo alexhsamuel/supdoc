@@ -1,15 +1,14 @@
-- [x] remove actual source from `_get_source`
-- [x] recast `Docsrc` → cached `Inspector`
-- [x] clean up `.format`
-- [x] make `--no-source` work
-- [x] fix `supdoc supdoc.test.C`
-- [x] fix `supdoc pandas.DataFrame.align`
-- [ ] color themes
-- [ ] cache on `id(obj)`
-- [ ] remove `supdoc-inspect`
-- [ ] add + document CLI for precaching objdocs
-- [ ] improve on `_get_source`, particularly `inspect.getsourcelines`
-- [ ] don't parse/convert doc text when inspecting, but rather later
+- setup.py
+- PyPI
+- better support for inspecting objects
+- pager support
+- color themes (dark & light)
+- cache stuff under `sys.prefix` for `help()`
+- cache on `id(obj)`
+- remove `supdoc-inspect`
+- add + document CLI for precaching objdocs
+- improve on `_get_source`, particularly `inspect.getsourcelines`
+- don't parse/convert doc text when inspecting, but rather later
 
 
 # Transforming docstrings
