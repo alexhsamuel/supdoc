@@ -232,7 +232,7 @@ class Inspector:
         # FIXME: Simplify this code.
         path = None if is_imposter(obj) else Path.of(obj)
 
-        if path is not None and path != lookup_path:
+        if lookup_path is not None and path is not None and path != lookup_path:
             # Defined elsewhere.  Produce a ref.
             return self._inspect_ref(obj)
 
