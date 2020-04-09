@@ -1,5 +1,7 @@
 - setup.py
 - PyPI
+- moving unmangling into inspector?
+- show umnagled name only if parent name in MRO
 - better support for inspecting objects
 - pager support
 - color themes (dark & light)
