@@ -39,7 +39,7 @@ STYLES = {
     "warning"           : {"fg": 0x7c, },
 }
 
-BULLET              = ansi.fg(89)("\u203a") + " "
+BULLET              = ansi.fg("#333")("\u2022") + " "
 ELLIPSIS            = "\u2026"
 MISSING             = "\u2047"
 MEMBER_OF           = "\u220a"
