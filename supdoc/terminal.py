@@ -492,7 +492,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
     partition = partitions.pop("attributes", {})
     if len(partition) > 0:
         header("Attributes")
-        _print_members(inspector, partition, path, pr, True)
+        _print_members(inspector, partition, path, pr, True, imports=cfg["imports"])
 
     assert len(partitions) == 0
     if not cfg["private"] or not cfg["imports"]:
