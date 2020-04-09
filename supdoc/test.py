@@ -177,11 +177,11 @@ class C:
     C_CLASS_ATTR = 42
 
 
-    class Subclass:
-        "This is class C.Subclass."
+    class Nested:
+        "This is class C.Nested."
 
         def __init__(self):
-            "This is C.Subclass.__init__()."
+            "This is C.Nested.__init__()."
             pass
 
 
