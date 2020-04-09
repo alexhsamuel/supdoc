@@ -38,7 +38,7 @@ class Converter(html.parser.HTMLParser):
 
     # These are from pygments.
     SPAN_CLASSES = {
-        None    : NO_STYLE,
+        None    : ("", "", 0, 0, {"bg": "#070"}),
         "cp"    : ("", "", 0, 0, {"fg": "#844"}),
         "k"     : ("", "", 0, 0, {"bold": True}),
         "mi"    : ("", "", 0, 0, {"bold": True}),
@@ -136,11 +136,6 @@ class Converter(html.parser.HTMLParser):
     def handle_starttag(self, tag, attrs):
         pr = self.__printer
 
-        # If needed, emit a word separator before emitting the word.
-        if self.__hspace and not pr.is_start:
-            pr << " "
-            self.__hspace = False
-
         tag_style = self.__get_tag_style(tag, attrs)
         self.__tag_stack.append((tag, attrs, tag_style))
 
@@ -167,11 +162,11 @@ class Converter(html.parser.HTMLParser):
         _, attrs, tag_style = self.__tag_stack.pop()
 
         indent, prefix, prenl, postnl, style = tag_style
+        pr.newline(postnl - (1 if pr.is_start else 0))
         if indent:
             pr.unindent()
         if style:
             pr.unstyle()
-        pr.newline(postnl - (1 if pr.is_start else 0))
 
 
     def handle_data(self, data):

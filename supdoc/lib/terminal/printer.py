@@ -108,7 +108,7 @@ class Printer:
 
         The width of the current indentation is not included.
         """
-        return length(self.__indent[-1]) if self.__col is None else self.__col
+        return 0 if self.__col is None else self.__col
 
 
     @property
@@ -153,16 +153,16 @@ class Printer:
             self._write(self.indentation)
         self._write(" " * self.remaining)
         self._write(self.outdentation + RESET + "\n")
+        self.__col = None
         if count > 1:
             line = (
                 self.__style.current
                 + self.indentation
-                + " " * (self.__width - len(self.indentation) - len(self.outdentation))
+                + " " * (self.__width - length(self.indentation) - length(self.outdentation))
                 + self.outdentation
-                + "\n"
+                + RESET + "\n"
             )
             self._write(line * (count - 1))
-        self.__col = None
 
 
     @property
@@ -185,7 +185,10 @@ class Printer:
         """
         Appends `intent` to the current `indentation`.
         """
-        self.__indent.append(self.__indent[-1] + indent)
+        # Fix the style of the indentation to the style at the time it was
+        # added.
+        indent = self.__indent[-1] + self.__style.current + indent
+        self.__indent.append(indent)
 
 
     def unindent(self):
@@ -323,10 +326,10 @@ class Printer:
 
 
         def __enter__(self):
-            if self.__indent:
-                self.__printer.indent(self.__indent)
             if self.__style:
                 self.__printer.style(**self.__style)
+            if self.__indent:
+                self.__printer.indent(self.__indent)
 
 
         def __exit__(self, *exc_info):
