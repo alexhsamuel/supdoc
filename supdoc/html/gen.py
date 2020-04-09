@@ -334,7 +334,7 @@ def format_member(docsrc, objdoc, lookup_path, *, context_path=None,
         head << SPAN(SPAN("="), CODE(escape(repr)), cls="repr")
 
     if show_type:
-        nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
+        nice_type_name = terminal.format_nice_type_name(objdoc)
         if nice_type_name is None:
             head << CODE(type_name, cls="type")
         else:
@@ -440,7 +440,7 @@ def generate(docsrc, objdoc, lookup_path):
             "instance of ", 
             format_name(type_path, relative_to=Path(lookup_modname)),
         )
-        nice_type_name = terminal.format_nice_type_name(objdoc, lookup_path)
+        nice_type_name = terminal.format_nice_type_name(objdoc)
         if nice_type_name is not None:
             instance_of = (nice_type_name, " (", *instance_of, ")")
         details << DIV(*instance_of)

@@ -29,8 +29,8 @@ class Path(collections.namedtuple("Path", ("modname", "qualname"))):
     """
 
     def __new__(class_, modname, qualname=None):
-        if modname in ("", None):
-            raise ValueError("modname may not be empty")
+        # if modname in ("", None):
+        #     raise ValueError("modname may not be empty")
         if qualname == "":
             raise ValueError("qualname may not be empty")
         return super().__new__(class_, modname, qualname)

@@ -17,23 +17,19 @@ from   .path import Path
 # and then use bold for emphasis (summary / parameters)
 
 STYLES = {
-#    "docs"              : {"fg": "gray24", },
     "docs"              : {"indent": " ", "bg": "gray15", },
     "doc"               : {"fg": "gray70", },
     "head"              : {"indent": " ", "bg": "%012", "fg": "gray70", },
-#    "header"            : {"underline": True, "fg": 0x82, },
     "header"            : {"bold": True, "fg": "black", "bg": "%112", },
-#    "identifier"        : {"bold": True, },
-    "identifier"        : {"underline": True, },
+    "identifier"        : {"bold": True, },
     "label"             : {"fg": 0x82, },
-    "mangled_name"      : {"fg": "gray70", },
+    "mangled_name"      : {"fg": "gray40", },
     "modname"           : {"fg": "%045", },
     "name"              : {"fg": "white", },
     "path"              : {"fg": "gray60", },
     "repr"              : {"fg": "gray70", },
     "rule"              : {"fg": 0xdf, },
     "source"            : {"fg": "#222845", },
-#    "summary"           : {"fg": "black", },
     "summary"           : {"fg": "white", },
     "type_name"         : {"fg": "%345", },
     "warning"           : {"fg": 0x7c, },
@@ -47,28 +43,29 @@ IMPORT_ARROW        = " \u21d2 "
 
 #-------------------------------------------------------------------------------
 
-# FIXME: Elsewhere.
-
-def unmangle(name, parent_name):
+def unmangle(name):
     """
-    Unmangles a private mangled name.
+    Attempts to unmangle a private mangled name.
 
-      >>> unmangle("_MyClass__foo", "MyClass")
-      '__foo'
-      >>> unmangle("_MyClass__foo", "MyOtherClass")
-      '_MyClass__foo'
-      >>> unmangle("__foo", "MyClass")
-      '__foo'
+    If the parent name contains underscores, it may not be recovered correctly:
+    - Leading underscores are omitted.
+    - If the name contains a double underscore, only the preceding part is
+      recovered as the class name; the rest is part of the unmangeld name.
 
-    @return
-      If `name` is mangled for `parent_name`, the mangled name; `name`
-      otherwise.
+    :return:
+      A guess at the parent name and the unmangled name.  If `name` is not
+      mangled, returns `None, name`.
     """
-    if parent_name is not None and name.startswith("_" + parent_name + "__"):
-        return name[1 + len(parent_name) :]
+    if not name.startswith("_") or name.startswith("__"):
+        return None, name
+    try:
+        parent, unmangled = name[1 :].split("__", 1)
+    except ValueError:
+        # No double underscore.
+        return None, name
     else:
-        return name
-
+        return parent, "__" + unmangled
+    
 
 _NICE_TYPE_NAMES = {
     Path("builtins", "builtin_function_or_method")  : "extension function",
@@ -81,7 +78,7 @@ _NICE_TYPE_NAMES = {
 }
 
 
-def format_nice_type_name(objdoc, lookup_path):
+def format_nice_type_name(objdoc):
     """
     Returns a human-friendly type name for `objdoc`.
     """
@@ -313,7 +310,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
 
         # Show its type.
         type_name = format_path(type_path, modname=lookup_modname)
-        nice_type_name = format_nice_type_name(objdoc, lookup_path)
+        nice_type_name = format_nice_type_name(objdoc)
         with pr(**STYLES["type_name"]):
             pr.write_right((nice_type_name or type_name) + pr.indentation)
             pr << NL
@@ -413,7 +410,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
             with pr(**STYLES["label"]):
                 pr << accessor_name + ": "
             if accessor is not None:
-                _print_member(inspector, accessor, None, pr)
+                _print_member(inspector, accessor, accessor_name, None, pr)
             else:
                 pr << "none" << NL
         pr << NL 
@@ -546,14 +543,20 @@ def repr_is_uninteresting(objdoc):
 
 
 # FIXME: WTF is this signature anyway?
-def _print_member(inspector, objdoc, lookup_path, pr, show_type=True):
-    if lookup_path is None:
-        lookup_name     = None
-        parent_name     = None
-    else:
-        lookup_parts    = lookup_path.qualname.split(".")
-        lookup_name     = lookup_parts[-1]
-        parent_name     = None if len(lookup_parts) == 1 else lookup_parts[-2] 
+def _print_member(inspector, objdoc, member_name, parent_path, pr, show_type=True):
+    """
+    :param member_name:
+      The name under which this member is stored in its parent's `__dict__`.
+    :param parent_path:
+      The full path to the parent object, or none.
+    """
+    # if lookup_path is None:
+    #     lookup_name     = None
+    #     parent_name     = None
+    # else:
+    #     lookup_parts    = lookup_path.qualname.split(".")
+    #     lookup_name     = lookup_parts[-1]
+    #     parent_name     = None if len(lookup_parts) == 1 else lookup_parts[-2] 
 
     if is_ref(objdoc):
         # Find the full name from which this was imported.
@@ -569,8 +572,9 @@ def _print_member(inspector, objdoc, lookup_path, pr, show_type=True):
     else:
         import_path = None
 
+    parent_name, unmangled_name = unmangle(member_name)
+
     name            = objdoc.get("name")
-    unmangled_name  = if_none(unmangle(lookup_name, parent_name), name)
     type_name       = objdoc.get("type_name")
     repr            = objdoc.get("repr")
     signature       = get_signature(objdoc)
@@ -588,19 +592,23 @@ def _print_member(inspector, objdoc, lookup_path, pr, show_type=True):
 
     with pr(**STYLES["identifier"]):
         pr << unmangled_name
+        # FIXME: If lookup_name doesn't mangle to member_name, show an
+        # import indication?
+        # FIXME: If unmangled_name is not name, show an import indication?
 
     _print_signature(inspector, objdoc, pr)
 
     # If this is a mangled name, we showed the unmangled name earlier.  Now
     # show the mangled name too.
-    if unmangled_name != lookup_name and lookup_name is not None:
+    if parent_name is not None:
         with pr(**STYLES["mangled_name"]):
-            pr << " \u224b "  # FIXME: Something better?
+            pr << " (mangled "  # FIXME: Something better?
             with pr(**STYLES["identifier"]):
-                pr << lookup_name 
+                pr << member_name 
+            pr << ")"
 
     if show_type:
-        nice_type = format_nice_type_name(objdoc, lookup_path)
+        nice_type = format_nice_type_name(objdoc)
         if nice_type is None:
             nice_type = ansi.bold(type_name)
         with pr(**STYLES["type_name"]):
@@ -613,7 +621,7 @@ def _print_member(inspector, objdoc, lookup_path, pr, show_type=True):
         if import_path is not None:
             path = format_path(
                 import_path, 
-                modname=None if lookup_path is None else lookup_path.modname)
+                modname=None if parent_path is None else parent_path.modname)
             pr << "import" << IMPORT_ARROW << path << NL
 
         if show_repr:
@@ -636,9 +644,8 @@ def _print_members(inspector, dict, parent_path, pr, show_type=True, imports=Tru
         if imports or not is_ref(objdoc):
             # FIXME: Even if parent_path is None, we need to pass the local
             # name, in case the object doesn't know its own name.
-            lookup_path = None if parent_path is None else parent_path / name
             pr << BULLET
-            _print_member(inspector, objdoc, lookup_path, pr, show_type)
+            _print_member(inspector, objdoc, name, parent_path, pr, show_type)
     pr << NL
 
 
