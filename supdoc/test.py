@@ -187,6 +187,23 @@ class C:
 
         C_SUBCLASS_ATTR = "Hello, world."
 
+        __PRIVATE_ATTR = "big fat secret"
+
+        def __private1(self):
+            """
+            This is a private method of the nested class.
+            """
+            pass
+
+        
+        @classmethod
+        def __private2(cls, x):
+            """
+            Another private method.
+
+            This one is a classmethod.
+            """
+            pass
 
 
 c = C(42)
