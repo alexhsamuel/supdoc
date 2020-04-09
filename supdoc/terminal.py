@@ -20,14 +20,14 @@ STYLES = {
     "doc"               : {"fg": "gray70", },
     "head"              : {"indent": " ", "bg": "%012", "fg": "gray70", },
     "header"            : {"bold": True, "fg": "black", "bg": "%112", },
-    "identifier"        : {"bold": True, },
+    "identifier"        : {"bold": True, "fg": "%345", },
     "label"             : {"fg": 0x82, },
     "mangled_name"      : {"fg": "gray40", },
     "modname"           : {"fg": "%045", },
     "name"              : {"fg": "white", },
     "path"              : {"fg": "gray60", },
-    "repr"              : {"fg": "gray70", },
-    "rule"              : {"fg": 0xdf, },
+    "repr"              : {"fg": "gray50", },
+    "rule"              : {"fg": "%543", },
     "source"            : {"fg": "#222845", },
     "summary"           : {"fg": "white", },
     "type_name"         : {"fg": "%345", },
@@ -308,13 +308,12 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
             _print_signature(inspector, objdoc, pr)
 
         # Show its type.
-        type_name = format_path(type_path, modname=lookup_modname)
         nice_type_name = format_nice_type_name(objdoc)
         with pr(**STYLES["type_name"]):
             pr.write_right((nice_type_name or type_name) + pr.indentation)
             pr << NL
         if nice_type_name is not None:
-            pr << type_name << NL
+            pr << format_path(type_path, modname=lookup_modname) << NL
 
         # Show the module name.
         if type_name != "module" and module is not None:
@@ -467,7 +466,10 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
             pr << repr << NL << NL
 
     # Summarize contents.
-    partitions = _partition_members(get_dict(objdoc, cfg["private"]) or {})
+    obj_dict = get_dict(objdoc, cfg["private"]) or {}
+    if not cfg["imports"]:
+        obj_dict = { n: o for n, o in obj_dict.items() if not is_ref(o) }
+    partitions = _partition_members(obj_dict)
 
     partition = partitions.pop("modules", {})
     if len(partition) > 0:
@@ -495,15 +497,6 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
         _print_members(inspector, partition, path, pr, True, imports=cfg["imports"])
 
     assert len(partitions) == 0
-    if not cfg["private"] or not cfg["imports"]:
-        omitted = []
-        if not cfg["imports"]:
-            omitted.append("imported")
-        if not cfg["private"]:
-            omitted.append("private")
-        with pr(**STYLES["warning"]):
-            pr << " and ".join(omitted).capitalize() + " members omitted." << NL
-            pr << NL
 
 
 # FIXME: Use paths.
@@ -549,14 +542,6 @@ def _print_member(inspector, objdoc, member_name, parent_path, pr, show_type=Tru
     :param parent_path:
       The full path to the parent object, or none.
     """
-    # if lookup_path is None:
-    #     lookup_name     = None
-    #     parent_name     = None
-    # else:
-    #     lookup_parts    = lookup_path.qualname.split(".")
-    #     lookup_name     = lookup_parts[-1]
-    #     parent_name     = None if len(lookup_parts) == 1 else lookup_parts[-2] 
-
     if is_ref(objdoc):
         # Find the full name from which this was imported.
         import_path = get_path(objdoc)
@@ -638,13 +623,11 @@ def _print_member(inspector, objdoc, member_name, parent_path, pr, show_type=Tru
 
 
 def _print_members(inspector, dict, parent_path, pr, show_type=True, imports=True):
-    for name in sorted(dict):
-        objdoc = dict[name]
-        if imports or not is_ref(objdoc):
-            # FIXME: Even if parent_path is None, we need to pass the local
-            # name, in case the object doesn't know its own name.
-            pr << BULLET
-            _print_member(inspector, objdoc, name, parent_path, pr, show_type)
+    for name, objdoc in sorted(dict.items()):
+        # FIXME: Even if parent_path is None, we need to pass the local
+        # name, in case the object doesn't know its own name.
+        pr << BULLET
+        _print_member(inspector, objdoc, name, parent_path, pr, show_type)
     pr << NL
 
 

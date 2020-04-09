@@ -226,6 +226,7 @@ class Printer:
         if self.__col is None:
             self._write(self.__style.current)
             self._write(self.indentation)
+            self._write(self.__style.current)
             self.__col = 0
 
 

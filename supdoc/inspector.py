@@ -1,3 +1,8 @@
+"""
+Inspects an object, possibly recursively, to construct a data structure
+describing its structure and contents.
+"""
+
 from   __future__ import annotations
 
 from   contextlib import suppress
