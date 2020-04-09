@@ -1,7 +1,6 @@
 import html
 import inspect
 import logging
-import markdown
 import re
 import xml.etree.ElementTree as ET
 
@@ -338,8 +337,12 @@ def markdown_to_et(text):
     """
     Parses as Markdown to `ElementTree`.
     """
-    # Process as Markdown.
+    # Import markdown, and other modules that import it, lazily.  This package
+    # is slow to import because of pkg_resources.
+    import markdown
     from . import markdown_doctest
+
+    # Process as Markdown.
     html = markdown.markdown(
         text, output_format="html5", 
         extensions=(
