@@ -34,7 +34,7 @@ import sys
 
 from   supdoc.lib import itr
 from   . import get_width
-from   .ansi import length, StyleStack
+from   .ansi import length, StyleStack, RESET
 
 #-------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ class Printer:
 
     """
 
-    def __init__(self, write=None, *, width=None, indent="", 
+    def __init__(self, write=None, *, width=None, indent="", outdent="",
                  style=StyleStack.DEFAULT_STYLE):
         """
         @param write
@@ -75,6 +75,8 @@ class Printer:
           The fixed terminal width.  If `None`, calls `get_width()`.
         @param indent
           The initial indentation.
+        @param indent
+          The initial right-side indentation.
         @prefix style
           The initial style.
         """
@@ -86,8 +88,8 @@ class Printer:
         self.__width = width
         self.__col = None
         self.__indent = [indent]
+        self.__outdent = [outdent]
         self.__style = StyleStack(style)
-        self.__fill = True
         self._write = write
 
 
@@ -114,7 +116,12 @@ class Printer:
         """
         The number of characters remaining on the line.
         """
-        return self.__width - self.column
+        return (
+            self.__width
+            - self.column
+            - length(self.indentation)
+            - length(self.outdentation)
+        )
 
 
     @property
@@ -144,17 +151,15 @@ class Printer:
         self._write(self.__style.current)
         if self.is_start:
             self._write(self.indentation)
-        if self.__fill:
-            self._write(" " * self.remaining)
-        self._write("\n")
+        self._write(" " * self.remaining)
+        self._write(self.outdentation + RESET + "\n")
         if count > 1:
             line = (
                 self.__style.current
                 + self.indentation
-                + (
-                    " " * (self.__width - len(self.indentation)) if self.__fill
-                    else ""
-                ) + "\n"
+                + " " * (self.__width - len(self.indentation) - len(self.outdentation))
+                + self.outdentation
+                + "\n"
             )
             self._write(line * (count - 1))
         self.__col = None
@@ -166,6 +171,14 @@ class Printer:
         The indentation that will be used for the next line.
         """
         return self.__indent[-1]
+
+
+    @property
+    def outdentation(self):
+        """
+        The right-side indentation that will be used for the next line.
+        """
+        return self.__outdent[-1]
 
 
     def indent(self, indent):
@@ -208,14 +221,9 @@ class Printer:
         Starts the current line, if necessary.
         """
         if self.__col is None:
-            # FIXME: Hacky.  This is the old policy: don't style the
-            # indentation.
-            # with self(**StyleStack.DEFAULT_STYLE):
-            #     self._write(self.indentation)
-
             self._write(self.__style.current)
             self._write(self.indentation)
-            self.__col = length(self.indentation)
+            self.__col = 0
 
 
     def write(self, string):
@@ -245,6 +253,7 @@ class Printer:
             if length(line) > self.remaining:
                 line = line[: self.remaining - lel] + ellipsis
             self._write(line)
+            self.__col += length(line)
             if not last:
                 self.newline()
 

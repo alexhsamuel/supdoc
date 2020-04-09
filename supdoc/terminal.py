@@ -1,7 +1,6 @@
 import sys
 
 from   .lib import itr
-from   .lib.py import if_none
 from   .lib.terminal import ansi, get_width
 from   .lib.terminal.printer import Printer, NL
 from   .inspector import resolve
@@ -243,7 +242,7 @@ def print_docs(inspector, objdoc, lookup_path=None, *,
         file = sys.stdout
     if width is None:
         # Substract one to leave a one-space border on the right.
-        width = get_width() - 1
+        width = get_width()
 
     cfg = {
         "source"    : source,
@@ -251,7 +250,7 @@ def print_docs(inspector, objdoc, lookup_path=None, *,
         "imports"   : imports,
     }
 
-    printer = Printer(file.write, width=width)
+    printer = Printer(file.write, width=width, outdent=" ")
     try:
         _print_docs(inspector, objdoc, lookup_path, printer, cfg)
     finally:
@@ -627,7 +626,7 @@ def _print_member(inspector, objdoc, member_name, parent_path, pr, show_type=Tru
         if show_repr:
             with pr(**STYLES["repr"]):
                 pr.elide("= " + repr)
-            pr << NL
+                pr << NL
         if summary is not None:
             with pr(**STYLES["doc"]):
                 pr.html(summary)
