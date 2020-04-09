@@ -3,6 +3,8 @@
 - moving unmangling into inspector?
 - show umnagled name only if parent name in MRO
 - better support for inspecting objects
+- inspect bound methods
+- handle `__future__` annotations
 - pager support
 - color themes (dark & light)
 - cache stuff under `sys.prefix` for `help()`
