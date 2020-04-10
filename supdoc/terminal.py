@@ -373,7 +373,7 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
         pr << NL
 
     # Summarize type.
-    if type_name == "type":
+    if "bases" in objdoc:
         bases   = objdoc.get("bases")
         mro     = objdoc.get("mro")
         if bases is not None or mro is not None:
