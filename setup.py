@@ -7,7 +7,7 @@ with open("README.md") as file:
 
 setuptools.setup(
     name            ="supdoc",
-    version         ="0.1.0",
+    version         ="0.1.1",
     description     ="inspection-based documentation tool",
     long_description=long_description,
     long_description_content_type="text/markdown",
