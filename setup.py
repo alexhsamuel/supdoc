@@ -10,6 +10,7 @@ setuptools.setup(
     version         ="0.1.0",
     description     ="inspection-based documentation tool",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     url             ="https://github.com/alexhsamuel/supdoc",
     author          ="Alex Samuel",
     author_email    ="alex@alexsamuel.net",
