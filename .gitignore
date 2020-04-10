@@ -1,3 +1,7 @@
 src/js/apidoc.json
 config.mk
 tmp
+build/
+dist/
+work/
+*.egg-info
