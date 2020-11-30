@@ -78,6 +78,10 @@ class Dotname:
 
     @classmethod
     def _from_parts(cls_, parts):
+        """
+        Constructs from `parts` without validation.
+        """
+        # Avoid __init__ so we don't re-split parts.
         name = super().__new__(cls_)
         name.__str = name.SEP.join(parts)
         name.__parts = parts
