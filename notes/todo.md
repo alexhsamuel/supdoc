@@ -1,11 +1,9 @@
-- setup.py
-- PyPI
-- moving unmangling into inspector?
-- show umnagled name only if parent name in MRO
 - better support for inspecting objects
 - inspect bound methods
 - handle `__future__` annotations
 - pager support
+- show umnagled name only if parent name in MRO
+- moving unmangling into inspector?
 - color themes (dark & light)
 - cache stuff under `sys.prefix` for `help()`
 - cache on `id(obj)`
