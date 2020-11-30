@@ -309,8 +309,16 @@ def _print_docs(inspector, objdoc, lookup_path, printer, cfg):
 
         # Show its type.
         nice_type_name = format_nice_type_name(objdoc)
+        if nice_type_name is None:
+            nice_type_name = type_name
+        if (
+                "type" in objdoc
+                and is_ref(objdoc["type"])
+                and parse_ref(objdoc["type"]).modname != "builtins"
+        ):
+            nice_type_name = "instance of " + nice_type_name
         with pr(**STYLES["type_name"]):
-            pr.write_right((nice_type_name or type_name) + pr.indentation)
+            pr.write_right(nice_type_name + pr.indentation)
             pr << NL
         if nice_type_name is not None:
             pr << format_path(type_path, modname=lookup_modname) << NL
