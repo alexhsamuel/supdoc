@@ -11,12 +11,13 @@ import pygments.formatters
 
 class Extension(markdown.extensions.Extension):
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         md.registerExtension(self)
-        md.preprocessors.add(
-            "python_doctest", 
-            Preprocessor(md), 
-            ">normalize_whitespace")
+        md.preprocessors.register(
+            Preprocessor(md),
+            "python_doctest",
+            0
+        )
 
 
 
