@@ -1,8 +1,10 @@
-- better support for inspecting objects
+- only classes may have methods; other types have attributes only
+- sort members better: special, then regular, then private
 - inspect bound methods
+- show umnagled name only if parent name in MRO?
+- better support for inspecting objects
 - handle `__future__` annotations
 - pager support
-- show umnagled name only if parent name in MRO
 - moving unmangling into inspector?
 - color themes (dark & light)
 - cache stuff under `sys.prefix` for `help()`
